@@ -1,0 +1,15 @@
+{
+  "Group": "Heroslender",
+  "Name": "HeroChat",
+  "Version": "${version}",
+  "Authors": [
+    {
+      "Name": "Heroslender",
+      "Url": "https://github.com/Heroslender"
+    }
+  ],
+  "Website": "https://github.com/heroslender/HeroChat",
+  "Main": "com.github.heroslender.herochat.HeroChat",
+  "ServerVersion": "*",
+  "Description": "A chat plugin"
+}
