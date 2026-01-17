@@ -14,6 +14,7 @@ import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType
 import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage
+import com.hypixel.hytale.server.core.ui.builder.EventData
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -22,8 +23,8 @@ import com.hypixel.hytale.server.core.util.NotificationUtil
 import javax.annotation.Nonnull
 import kotlin.math.max
 
-class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.EventData>(
-    playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, EventData.CODEC
+class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
+    playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, UiState.CODEC
 ) {
     override fun build(
         @Nonnull ref: Ref<EntityStore?>,
@@ -40,21 +41,21 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.EventData>(
         evt.addEventBinding(
             CustomUIEventBindingType.ValueChanged,
             "#PreviewField",
-            com.hypixel.hytale.server.core.ui.builder.EventData().append("@Format", "#PreviewField.Value"),
+            EventData.of("@Format", "#PreviewField.Value"),
             false
         )
 
         evt.addEventBinding(
             CustomUIEventBindingType.ValueChanged,
             "#ColorPicker",
-            com.hypixel.hytale.server.core.ui.builder.EventData().append("@Color", "#ColorPicker.Value"),
+            EventData.of("@Color", "#ColorPicker.Value"),
             false
         )
 
         evt.addEventBinding(
             CustomUIEventBindingType.Activating,
             "#MyButton",
-            com.hypixel.hytale.server.core.ui.builder.EventData().append("Action", "click"),
+            EventData.of("Action", "click"),
             false
         )
     }
@@ -62,7 +63,7 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.EventData>(
     override fun handleDataEvent(
         @Nonnull ref: Ref<EntityStore?>,
         @Nonnull store: Store<EntityStore?>,
-        @Nonnull data: EventData
+        @Nonnull data: UiState
     ) {
         if ("click" == data.action) {
             NotificationUtil.sendNotification(
@@ -131,27 +132,27 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.EventData>(
     }
 
     // Event data class with codec
-    class EventData {
+    class UiState {
         var action: String? = null
         var format: String? = null
         var color: String? = null
 
         companion object {
-            val CODEC: BuilderCodec<EventData?> = BuilderCodec.builder<EventData?>(
-                EventData::class.java, { EventData() }
+            val CODEC: BuilderCodec<UiState?> = BuilderCodec.builder<UiState?>(
+                UiState::class.java, { UiState() }
             )
                 .append<String?>(
                     KeyedCodec<String?>("Action", Codec.STRING),
-                    { e: EventData?, v: String? -> e!!.action = v },
-                    { e: EventData? -> e!!.action }).add()
+                    { e: UiState?, v: String? -> e!!.action = v },
+                    { e: UiState? -> e!!.action }).add()
                 .append<String?>(
                     KeyedCodec<String?>("@Format", Codec.STRING),
-                    { e: EventData?, v: String? -> e!!.format = v },
-                    { e: EventData? -> e!!.format }).add()
+                    { e: UiState?, v: String? -> e!!.format = v },
+                    { e: UiState? -> e!!.format }).add()
                 .append<String?>(
                     KeyedCodec<String?>("@Color", Codec.STRING),
-                    { e: EventData?, v: String? -> e!!.color = v },
-                    { e: EventData? -> e!!.color }).add()
+                    { e: UiState?, v: String? -> e!!.color = v },
+                    { e: UiState? -> e!!.color }).add()
                 .build()
         }
     }
