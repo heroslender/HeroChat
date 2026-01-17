@@ -1,0 +1,6 @@
+Group {
+    Label #PreviewLbl {
+        Text: "Hello World!";
+        Style: (FontSize: 16, TextColor: #ffffff, RenderBold: false);
+    }
+}

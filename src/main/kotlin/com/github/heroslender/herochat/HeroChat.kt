@@ -1,5 +1,6 @@
 package com.github.heroslender.herochat
 
+import com.github.heroslender.herochat.commands.OpenUICommand
 import com.github.heroslender.herochat.config.ChatConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent
@@ -13,6 +14,14 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     lateinit var config: ChatConfig
         private set
 
+    companion object {
+        lateinit var instance: HeroChat
+    }
+
+    init {
+        instance = this
+    }
+
     override fun setup() {
         config = _config.get()
         _config.save()
@@ -20,6 +29,10 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         eventRegistry.register(PlayerChatEvent::class.java) { event ->
             event.formatter = formatter
         }
+    }
+
+    override fun start() {
+        commandRegistry.registerCommand(OpenUICommand())
     }
 
     val formatter = PlayerChatEvent.Formatter { player: PlayerRef, msg: String ->
