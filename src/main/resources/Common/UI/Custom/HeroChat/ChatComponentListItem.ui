@@ -1,0 +1,72 @@
+$C = "../Common.ui";
+
+// Chat component container
+$C.@Panel {
+  Anchor: (Bottom: 12);
+  Padding: (Horizontal: 20, Vertical: 16);
+  LayoutMode: Top;
+
+  $C.@PanelTitle #Title {
+    @Text = "Tag";
+    Anchor: (Bottom: 12);
+  }
+
+  Group {
+    LayoutMode: Top;
+    Label {
+      Text: "Text: ";
+      Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
+      Anchor: (Bottom: 4);
+    }
+
+    $C.@TextField #Text {
+      Anchor: (Height: 38, Bottom: 12);
+      Style: (FontSize: 16, TextColor: #ffffff);
+    }
+  }
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Bottom: 12);
+
+    Group {
+      FlexWeight: 2;
+      LayoutMode: Top;
+      Label {
+        Text: "Id: ";
+        Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
+        Anchor: (Bottom: 4);
+      }
+
+      $C.@TextField #Id {
+        Anchor: (Height: 38);
+        Style: (FontSize: 16, TextColor: #ffffff);
+      }
+    }
+
+    Group {Anchor: (Width: 12);}
+
+    Group {
+      FlexWeight: 3;
+      LayoutMode: Top;
+      Label {
+        Text: "Permission: ";
+        Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
+        Anchor: (Bottom: 4);
+      }
+
+      $C.@TextField #Permission {
+        Anchor: (Height: 38);
+        Style: (FontSize: 16, TextColor: #ffffff);
+      }
+    }
+
+    Group {Anchor: (Width: 12);}
+
+    $C.@CancelTextButton #DeleteChatButton {
+      @Text = "Delete";
+      Padding: (Horizontal: 12);
+      Anchor: (Height: 38, Bottom: 0);
+    }
+  }
+}

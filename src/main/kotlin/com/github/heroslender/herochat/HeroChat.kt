@@ -25,13 +25,13 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     override fun setup() {
         config = _config.get()
         _config.save()
-
-        eventRegistry.register(PlayerChatEvent::class.java) { event ->
-            event.formatter = formatter
-        }
     }
 
     override fun start() {
+        eventRegistry.register(PlayerChatEvent::class.java) { event ->
+            event.formatter = formatter
+        }
+
         commandRegistry.registerCommand(OpenUICommand())
     }
 

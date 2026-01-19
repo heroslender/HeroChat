@@ -21,11 +21,11 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
 import javax.annotation.Nonnull
-import kotlin.math.max
 
 class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
     playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, UiState.CODEC
 ) {
+    private var format: String = HeroChat.instance.config.chatFormat
     override fun build(
         @Nonnull ref: Ref<EntityStore?>,
         @Nonnull cmd: UICommandBuilder,
@@ -36,26 +36,53 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
         cmd.append(LAYOUT)
 
         cmd["#PreviewField.Value"] = HeroChat.instance.config.chatFormat
-        cmd.appendFormattedMessage(HeroChat.instance.config.chatFormat)
+        cmd.appendFormattedMessage()
+
+        var i = 0
+        for (component in HeroChat.instance.config.components) {
+            cmd.append("#ListContainer", ComponentListItemLayout)
+            cmd["#ListContainer[$i] #PanelTitle.Text"] = "Tag: {${component.key}}"
+            cmd["#ListContainer[$i] #Id.Value"] = component.key
+            cmd["#ListContainer[$i] #Text.Value"] = component.value.text
+            cmd["#ListContainer[$i] #Permission.Value"] = component.value.permission ?: ""
+
+            evt.addEventBinding(
+                CustomUIEventBindingType.ValueChanged,
+                "#ListContainer[$i] #Text",
+                EventData.of("@CText", "#ListContainer[$i] #Text.Value")
+                    .put("CId", component.key),
+                false
+            )
+
+            evt.addEventBinding(
+                CustomUIEventBindingType.ValueChanged,
+                "#ListContainer[$i] #Permission",
+                EventData.of("@CPerm", "#ListContainer[$i] #Permission.Value")
+                    .put("CId", component.key),
+                false
+            )
+
+            i++
+        }
 
         evt.addEventBinding(
-            CustomUIEventBindingType.ValueChanged,
-            "#PreviewField",
-            EventData.of("@Format", "#PreviewField.Value"),
-            false
-        )
-
-        evt.addEventBinding(
-            CustomUIEventBindingType.ValueChanged,
-            "#ColorPicker",
-            EventData.of("@Color", "#ColorPicker.Value"),
+            CustomUIEventBindingType.Activating,
+            "#CloseButton",
+            EventData.of("Action", "closeUI"),
             false
         )
 
         evt.addEventBinding(
             CustomUIEventBindingType.Activating,
-            "#MyButton",
-            EventData.of("Action", "click"),
+            "#Cancel",
+            EventData.of("Action", "closeUI"),
+            false
+        )
+
+        evt.addEventBinding(
+            CustomUIEventBindingType.ValueChanged,
+            "#PreviewField",
+            EventData.of("@Format", "#PreviewField.Value"),
             false
         )
     }
@@ -65,31 +92,37 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
         @Nonnull store: Store<EntityStore?>,
         @Nonnull data: UiState
     ) {
-        if ("click" == data.action) {
-            NotificationUtil.sendNotification(
-                playerRef.packetHandler,
-                Message.raw("Button Clicked!"),
-                Message.raw("You clicked the button."),
-                NotificationStyle.Success
-            )
-        }
-
-        if (data.color != null) {
-            val cmd = UICommandBuilder()
-            cmd["#ColorField.Value"] = data.color!!.substring(0, max(0, data.color!!.length - 2))
-            sendUpdate(cmd, false)
+        if ("closeUI" == data.action) {
+            close()
+            return
         }
 
         if (data.format != null) {
-            val cmd = UICommandBuilder()
-            cmd.clear("#PreviewContainer");
-            cmd.appendFormattedMessage(data.format!!)
+            this.format = data.format!!
 
-            sendUpdate(cmd, false)
+            updatePreview()
+        }
+
+        if (data.componentId != null) {
+            val id = data.componentId!!
+            val text = data.componentText
+            val perm = data.componentPermission
+
+            text?.also { HeroChat.instance.config.components[id]?.text = text}
+            perm?.also { HeroChat.instance.config.components[id]?.permission = perm.ifEmpty { null } }
+
+            updatePreview()
         }
     }
 
-    fun UICommandBuilder.appendFormattedMessage(format: String) {
+    fun updatePreview() {
+        val cmd = UICommandBuilder()
+        cmd.clear("#PreviewContainer");
+        cmd.appendFormattedMessage()
+        sendUpdate(cmd, false)
+    }
+
+    fun UICommandBuilder.appendFormattedMessage(format: String = this@MyPage.format) {
         val cmd = this
         val msg = ComponentParser.parse(
             playerRef,
@@ -135,7 +168,10 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
     class UiState {
         var action: String? = null
         var format: String? = null
-        var color: String? = null
+
+        var componentId: String? = null
+        var componentText: String? = null
+        var componentPermission: String? = null
 
         companion object {
             val CODEC: BuilderCodec<UiState?> = BuilderCodec.builder<UiState?>(
@@ -150,9 +186,17 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
                     { e: UiState?, v: String? -> e!!.format = v },
                     { e: UiState? -> e!!.format }).add()
                 .append<String?>(
-                    KeyedCodec<String?>("@Color", Codec.STRING),
-                    { e: UiState?, v: String? -> e!!.color = v },
-                    { e: UiState? -> e!!.color }).add()
+                    KeyedCodec<String?>("CId", Codec.STRING),
+                    { e: UiState?, v: String? -> e!!.componentId = v },
+                    { e: UiState? -> e!!.componentId }).add()
+                .append<String?>(
+                    KeyedCodec<String?>("@CText", Codec.STRING),
+                    { e: UiState?, v: String? -> e!!.componentText = v },
+                    { e: UiState? -> e!!.componentText }).add()
+                .append<String?>(
+                    KeyedCodec<String?>("@CPerm", Codec.STRING),
+                    { e: UiState?, v: String? -> e!!.componentPermission = v },
+                    { e: UiState? -> e!!.componentPermission }).add()
                 .build()
         }
     }
@@ -160,6 +204,7 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
     companion object {
         // Path relative to Common/UI/Custom/
         const val LAYOUT: String = "HeroChat/ChatPage.ui"
+        const val ComponentListItemLayout: String = "HeroChat/ChatComponentListItem.ui"
         const val PREVIEW_LABEL_LAYOUT: String = "HeroChat/PreviewLabel.ui"
     }
 

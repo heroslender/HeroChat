@@ -1,65 +1,97 @@
 $C = "../Common.ui";
 
 $C.@DecoratedContainer {
-    @CloseButton = true;
-    Anchor: (Width: 900, Height: 600);
+  @CloseButton = true;
+  Anchor: (Width: 1000, Height: 900);
 
-    #Title {
-        Group {
-            $C.@Title {
-                @Text = "Chat Customization";
-            }
-        }
+  #Title {
+    Group {
+      $C.@Title {
+        @Text = "Chat Customization";
+      }
+    }
+  }
+
+  #Content {
+    Label {
+      Text: "Preview";
+      Style: (TextColor: #96a9be, FontSize: 16, RenderBold: true);
+      Anchor: (Bottom: 8);
     }
 
-    #Content {
-        Label {
-          Text: "PREVIEW";
-          Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
-            Anchor: (Bottom: 8);
-        }
-
-        Group #PreviewContainer {
-            Anchor: (Height: 40, Bottom: 16);
-            Background: (Color: #0a0f17);
-            Padding: (Horizontal: 14, Vertical: 12);
-            LayoutMode: Left;
-        }
-
-        Label {
-          Text: "Format";
-          Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
-          Anchor: (Bottom: 8);
-        }
-
-        $C.@TextField #PreviewField {
-            Anchor: (Height: 38, Bottom: 32);
-            Style: (FontSize: 16, TextColor: #ffffff);
-        }
-
-        Label {
-          Text: "Color Picker Helper";
-          Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
-          Anchor: (Bottom: 14);
-        }
-
-        ColorPicker #ColorPicker {
-            Anchor: (Width: 140, Height: 120, Left: 12, Bottom: 8);
-            Value: #FF5555FF;
-            Style: $C.@DefaultColorPickerStyle;
-        }
-
-        $C.@TextField #ColorField {
-            Value: "#FF5555";
-            Anchor: (Width: 140, Height: 38, Left: 12, Bottom: 16);
-            Style: (FontSize: 16, TextColor: #ffffff);
-        }
-
-        Group { Anchor: (Height: 20); }
-
-        $C.@TextButton #MyButton {
-            @Text = "Click Me";
-            Anchor: (Width: 150, Height: 44);
-        }
+    Group #PreviewContainer {
+      Anchor: (Bottom: 16);
+      Background: (Color: #11191f(0.7));
+      Padding: (Horizontal: 12, Vertical: 12);
+      LayoutMode: Left;
     }
+
+    Label {
+      Text: "Format";
+      Style: (TextColor: #96a9be, FontSize: 16, RenderBold: true);
+      Anchor: (Bottom: 8);
+    }
+
+    $C.@TextField #PreviewField {
+      Anchor: (Height: 38);
+      Style: (FontSize: 16, TextColor: #ffffff);
+    }
+
+    Group { Anchor: (Height: 16); }
+
+    Group {
+      LayoutMode: Left;
+
+      Label {
+        Text: "Components";
+        Style: (TextColor: #96a9be, FontSize: 18, RenderBold: true);
+        Anchor: (Bottom: 8);
+      }
+
+      Group { FlexWeight: 1; }
+
+      Label {
+        Text: "Color Picker Helper:";
+        Style: (TextColor: #96a9be, FontSize: 16, RenderBold: true, VerticalAlignment: Center);
+        Anchor: (Bottom: 8, Right: 12);
+      }
+
+      ColorPickerDropdownBox #ColorPicker {
+        Anchor: (Width: 100, Height: 24, Right: 12, Bottom: 8);
+        DisplayTextField: true;
+        Style: $C.@DefaultColorPickerDropdownBoxStyle;
+//        @Value = #FF5555FF;
+      }
+    }
+
+
+    Group {
+      Background: #393426(0.5);
+      Anchor: (Height: 1);
+    }
+
+    // New group for the list
+    Group #ListContainer {
+      FlexWeight: 1;
+      Anchor: (Bottom: 20);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    Group {
+      LayoutMode: Right;
+
+      $C.@TextButton #Save {
+        @Text = "Save";
+        Anchor: (Width: 120, Height: 44);
+      }
+
+      Group { Anchor: (Width: 12); }
+
+      $C.@SecondaryTextButton #Cancel {
+        @Text = "Cancel";
+        Anchor: (Width: 120, Height: 44);
+      }
+    }
+  }
 }
