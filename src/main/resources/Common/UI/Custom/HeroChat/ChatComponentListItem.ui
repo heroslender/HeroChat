@@ -1,8 +1,7 @@
 $C = "../Common.ui";
 
-// Chat component container
 $C.@Panel {
-  Anchor: (Bottom: 12);
+  Anchor: (Top: 12);
   Padding: (Horizontal: 20, Vertical: 16);
   LayoutMode: Top;
 
@@ -63,7 +62,7 @@ $C.@Panel {
 
     Group {Anchor: (Width: 12);}
 
-    $C.@CancelTextButton #DeleteChatButton {
+    $C.@CancelTextButton #DeleteBtn {
       @Text = "Delete";
       Padding: (Horizontal: 12);
       Anchor: (Height: 38, Bottom: 0);

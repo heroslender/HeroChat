@@ -21,7 +21,7 @@ $C.@DecoratedContainer {
 
     Group #PreviewContainer {
       Anchor: (Bottom: 16);
-      Background: (Color: #11191f(0.7));
+      Background: (TexturePath: "../Common/ContainerPanelPatch.png", Border: 10);
       Padding: (Horizontal: 12, Vertical: 12);
       LayoutMode: Left;
     }
@@ -79,14 +79,19 @@ $C.@DecoratedContainer {
     }
 
     Group {
-      LayoutMode: Right;
+      LayoutMode: Left;
+
+      $C.@TextButton #NewComponentBtn {
+        @Text = "Add New Component";
+        Anchor: (Height: 44);
+      }
+
+      Group { FlexWeight: 1; }
 
       $C.@TextButton #Save {
         @Text = "Save";
-        Anchor: (Width: 120, Height: 44);
+        Anchor: (Width: 120, Height: 44, Right: 12);
       }
-
-      Group { Anchor: (Width: 12); }
 
       $C.@SecondaryTextButton #Cancel {
         @Text = "Cancel";

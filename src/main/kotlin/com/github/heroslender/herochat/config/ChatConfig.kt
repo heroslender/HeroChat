@@ -23,7 +23,7 @@ class ChatConfig {
             ).add()
             .append(
                 KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
-                { config, value -> config.components = value },
+                { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
                 { config -> config.components }
             ).add()
             .build()

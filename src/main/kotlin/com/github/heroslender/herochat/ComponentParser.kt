@@ -97,10 +97,10 @@ object ComponentParser {
         return component
     }
 
-    fun parsePlaceholder(player: PlayerRef, placeholder: String): String {
+    fun parsePlaceholder(player: PlayerRef, placeholder: String): String? {
         return when (placeholder) {
             "player_username" -> player.username
-            else -> placeholder
+            else -> null
         }
     }
 

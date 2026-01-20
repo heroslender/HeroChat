@@ -11,8 +11,8 @@ import com.hypixel.hytale.server.core.util.Config
 
 class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     private val _config: Config<ChatConfig> = withConfig(ChatConfig.CODEC)
-    lateinit var config: ChatConfig
-        private set
+    val config: ChatConfig
+        get() = _config.get()
 
     companion object {
         lateinit var instance: HeroChat
@@ -23,7 +23,6 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     }
 
     override fun setup() {
-        config = _config.get()
         _config.save()
     }
 
@@ -37,5 +36,9 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
     val formatter = PlayerChatEvent.Formatter { player: PlayerRef, msg: String ->
         ComponentParser.parse(player, config.chatFormat, config.components + ("message" to ComponentConfig(msg)))
+    }
+
+    fun saveConfig() {
+        _config.save()
     }
 }
