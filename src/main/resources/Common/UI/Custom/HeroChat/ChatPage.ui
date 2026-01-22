@@ -44,8 +44,16 @@ $C.@DecoratedContainer {
 
       Label {
         Text: "Components";
-        Style: (TextColor: #96a9be, FontSize: 18, RenderBold: true);
+        Style: (TextColor: #96a9be, FontSize: 18, RenderBold: true, VerticalAlignment: Center);
         Anchor: (Bottom: 8);
+      }
+
+      $C.@TertiaryTextButton #NewComponentBtn {
+        @Text = "+";
+        Padding: (Horizontal: 0);
+        Anchor: (Width: 32, Height: 32, Left: 12, Bottom: 8);
+        TooltipText: "Add new component";
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
       }
 
       Group { FlexWeight: 1; }
@@ -60,7 +68,7 @@ $C.@DecoratedContainer {
         Anchor: (Width: 100, Height: 24, Right: 12, Bottom: 8);
         DisplayTextField: true;
         Style: $C.@DefaultColorPickerDropdownBoxStyle;
-//        @Value = #FF5555FF;
+        //        @Value = #FF5555FF;
       }
     }
 
@@ -70,7 +78,6 @@ $C.@DecoratedContainer {
       Anchor: (Height: 1);
     }
 
-    // New group for the list
     Group #ListContainer {
       FlexWeight: 1;
       Anchor: (Bottom: 20);
@@ -79,14 +86,7 @@ $C.@DecoratedContainer {
     }
 
     Group {
-      LayoutMode: Left;
-
-      $C.@TextButton #NewComponentBtn {
-        @Text = "Add New Component";
-        Anchor: (Height: 44);
-      }
-
-      Group { FlexWeight: 1; }
+      LayoutMode: Right;
 
       $C.@TextButton #Save {
         @Text = "Save";

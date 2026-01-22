@@ -11,7 +11,7 @@ $C = "../Common.ui";
 
     #Title {
       Group {
-        $C.@Title {
+        $C.@Title #PopupTitle {
           @Text = "Add Chat Component";
         }
       }

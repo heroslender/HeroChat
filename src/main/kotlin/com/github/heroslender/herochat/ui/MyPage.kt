@@ -69,6 +69,32 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
                 }
             }
 
+            "editComponent" -> {
+                val id = data.componentId
+                if (id != null) {
+                    val component = HeroChat.instance.config.components[id] ?: return
+                    runUiCmdEvtUpdate { cmd, evt ->
+                        cmd.append("HeroChat/AddChatComponent.ui")
+                        cmd["#Popup #PopupTitle.Text"] = "Edit Component"
+                        cmd["#Popup #AddBtn.Text"] = "Save"
+                        cmd["#Popup #Tag.Value"] = id
+                        cmd["#Popup #Permission.Value"] = component.permission ?: ""
+                        cmd["#Popup #Format.Value"] = component.text
+
+                        evt.onActivating("#Popup #Close", "Action" to "closePopup")
+                        evt.onActivating(
+                            "#Popup #AddBtn",
+                            "Action" to "saveComponent",
+                            "@CId" to "#Popup #Tag.Value",
+                            "@CText" to "#Popup #Format.Value",
+                            "@CPerm" to "#Popup #Permission.Value",
+                        )
+                    }
+                }
+
+                return
+            }
+
             "saveComponent" -> {
                 val id = data.componentId
                 val text = data.componentText
@@ -161,21 +187,17 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
         var i = 0
         for (component in HeroChat.instance.config.components) {
             cmd.append("#ListContainer", ComponentListItemLayout)
-            cmd["#ListContainer[$i] #PanelTitle.Text"] = "Tag: {${component.key}}"
-            cmd["#ListContainer[$i] #Id.Value"] = component.key
-            cmd["#ListContainer[$i] #Text.Value"] = component.value.text
-            cmd["#ListContainer[$i] #Permission.Value"] = component.value.permission ?: ""
+            cmd["#ListContainer[$i] #Tag.Text"] = "{${component.key}}"
+            cmd["#ListContainer[$i] #TagText.Text"] = component.value.text
+            if (component.value.permission != null) {
+                cmd["#ListContainer[$i] #PermGroup.Visible"] = true
+                cmd["#ListContainer[$i] #Permission.Text"] = "{${component.key}}"
+            }
 
-            evt.onValueChanged(
-                "#ListContainer[$i] #Text",
+            evt.onActivating(
+                "#ListContainer[$i] #EditBtn",
                 "CId" to component.key,
-                "@CText" to "#ListContainer[$i] #Text.Value",
-            )
-
-            evt.onValueChanged(
-                "#ListContainer[$i] #Permission",
-                "CId" to component.key,
-                "@CPerm" to "#ListContainer[$i] #Permission.Value",
+                "Action" to "editComponent",
             )
 
             evt.onActivating(
@@ -252,27 +274,33 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
         var componentPermission: String? = null
 
         companion object {
-            val CODEC: BuilderCodec<UiState?> = BuilderCodec.builder<UiState?>(
-                UiState::class.java, { UiState() }).append<String?>(
-                    KeyedCodec<String?>("Action", Codec.STRING),
+            val CODEC: BuilderCodec<UiState?> = BuilderCodec.builder(
+                UiState::class.java, { UiState() })
+                .append(
+                    KeyedCodec("Action", Codec.STRING),
                     { e: UiState?, v: String? -> e!!.action = v },
-                    { e: UiState? -> e!!.action }).add().append<String?>(
-                    KeyedCodec<String?>("@Format", Codec.STRING),
+                    { e: UiState? -> e!!.action }).add()
+                .append(
+                    KeyedCodec("@Format", Codec.STRING),
                     { e: UiState?, v: String? -> e!!.format = v },
-                    { e: UiState? -> e!!.format }).add().append<String?>(
-                    KeyedCodec<String?>("CId", Codec.STRING),
-                    { e: UiState?, v: String? -> e!!.componentId = v },
-                    { e: UiState? -> e!!.componentId }).add().append<String?>(
-                    KeyedCodec<String?>("@CId", Codec.STRING),
+                    { e: UiState? -> e!!.format }).add()
+                .append(
+                    KeyedCodec("CId", Codec.STRING),
                     { e: UiState?, v: String? -> e!!.componentId = v },
                     { e: UiState? -> e!!.componentId }).add()
-                .append<String?>(
-                    KeyedCodec<String?>("@CText", Codec.STRING),
+                .append(
+                    KeyedCodec("@CId", Codec.STRING),
+                    { e: UiState?, v: String? -> e!!.componentId = v },
+                    { e: UiState? -> e!!.componentId }).add()
+                .append(
+                    KeyedCodec("@CText", Codec.STRING),
                     { e: UiState?, v: String? -> e!!.componentText = v },
-                    { e: UiState? -> e!!.componentText }).add().append<String?>(
-                    KeyedCodec<String?>("@CPerm", Codec.STRING),
+                    { e: UiState? -> e!!.componentText }).add()
+                .append(
+                    KeyedCodec("@CPerm", Codec.STRING),
                     { e: UiState?, v: String? -> e!!.componentPermission = v },
-                    { e: UiState? -> e!!.componentPermission }).add().build()
+                    { e: UiState? -> e!!.componentPermission }).add()
+                .build()
         }
     }
 
