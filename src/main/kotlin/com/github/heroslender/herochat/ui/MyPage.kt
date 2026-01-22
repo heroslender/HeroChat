@@ -143,6 +143,7 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
             }
 
             "save" -> {
+                HeroChat.instance.config.chatFormat = format
                 HeroChat.instance.saveConfig()
                 NotificationUtil.sendNotification(
                     playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
