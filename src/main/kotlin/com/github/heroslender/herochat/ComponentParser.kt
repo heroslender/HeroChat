@@ -1,6 +1,9 @@
 package com.github.heroslender.herochat
 
+import com.github.heroslender.herochat.dependencies.LuckPermsDependency.prefix
+import com.github.heroslender.herochat.dependencies.LuckPermsDependency.suffix
 import com.github.heroslender.herochat.config.ComponentConfig
+import com.github.heroslender.herochat.dependencies.LuckPermsDependency
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.permissions.PermissionsModule
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -98,7 +101,11 @@ object ComponentParser {
     }
 
     fun parsePlaceholder(player: PlayerRef, placeholder: String): String? {
+        val user = LuckPermsDependency.getUser(player)
+
         return when (placeholder) {
+            "luckperms_prefix" -> user?.prefix
+            "luckperms_suffix" -> user?.suffix
             "player_username" -> player.username
             else -> null
         }

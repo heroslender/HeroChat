@@ -30,12 +30,14 @@ You can create as many chat components as you want and need.
 
 #### Available placeholders
 
-  - `{player_username}`
-  - `{message}`
+- `{message}`
+- `{player_username}`
+- `{luckperms_prefix}`
+- `{luckperms_suffix}`
 
 #### Formatting placeholders
 
-  - `{#ffffff}` - Hex color
-  - `{bold}`
-  - `{italic}`
-  - `{monospaced}`
+- `{#ffffff}` - Hex color
+- `{bold}`
+- `{italic}`
+- `{monospaced}`

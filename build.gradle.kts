@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.github.heroslender.herochat"
-version = "1.0-SNAPSHOT"
+version = "1.1.0"
 
 val javaVersion = 25
 
@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     compileOnly(files("libs/HytaleServer.jar"))
+    compileOnly(files("libs/LuckPerms-Hytale-5.5.25-beta10.jar"))
 
     testImplementation(kotlin("test"))
 }
