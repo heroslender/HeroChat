@@ -12,8 +12,7 @@ import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import javax.annotation.Nonnull
 
-
-class OpenUICommand : AbstractPlayerCommand("myui", "Opens the custom UI") {
+class ChatCommand : AbstractPlayerCommand("chat", "Opens the chat customization UI") {
     override fun canGeneratePermission(): Boolean {
         return false
     }
@@ -25,7 +24,7 @@ class OpenUICommand : AbstractPlayerCommand("myui", "Opens the custom UI") {
         @Nonnull playerRef: PlayerRef,
         @Nonnull world: World
     ) {
-        val player = store.getComponent<Player?>(ref, Player.getComponentType())
+        val player = store.getComponent(ref, Player.getComponentType())
         if (player == null) {
             context.sendMessage(Message.raw("Error: Could not get player"))
             return
