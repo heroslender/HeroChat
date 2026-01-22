@@ -6,8 +6,8 @@ A simple and customizable chat plugin for Hytale servers.
 
 <img width="299" height="129" alt="{3EB12BE9-F0FE-4044-A973-B300883AD9BB}" src="https://github.com/user-attachments/assets/c5cac4a4-d4f3-403d-ad55-434a81e3168d" />
 
-![Discord_tYdCrSNa0P](https://github.com/user-attachments/assets/01269219-1d93-4966-bea8-f5fe329c0a38)
-![Discord_TPUGBkJZH2](https://github.com/user-attachments/assets/50e4943f-2727-4ff7-989a-03cf6e402260)
+![Discord_5k0eSX7xdW](https://github.com/user-attachments/assets/90adba8d-4dd7-486f-a9b0-597244329d0d)
+
 
 #### Config
 
