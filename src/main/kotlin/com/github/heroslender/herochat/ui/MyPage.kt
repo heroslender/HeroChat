@@ -147,6 +147,7 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
                 NotificationUtil.sendNotification(
                     playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
                 )
+                close()
                 return
             }
 
