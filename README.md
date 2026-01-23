@@ -8,7 +8,6 @@ A simple and customizable chat plugin for Hytale servers.
 
 ![Discord_5k0eSX7xdW](https://github.com/user-attachments/assets/90adba8d-4dd7-486f-a9b0-597244329d0d)
 
-
 #### Config
 
 You can create as many chat components as you want and need.
@@ -41,3 +40,15 @@ You can create as many chat components as you want and need.
 - `{bold}`
 - `{italic}`
 - `{monospaced}`
+
+#### Plugin Compatibility
+
+##### LuckPerms
+
+To use this plugin with LuckPerms you must disable chat formatting on the LuckPerms config:
+
+```yaml
+chat-formatter:
+  enabled: false  # <== Change this to false
+  message-format: "<prefix><username><suffix>: <message>"
+```
