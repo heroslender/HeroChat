@@ -54,7 +54,7 @@ object ComponentParser {
                 component.insert(formattingComponent)
                 formattingComponent = null
             } else if (start != prefixIndex) {
-                component.insert(message.substring(start, prefixIndex))
+                (formattingComponent ?: component).insert(message.substring(start, prefixIndex))
             }
 
             if (placeholder.startsWith('#')) {
