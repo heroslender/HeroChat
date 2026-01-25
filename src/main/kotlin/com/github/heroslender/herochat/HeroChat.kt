@@ -6,12 +6,15 @@ import com.github.heroslender.herochat.config.ChatConfig
 import com.hypixel.hytale.common.plugin.PluginIdentifier
 import com.hypixel.hytale.common.semver.SemverRange
 import com.hypixel.hytale.event.EventPriority
+import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
 import com.hypixel.hytale.server.core.plugin.PluginManager
+import com.hypixel.hytale.server.core.universe.Universe
 import com.hypixel.hytale.server.core.util.Config
 import java.io.File
+import java.util.concurrent.CompletableFuture
 
 class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     private val _config: Config<ChatConfig> = withConfig(ChatConfig.CODEC)
@@ -48,7 +51,15 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     override fun start() {
         eventRegistry.register(EventPriority.EARLY, PlayerChatEvent::class.java) { event ->
             event.isCancelled = true
-            channelManager.defaultChannel?.sendMessage(event.sender, event.content)
+            val executor = Universe.get().getWorld(event.sender.worldUuid ?: return@register)
+            val player = CompletableFuture.supplyAsync({
+                event.sender.reference?.store?.getComponent(
+                    event.sender.reference ?: return@supplyAsync null,
+                    Player.getComponentType()
+                )
+            }, executor).join() ?: return@register
+
+            channelManager.defaultChannel?.sendMessage(player, event.content)
         }
 
         commandRegistry.registerCommand(ChatCommand())

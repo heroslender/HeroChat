@@ -1,19 +1,19 @@
 package com.github.heroslender.herochat
 
-import com.github.heroslender.herochat.dependencies.LuckPermsDependency.prefix
-import com.github.heroslender.herochat.dependencies.LuckPermsDependency.suffix
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.dependencies.LuckPermsDependency
+import com.github.heroslender.herochat.dependencies.LuckPermsDependency.prefix
+import com.github.heroslender.herochat.dependencies.LuckPermsDependency.suffix
 import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.command.system.CommandSender
 import com.hypixel.hytale.server.core.permissions.PermissionsModule
-import com.hypixel.hytale.server.core.universe.PlayerRef
 
 object ComponentParser {
     const val PLACEHOLDER_START = '{'
     const val PLACEHOLDER_END = '}'
 
     fun parse(
-        player: PlayerRef,
+        sender: CommandSender,
         message: String,
         components: Map<String, ComponentConfig>,
         component: Message = Message.empty()
@@ -67,15 +67,15 @@ object ComponentParser {
                     else -> {
                         val c = components[placeholder]
                         val text = if (c == null) {
-                            parsePlaceholder(player, placeholder)
+                            parsePlaceholder(sender, placeholder)
                         } else if (c.permission == null || PermissionsModule.get()
-                                .hasPermission(player.uuid, c.permission!!)
+                                .hasPermission(sender.uuid, c.permission!!)
                         ) {
                             c.text
                         } else null
 
                         if (text != null) {
-                            parse(player, text, components, formattingComponent ?: component)
+                            parse(sender, text, components, formattingComponent ?: component)
                         }
                     }
                 }
@@ -100,13 +100,13 @@ object ComponentParser {
         return component
     }
 
-    fun parsePlaceholder(player: PlayerRef, placeholder: String): String? {
-        val user = LuckPermsDependency.getUser(player)
+    fun parsePlaceholder(sender: CommandSender, placeholder: String): String? {
+        val user = LuckPermsDependency.getUser(sender.uuid)
 
         return when (placeholder) {
             "luckperms_prefix" -> user?.prefix
             "luckperms_suffix" -> user?.suffix
-            "player_username" -> player.username
+            "player_username" -> sender.displayName
             else -> null
         }
     }

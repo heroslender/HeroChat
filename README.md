@@ -12,18 +12,32 @@ A simple and customizable chat plugin for Hytale servers.
 
 You can create as many chat components as you want and need.
 
+##### Global config
+
 ```json
 {
-  "ChatFormat": "{prefix}{admin_prefix} {#ff5555}{player_username}{#555555}{bold}> {#AAAAAA}{message}",
+  "DefaultChat": "global",
   "Components": {
     "prefix": {
       "Text": "{#00ffff}{bold}[HeroChatt]"
     },
     "admin_prefix": {
       "Text": "{#00AAAA}[Admin]",
-      "Permission": "tag.admin"
+      "Permission": "tag.admin" // Optional
     }
   }
+}
+```
+
+##### Channel config
+
+```json
+{
+  "Name": "Local",
+  "Format": "{#FFFF55}[L] {player_username}{#555555}{bold}> {#AAAAAA}{message}",
+  "Permission": "chat.local", // Optional
+  "Distance": 60, // Optional
+  "CrossWorld": false // Optional
 }
 ```
 

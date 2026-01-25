@@ -7,8 +7,9 @@ import com.hypixel.hytale.codec.builder.BuilderCodec
 class ChannelConfig {
     var name: String = "Global"
     var format: String = "{player_username}{#555555}{bold}> {#AAAAAA}{message}"
+    var permission: String? = null
     var distance: Double? = null
-    var crossWorld: Boolean? = true
+    var crossWorld: Boolean? = null
 
     companion object {
         @JvmField
@@ -25,6 +26,11 @@ class ChannelConfig {
                 KeyedCodec("Format", Codec.STRING),
                 { config, value -> config.format = value },
                 { config -> config.format }
+            ).add()
+            .append(
+                KeyedCodec("Permission", Codec.STRING, false),
+                { config, value -> config.permission = value },
+                { config -> config.permission }
             ).add()
             .append(
                 KeyedCodec("Distance", Codec.DOUBLE, false),
