@@ -5,15 +5,16 @@ import com.github.heroslender.herochat.dependencies.LuckPermsDependency
 import com.github.heroslender.herochat.dependencies.LuckPermsDependency.prefix
 import com.github.heroslender.herochat.dependencies.LuckPermsDependency.suffix
 import com.hypixel.hytale.server.core.Message
-import com.hypixel.hytale.server.core.command.system.CommandSender
 import com.hypixel.hytale.server.core.permissions.PermissionsModule
+import com.hypixel.hytale.server.core.universe.Universe
+import java.util.*
 
 object ComponentParser {
     const val PLACEHOLDER_START = '{'
     const val PLACEHOLDER_END = '}'
 
     fun parse(
-        sender: CommandSender,
+        sender: UUID,
         message: String,
         components: Map<String, ComponentConfig>,
         component: Message = Message.empty()
@@ -69,7 +70,7 @@ object ComponentParser {
                         val text = if (c == null) {
                             parsePlaceholder(sender, placeholder)
                         } else if (c.permission == null || PermissionsModule.get()
-                                .hasPermission(sender.uuid, c.permission!!)
+                                .hasPermission(sender, c.permission!!)
                         ) {
                             c.text
                         } else null
@@ -100,13 +101,13 @@ object ComponentParser {
         return component
     }
 
-    fun parsePlaceholder(sender: CommandSender, placeholder: String): String? {
-        val user = LuckPermsDependency.getUser(sender.uuid)
+    fun parsePlaceholder(sender: UUID, placeholder: String): String? {
+        val user = LuckPermsDependency.getUser(sender)
 
         return when (placeholder) {
             "luckperms_prefix" -> user?.prefix
             "luckperms_suffix" -> user?.suffix
-            "player_username" -> sender.displayName
+            "player_username" -> Universe.get().getPlayer(sender)?.username
             else -> null
         }
     }

@@ -1,0 +1,22 @@
+$Sounds = "../../Sounds.ui";
+
+@NavigationItemStyle = LabelStyle(TextColor: #4d5865, FontSize: 19, HorizontalAlignment: Center, VerticalAlignment: Center, RenderUppercase: true, RenderBold: true);
+@NavigationItemSelectedStyle = LabelStyle(...@NavigationItemStyle, TextColor: #ffffff, RenderBold: true);
+
+@NavigationButtonStyle = TextButtonStyle(
+  Default: (LabelStyle: @NavigationItemStyle),
+  Hovered: (LabelStyle: (...@NavigationItemStyle, TextColor: #7b8998), Background: (TexturePath: "PopupItem.png")),
+  Pressed: (LabelStyle: (...@NavigationItemStyle, TextColor: #a5b4c4), Background: (TexturePath: "PopupItem.png")),
+  Sounds: $Sounds.@ButtonsLight
+);
+
+@NavigationButtonSelectedStyle = TextButtonStyle(
+  Default: (LabelStyle: @NavigationItemSelectedStyle, LabelMaskTexturePath: "SelectedIconGradient.png", Background: (TexturePath: "PopupTitle.png"))
+);
+
+@NavButton = TextButton {
+  Style: @NavigationButtonStyle;
+  Padding: (Horizontal: 17, Vertical: 8);
+  Anchor: (Bottom: 12);
+  Text: @Text;
+};

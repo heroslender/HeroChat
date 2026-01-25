@@ -31,7 +31,7 @@ class Channel(id: String, config: ChannelConfig) {
 
         val comp = components + ("message" to ComponentConfig(msg))
         println(format)
-        val message = ComponentParser.parse(sender, format, comp)
+        val message = ComponentParser.parse(sender.uuid, format, comp)
 
         val players: Collection<PlayerRef> = if (crossWorld) {
             Universe.get().players
