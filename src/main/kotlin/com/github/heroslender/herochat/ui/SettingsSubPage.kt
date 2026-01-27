@@ -1,9 +1,12 @@
 package com.github.heroslender.herochat.ui
 
+import com.github.heroslender.herochat.ChannelManager
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.ui.ChannelSubPage.Companion.LAYOUT_COMPONENT_LIST_ITEM
+import com.github.heroslender.herochat.ui.ChannelSubPage.UpdatedData
 import com.github.heroslender.herochat.utils.onActivating
+import com.github.heroslender.herochat.utils.onValueChanged
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle
@@ -18,10 +21,12 @@ import com.hypixel.hytale.server.core.util.NotificationUtil
 
 class SettingsSubPage(
     val parent: ChatSettingsPage,
-    override val playerRef: PlayerRef,
+    private val channelManager: ChannelManager,
+    override val playerRef: PlayerRef
 ) : SubPage<ChatSettingsPage.UiState> {
-
     override val layoutPath: String = "HeroChat/SettingsSubPage.ui"
+
+    private val updatedData: UpdatedData = UpdatedData()
 
     override fun build(
         ref: Ref<EntityStore?>,
@@ -29,12 +34,13 @@ class SettingsSubPage(
         evt: UIEventBuilder,
         store: Store<EntityStore?>
     ) {
-        val channels = HeroChat.instance.channelManager.channels.values.map {
+        val channels = channelManager.channels.values.map {
             DropdownEntryInfo(LocalizableString.fromString(it.name), it.id)
         }
 
         cmd["#Dropdown.Entries"] = channels
-        cmd["#Dropdown.Value"] = HeroChat.instance.channelManager.defaultChannel?.id ?: ""
+        cmd["#Dropdown.Value"] = channelManager.defaultChannel?.id ?: ""
+        evt.onValueChanged("#Dropdown", "@DefaultChannel" to "#Dropdown.Value")
 
         populateComponents(cmd, evt)
 
@@ -136,10 +142,13 @@ class SettingsSubPage(
             }
 
             "save" -> {
-                HeroChat.instance.saveConfig()
-                NotificationUtil.sendNotification(
-                    playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
-                )
+                if (updatedData.defaultChannel != null) {
+                    channelManager.updateDefaultChannel(updatedData.defaultChannel!!)
+
+                    NotificationUtil.sendNotification(
+                        playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
+                    )
+                }
                 return
             }
 
@@ -154,6 +163,10 @@ class SettingsSubPage(
                 }
                 return
             }
+        }
+
+        if (data.defaultChannel != null) {
+            updatedData.defaultChannel = data.defaultChannel
         }
     }
 
@@ -185,4 +198,8 @@ class SettingsSubPage(
             i++
         }
     }
+
+    data class UpdatedData(
+        var defaultChannel: String? = null,
+    )
 }

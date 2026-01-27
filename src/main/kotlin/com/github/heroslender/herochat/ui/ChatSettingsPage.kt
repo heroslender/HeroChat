@@ -38,7 +38,7 @@ class ChatSettingsPage(
             location = Destination.Settings,
             onEnter = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnSelectedStyle },
             onLeave = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnStyle },
-            pageInitializer = { SettingsSubPage(this, playerRef) }
+            pageInitializer = { SettingsSubPage(this, channelManager, playerRef) }
         )
         evt.onActivating("#ShowSettingsBtn", "NavigateTo" to Destination.Settings)
 
@@ -75,58 +75,75 @@ class ChatSettingsPage(
         navController.currentPage?.handleDataEvent(ref, store, data)
     }
 
-    // Event data class with codec
     class UiState {
-        var navigateTo: String? = null
         var action: String? = null
-        var format: String? = null
-        var channel: String? = null
 
-        var navIndex: String? = null
+        // Navigation
+        var navigateTo: String? = null
 
+        // Component popup data
         var componentId: String? = null
         var componentText: String? = null
         var componentPermission: String? = null
+
+        // Settings page props
+        var defaultChannel: String? = null
+
+        // Channel page props
+        var format: String? = null
+        var permission: String? = null
+        var crossWorld: Boolean? = null
+        var distance: Double? = null
 
         companion object {
             val CODEC: BuilderCodec<UiState?> = BuilderCodec.builder(
                 UiState::class.java, { UiState() })
                 .append(
                     KeyedCodec("Action", Codec.STRING),
-                    { e: UiState, v: String? -> e.action = v },
-                    { e: UiState -> e.action }).add()
+                    { e, v -> e.action = v },
+                    { e -> e.action }).add()
                 .append(
                     KeyedCodec("NavigateTo", Codec.STRING),
-                    { e: UiState, v: String? -> e.navigateTo = v },
-                    { e: UiState -> e.navigateTo }).add()
-                .append(
-                    KeyedCodec("@Format", Codec.STRING),
-                    { e: UiState, v: String? -> e.format = v },
-                    { e: UiState -> e.format }).add()
-                .append(
-                    KeyedCodec("Channel", Codec.STRING),
-                    { e: UiState, v: String? -> e.channel = v },
-                    { e: UiState -> e.channel }).add()
-                .append(
-                    KeyedCodec("NavIndex", Codec.STRING),
-                    { e: UiState, v: String? -> e.navIndex = v },
-                    { e: UiState -> e.navIndex }).add()
+                    { e, v -> e.navigateTo = v },
+                    { e -> e.navigateTo }).add()
                 .append(
                     KeyedCodec("CId", Codec.STRING),
-                    { e: UiState, v: String? -> e.componentId = v },
-                    { e: UiState -> e.componentId }).add()
+                    { e, v -> e.componentId = v },
+                    { e -> e.componentId }).add()
                 .append(
                     KeyedCodec("@CId", Codec.STRING),
-                    { e: UiState, v: String? -> e.componentId = v },
-                    { e: UiState -> e.componentId }).add()
+                    { e, v -> e.componentId = v },
+                    { e -> e.componentId }).add()
                 .append(
                     KeyedCodec("@CText", Codec.STRING),
-                    { e: UiState, v: String? -> e.componentText = v },
-                    { e: UiState -> e.componentText }).add()
+                    { e, v -> e.componentText = v },
+                    { e -> e.componentText }).add()
                 .append(
                     KeyedCodec("@CPerm", Codec.STRING),
-                    { e: UiState, v: String? -> e.componentPermission = v },
-                    { e: UiState -> e.componentPermission }).add()
+                    { e, v -> e.componentPermission = v },
+                    { e -> e.componentPermission }).add()
+                // Settings page props
+                .append(
+                    KeyedCodec("@DefaultChannel", Codec.STRING),
+                    { e, v -> e.defaultChannel = v },
+                    { e -> e.defaultChannel }).add()
+                // Channel page props
+                .append(
+                    KeyedCodec("@Format", Codec.STRING),
+                    { e, v -> e.format = v },
+                    { e -> e.format }).add()
+                .append(
+                    KeyedCodec("@Permission", Codec.STRING),
+                    { e, v -> e.permission = v },
+                    { e -> e.permission }).add()
+                .append(
+                    KeyedCodec("@CrossWorld", Codec.BOOLEAN),
+                    { e, v -> e.crossWorld = v },
+                    { e -> e.crossWorld }).add()
+                .append(
+                    KeyedCodec("@Distance", Codec.DOUBLE),
+                    { e, v -> e.distance = v },
+                    { e -> e.distance }).add()
                 .build()
         }
     }
