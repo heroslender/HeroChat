@@ -1,7 +1,6 @@
 package com.github.heroslender.herochat.ui
 
 import com.github.heroslender.herochat.ChannelManager
-import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.ui.navigation.NavController
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.codec.Codec
@@ -24,7 +23,7 @@ class ChatSettingsPage(
 ) : InteractiveCustomUIPage<ChatSettingsPage.UiState>(
     playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, UiState.CODEC
 ) {
-    private val navController = NavController<UiState>("settings", "#PageContent")
+    private val navController = NavController<UiState>(Destination.Settings, "#PageContent")
 
     override fun build(
         ref: Ref<EntityStore?>,

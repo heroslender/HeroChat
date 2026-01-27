@@ -189,7 +189,7 @@ class ChannelSubPage(
         cmd.clear("#ListContainer")
 
         var i = 0
-        for (component in HeroChat.instance.config.components) {
+        for (component in channel.components) {
             cmd.append("#ListContainer", LAYOUT_COMPONENT_LIST_ITEM)
             cmd["#ListContainer[$i] #Tag.Text"] = "{${component.key}}"
             cmd["#ListContainer[$i] #TagText.Text"] = component.value.text

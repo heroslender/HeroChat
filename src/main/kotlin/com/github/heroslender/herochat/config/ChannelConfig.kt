@@ -3,6 +3,7 @@ package com.github.heroslender.herochat.config
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
+import com.hypixel.hytale.codec.codecs.map.MapCodec
 
 class ChannelConfig {
     var name: String = "Global"
@@ -10,6 +11,7 @@ class ChannelConfig {
     var permission: String? = null
     var distance: Double? = null
     var crossWorld: Boolean? = null
+    var components: MutableMap<String, ComponentConfig> = mutableMapOf()
 
     companion object {
         @JvmField
@@ -41,6 +43,11 @@ class ChannelConfig {
                 KeyedCodec("CrossWorld", Codec.BOOLEAN, false),
                 { config, value -> config.crossWorld = value },
                 { config -> config.crossWorld }
+            ).add()
+            .append(
+                KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
+                { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
+                { config -> config.components }
             ).add()
             .build()
     }

@@ -17,7 +17,7 @@ class Channel(id: String, config: ChannelConfig) {
     val name: String = config.name
     val format: String = config.format
     val permission: String? = config.permission
-    val components: Map<String, ComponentConfig> = HeroChat.instance.config.components
+    val components: Map<String, ComponentConfig> = config.components
 
     val distance: Double? = config.distance
     val distanceSquared: Double? = distance?.let { square(it) }
