@@ -17,10 +17,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
 
 class ChannelSubPage(
-    val parent: MyPage,
+    val parent: ChatSettingsPage,
     val channel: Channel,
     override val playerRef: PlayerRef,
-) : SubPage {
+) : SubPage<ChatSettingsPage.UiState> {
 
     override val layoutPath: String = "HeroChat/ChannelSubPage.ui"
 
@@ -36,7 +36,6 @@ class ChannelSubPage(
         evt: UIEventBuilder,
         store: Store<EntityStore?>
     ) {
-
         cmd["#PreviewField.Value"] = format
         appendFormattedPreview(cmd)
 
@@ -56,7 +55,7 @@ class ChannelSubPage(
     override fun handleDataEvent(
         ref: Ref<EntityStore?>,
         store: Store<EntityStore?>,
-        data: MyPage.UiState
+        data: ChatSettingsPage.UiState
     ) {
         when (data.action) {
             "newComponent" -> {

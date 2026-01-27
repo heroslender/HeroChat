@@ -1,6 +1,8 @@
 package com.github.heroslender.herochat.ui
 
+import com.github.heroslender.herochat.ChannelManager
 import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.ui.navigation.NavController
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
@@ -16,36 +18,45 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import javax.annotation.Nonnull
 
-class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
+class ChatSettingsPage(
+    playerRef: PlayerRef,
+    val channelManager: ChannelManager,
+) : InteractiveCustomUIPage<ChatSettingsPage.UiState>(
     playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, UiState.CODEC
 ) {
-    private var subPage: SubPage = SettingsSubPage(this, playerRef)
-    private var currentNavDest = "settings"
+    private val navController = NavController<UiState>("settings", "#PageContent")
 
     override fun build(
-        @Nonnull ref: Ref<EntityStore?>,
-        @Nonnull cmd: UICommandBuilder,
-        @Nonnull evt: UIEventBuilder,
-        @Nonnull store: Store<EntityStore?>
+        ref: Ref<EntityStore?>,
+        cmd: UICommandBuilder,
+        evt: UIEventBuilder,
+        store: Store<EntityStore?>
     ) {
         // Load the layout
         cmd.append(LAYOUT)
 
-        cmd["#ShowSettingsBtn.Style"] = NavBtnSelectedStyle
-        evt.onActivating("#ShowSettingsBtn", "Action" to "showSettings")
-        HeroChat.instance.channelManager.channels.values.forEachIndexed { i, channel ->
+        navController.addNavLocation(
+            location = Destination.Settings,
+            onEnter = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnSelectedStyle },
+            onLeave = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnStyle },
+            pageInitializer = { SettingsSubPage(this, playerRef) }
+        )
+        evt.onActivating("#ShowSettingsBtn", "NavigateTo" to Destination.Settings)
+
+        channelManager.channels.values.forEachIndexed { i, channel ->
             cmd.append("#NavChannels", "HeroChat/Sidebar/SidebarButton.ui")
             cmd["#NavChannels[$i].Text"] = channel.name
-            evt.onActivating(
-                "#NavChannels[$i]",
-                "Action" to "showChannel",
-                "Channel" to channel.id,
-                "NavIndex" to i.toString()
+            evt.onActivating("#NavChannels[$i]", "NavigateTo" to Destination.Channel(channel.id))
+
+            navController.addNavLocation(
+                location = Destination.Channel(channel.id),
+                onEnter = { cmd -> cmd["#NavChannels[$i].Style"] = NavBtnSelectedStyle },
+                onLeave = { cmd -> cmd["#NavChannels[$i].Style"] = NavBtnStyle },
+                pageInitializer = { ChannelSubPage(this, channel, playerRef) }
             )
         }
 
-        cmd.append("#PageContent", subPage.layoutPath)
-        subPage.build(ref, cmd, evt, store)
+        navController.build(ref, cmd, evt, store)
     }
 
     override fun handleDataEvent(
@@ -53,58 +64,21 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
         @Nonnull store: Store<EntityStore?>,
         @Nonnull data: UiState
     ) {
-        when (data.action) {
-            "showSettings" -> {
-                if (currentNavDest == "settings") {
-                    return
-                }
-
-                currentNavDest = "settings"
-                runUiCmdEvtUpdate { cmd, evt ->
-                    cmd.clear("#PageContent")
-
-                    subPage = SettingsSubPage(this, playerRef)
-                    cmd.append("#PageContent", subPage.layoutPath)
-                    subPage.build(ref, cmd, evt, store)
-
-                    cmd["#ShowSettingsBtn.Style"] = NavBtnSelectedStyle
-                    for (i in 0 until HeroChat.instance.channelManager.channels.size) {
-                        cmd["#NavChannels[$i].Style"] = NavBtnStyle
-                    }
-                }
+        val navDest = data.navigateTo
+        if (navDest != null) {
+            runUiCmdEvtUpdate { cmd, evt ->
+                navController.navigateTo(navDest, ref, cmd, evt, store)
             }
 
-            "showChannel" -> {
-                val channelId = data.channel ?: return
-                val index = data.navIndex?.toInt() ?: return
-
-                if (currentNavDest == "channel-$channelId") {
-                    return
-                }
-
-                val channel = HeroChat.instance.channelManager.channels[channelId] ?: return
-
-                currentNavDest = "channel-$channelId"
-                runUiCmdEvtUpdate { cmd, evt ->
-                    cmd.clear("#PageContent")
-
-                    subPage = ChannelSubPage(this, channel, playerRef)
-                    cmd.append("#PageContent", subPage.layoutPath)
-                    subPage.build(ref, cmd, evt, store)
-
-                    cmd["#ShowSettingsBtn.Style"] = NavBtnStyle
-                    for (i in 0 until HeroChat.instance.channelManager.channels.size) {
-                        cmd["#NavChannels[$i].Style"] = if (i == index) NavBtnSelectedStyle else NavBtnStyle
-                    }
-                }
-            }
+            return
         }
 
-        subPage.handleDataEvent(ref, store, data)
+        navController.currentPage?.handleDataEvent(ref, store, data)
     }
 
     // Event data class with codec
     class UiState {
+        var navigateTo: String? = null
         var action: String? = null
         var format: String? = null
         var channel: String? = null
@@ -122,6 +96,10 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
                     KeyedCodec("Action", Codec.STRING),
                     { e: UiState, v: String? -> e.action = v },
                     { e: UiState -> e.action }).add()
+                .append(
+                    KeyedCodec("NavigateTo", Codec.STRING),
+                    { e: UiState, v: String? -> e.navigateTo = v },
+                    { e: UiState -> e.navigateTo }).add()
                 .append(
                     KeyedCodec("@Format", Codec.STRING),
                     { e: UiState, v: String? -> e.format = v },
@@ -160,6 +138,12 @@ class MyPage(playerRef: PlayerRef) : InteractiveCustomUIPage<MyPage.UiState>(
         val NavBtnStyle: Value<String> = Value.ref("HeroChat/Sidebar/Sidebar.ui", "NavigationButtonStyle")
         val NavBtnSelectedStyle: Value<String> =
             Value.ref("HeroChat/Sidebar/Sidebar.ui", "NavigationButtonSelectedStyle")
+    }
+
+    object Destination {
+        const val Settings = "Settings"
+
+        fun Channel(channel: String): String = "channel-$channel"
     }
 
     fun closePage() {

@@ -17,9 +17,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
 
 class SettingsSubPage(
-    val parent: MyPage,
+    val parent: ChatSettingsPage,
     override val playerRef: PlayerRef,
-) : SubPage {
+) : SubPage<ChatSettingsPage.UiState> {
 
     override val layoutPath: String = "HeroChat/SettingsSubPage.ui"
 
@@ -47,7 +47,7 @@ class SettingsSubPage(
     override fun handleDataEvent(
         ref: Ref<EntityStore?>,
         store: Store<EntityStore?>,
-        data: MyPage.UiState
+        data: ChatSettingsPage.UiState
     ) {
         when (data.action) {
             "newComponent" -> {
