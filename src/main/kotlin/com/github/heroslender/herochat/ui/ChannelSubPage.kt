@@ -4,6 +4,7 @@ import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.chat.Channel
 import com.github.heroslender.herochat.config.ComponentConfig
+import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
 import com.github.heroslender.herochat.utils.onValueChanged
 import com.hypixel.hytale.component.Ref
@@ -80,7 +81,7 @@ class ChannelSubPage(
             "editComponent" -> {
                 val id = data.componentId
                 if (id != null) {
-                    val component = channel.components[id] ?: return
+                    val component = updatedData.components?.get(id) ?: channel.components[id] ?: return
                     parent.runUiCmdEvtUpdate { cmd, evt ->
                         cmd.append("HeroChat/AddChatComponent.ui")
                         cmd["#Popup #PopupTitle.Text"] = "Edit Component"
@@ -199,7 +200,31 @@ class ChannelSubPage(
             }
 
             "closeUI" -> {
+                if (updatedData.hasChanges()) {
+                    parent.runUiCmdEvtUpdate { cmd, evt ->
+                        val confirmationPopup = ConfirmationPopup<ChatSettingsPage.UiState>(
+                            title = "Unsaved Changes",
+                            message = "Are you sure you want to leave without saving the changes made?",
+                        )
+                        cmd.append(confirmationPopup.layoutPath)
+                        confirmationPopup.build(ref, cmd, evt, store)
+                    }
+
+                    return
+                }
+
                 parent.closePage()
+                return
+            }
+
+            ConfirmationPopup.ActionConfirmPopup -> {
+                parent.closePage()
+                return
+            }
+            ConfirmationPopup.ActionCancelPopup -> {
+                parent.runUiCmdUpdate { cmd ->
+                    cmd.remove(ConfirmationPopup.PopupSelector);
+                }
                 return
             }
 
@@ -278,5 +303,7 @@ class ChannelSubPage(
         var distance: Double? = null,
         var crossWorld: Boolean? = null,
         var components: MutableMap<String, ComponentConfig>? = null,
-    )
+    ) {
+        fun hasChanges(): Boolean = format != null || permission != null || distance != null || crossWorld != null || components != null
+    }
 }

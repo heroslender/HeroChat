@@ -4,7 +4,7 @@ import com.github.heroslender.herochat.ChannelManager
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.ui.ChannelSubPage.Companion.LAYOUT_COMPONENT_LIST_ITEM
-import com.github.heroslender.herochat.ui.ChannelSubPage.UpdatedData
+import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
 import com.github.heroslender.herochat.utils.onValueChanged
 import com.hypixel.hytale.component.Ref
@@ -73,7 +73,7 @@ class SettingsSubPage(
             "editComponent" -> {
                 val id = data.componentId
                 if (id != null) {
-                    val component = HeroChat.instance.config.components[id] ?: return
+                    val component = updatedData.components?.get(id) ?: HeroChat.instance.config.components[id] ?: return
                     parent.runUiCmdEvtUpdate { cmd, evt ->
                         cmd.append("HeroChat/AddChatComponent.ui")
                         cmd["#Popup #PopupTitle.Text"] = "Edit Component"
@@ -121,7 +121,12 @@ class SettingsSubPage(
                     return
                 }
 
-                HeroChat.instance.config.components[id] = ComponentConfig(text, perm?.ifEmpty { null })
+                var components = updatedData.components
+                if (components == null) {
+                    components = HashMap(HeroChat.instance.config.components)
+                    updatedData.components = components
+                }
+                components[id] = ComponentConfig(text, perm?.ifEmpty { null })
 
                 parent.runUiCmdEvtUpdate { cmd, evt ->
                     populateComponents(cmd, evt)
@@ -133,7 +138,12 @@ class SettingsSubPage(
             "deleteComponent" -> {
                 val id = data.componentId
                 if (id != null) {
-                    HeroChat.instance.config.components.remove(id)
+                    var components = updatedData.components
+                    if (components == null) {
+                        components = HashMap(HeroChat.instance.config.components)
+                    }
+                    components.remove(id)
+
                     parent.runUiCmdEvtUpdate { cmd, evt ->
                         populateComponents(cmd, evt)
                     }
@@ -142,9 +152,19 @@ class SettingsSubPage(
             }
 
             "save" -> {
+                var hasUpdatedData = false
                 if (updatedData.defaultChannel != null) {
                     channelManager.updateDefaultChannel(updatedData.defaultChannel!!)
+                    hasUpdatedData = true
+                }
+                if (updatedData.components != null) {
+                    HeroChat.instance.config.components.clear()
+                    HeroChat.instance.config.components.putAll(updatedData.components!!)
+                    HeroChat.instance.saveConfig()
+                    hasUpdatedData = true
+                }
 
+                if (hasUpdatedData) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
                     )
@@ -153,11 +173,37 @@ class SettingsSubPage(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
                     )
                 }
+
+                updatedData.clear()
                 return
             }
 
             "closeUI" -> {
+                if (updatedData.hasChanges()) {
+                    parent.runUiCmdEvtUpdate { cmd, evt ->
+                        val confirmationPopup = ConfirmationPopup<ChatSettingsPage.UiState>(
+                            title = "Unsaved Changes",
+                            message = "Are you sure you want to leave without saving the changes made?",
+                        )
+                        cmd.append(confirmationPopup.layoutPath)
+                        confirmationPopup.build(ref, cmd, evt, store)
+                    }
+
+                    return
+                }
+
                 parent.closePage()
+                return
+            }
+
+            ConfirmationPopup.ActionConfirmPopup -> {
+                parent.closePage()
+                return
+            }
+            ConfirmationPopup.ActionCancelPopup -> {
+                parent.runUiCmdUpdate { cmd ->
+                    cmd.remove(ConfirmationPopup.PopupSelector);
+                }
                 return
             }
 
@@ -176,9 +222,10 @@ class SettingsSubPage(
 
     fun populateComponents(cmd: UICommandBuilder, evt: UIEventBuilder) {
         cmd.clear("#ListContainer")
+        val components = updatedData.components ?: HeroChat.instance.config.components
 
         var i = 0
-        for (component in HeroChat.instance.config.components) {
+        for (component in components) {
             cmd.append("#ListContainer", LAYOUT_COMPONENT_LIST_ITEM)
             cmd["#ListContainer[$i] #Tag.Text"] = "{${component.key}}"
             cmd["#ListContainer[$i] #TagText.Text"] = component.value.text
@@ -205,5 +252,13 @@ class SettingsSubPage(
 
     data class UpdatedData(
         var defaultChannel: String? = null,
-    )
+        var components: MutableMap<String, ComponentConfig>? = null,
+    ) {
+        fun hasChanges(): Boolean = defaultChannel != null || components != null
+
+        fun clear() {
+            defaultChannel = null
+            components = null
+        }
+    }
 }
