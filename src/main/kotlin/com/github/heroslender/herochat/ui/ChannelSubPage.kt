@@ -163,26 +163,38 @@ class ChannelSubPage(
 
             "save" -> {
                 val config = HeroChat.instance.channelConfigs[channel.id] ?: return
+                var hasUpdatedData = false
                 if (updatedData.format != null) {
                     config.format = updatedData.format!!
+                    hasUpdatedData = true
                 }
                 if (updatedData.permission != null) {
                     config.permission = updatedData.permission!!
+                    hasUpdatedData = true
                 }
                 if (updatedData.crossWorld != null) {
                     config.crossWorld = updatedData.crossWorld
+                    hasUpdatedData = true
                 }
                 if (updatedData.distance != null) {
                     config.distance = updatedData.distance
+                    hasUpdatedData = true
                 }
                 if (updatedData.components != null) {
                     config.components = updatedData.components!!
+                    hasUpdatedData = true
                 }
 
-                HeroChat.instance.saveChannelConfig(channel.id)
-                NotificationUtil.sendNotification(
-                    playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
-                )
+                if (hasUpdatedData) {
+                    HeroChat.instance.saveChannelConfig(channel.id)
+                    NotificationUtil.sendNotification(
+                        playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
+                    )
+                } else {
+                    NotificationUtil.sendNotification(
+                        playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
+                    )
+                }
                 return
             }
 

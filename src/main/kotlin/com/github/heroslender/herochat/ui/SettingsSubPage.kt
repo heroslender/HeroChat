@@ -148,6 +148,10 @@ class SettingsSubPage(
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
                     )
+                } else {
+                    NotificationUtil.sendNotification(
+                        playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
+                    )
                 }
                 return
             }
