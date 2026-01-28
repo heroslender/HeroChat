@@ -1,9 +1,9 @@
-$C = "../Common.ui";
-$Sounds = "../Sounds.ui";
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
 
 @CheckSetting = Group {
   Anchor: (Height: 44, Bottom: 8);
-  Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 16);
+  Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 16);
   LayoutMode: Left;
 
   Label #Name {
@@ -20,9 +20,9 @@ $Sounds = "../Sounds.ui";
     Anchor: (Left: 0, Width: 300);
     Style: (
       Checked: (
-        DefaultBackground: "Assets/CheckBox.png",
-        HoveredBackground: "Assets/CheckBoxHovered.png",
-        PressedBackground: "Assets/CheckBoxHovered.png",
+        DefaultBackground: "../Assets/CheckBox.png",
+        HoveredBackground: "../Assets/CheckBoxHovered.png",
+        PressedBackground: "../Assets/CheckBoxHovered.png",
         Text: "on",
         DefaultLabelStyle: (VerticalAlignment: Center, HorizontalAlignment: Center, TextColor: #96a9be, RenderUppercase: true, FontSize: 18, RenderBold: true),
         HoveredLabelStyle: (VerticalAlignment: Center, HorizontalAlignment: Center, TextColor: #96a9be, RenderUppercase: true, FontSize: 18, RenderBold: true),
@@ -30,9 +30,9 @@ $Sounds = "../Sounds.ui";
         ChangedSound: (SoundPath: $Sounds.@Tick, Volume: 6)
       ),
       Unchecked: (
-        DefaultBackground: "Assets/CheckBox.png",
-        HoveredBackground: "Assets/CheckBoxHovered.png",
-        PressedBackground: "Assets/CheckBoxHovered.png",
+        DefaultBackground: "../Assets/CheckBox.png",
+        HoveredBackground: "../Assets/CheckBoxHovered.png",
+        PressedBackground: "../Assets/CheckBoxHovered.png",
         Text: "off",
         DefaultLabelStyle: (VerticalAlignment: Center, HorizontalAlignment: Center, TextColor: #495972, RenderUppercase: true, FontSize: 18, RenderBold: false),
         HoveredLabelStyle: (VerticalAlignment: Center, HorizontalAlignment: Center, TextColor: #495972, RenderUppercase: true, FontSize: 18, RenderBold: false),
@@ -45,7 +45,7 @@ $Sounds = "../Sounds.ui";
 
 @TextSetting = Group {
   Anchor: (Height: 44, Bottom: 8);
-  Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 16);
+  Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 16);
   LayoutMode: Left;
 
   Label #Name {
@@ -70,7 +70,7 @@ $Sounds = "../Sounds.ui";
 
 @SliderSetting = Group {
   Anchor: (Height: 44, Bottom: 8);
-  Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 16);
+  Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 16);
   LayoutMode: Left;
 
   Label #Name {

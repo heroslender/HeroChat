@@ -1,4 +1,4 @@
-$C = "../Common.ui";
+$C = "../../Common.ui";
 
 Label {
   Text: "Global Settings";
@@ -11,7 +11,7 @@ Group {
   Anchor: (Bottom: 24);
 
   Group {
-    Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 10);
+    Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 10);
     FlexWeight: 7;
     Anchor: (Right: 8);
     Padding: (Horizontal: 12, Vertical: 8);

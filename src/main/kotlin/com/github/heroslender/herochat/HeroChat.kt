@@ -1,8 +1,10 @@
 package com.github.heroslender.herochat
 
+import com.github.heroslender.herochat.chat.PrivateChannel
 import com.github.heroslender.herochat.commands.ChatCommand
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ChatConfig
+import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.hypixel.hytale.common.plugin.PluginIdentifier
 import com.hypixel.hytale.common.semver.SemverRange
 import com.hypixel.hytale.event.EventPriority
@@ -20,6 +22,11 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     private val _config: Config<ChatConfig> = withConfig(ChatConfig.CODEC)
     val config: ChatConfig
         get() = _config.get()
+
+    private val _privateChannelConfig: Config<PrivateChannelConfig> = withConfig("channels/${PrivateChannel.ID}", PrivateChannelConfig.CODEC)
+    val privateChannelConfig: PrivateChannelConfig
+        get() = _privateChannelConfig.get()
+
     private val _channelConfigs: Map<String, Config<ChannelConfig>> = setupChannelConfigs()
     val channelConfigs: Map<String, ChannelConfig>
         get() = _channelConfigs.mapValues { it.value.get() }
@@ -41,11 +48,12 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
     override fun setup() {
         _config.save()
+        _privateChannelConfig.save()
         _channelConfigs.values.forEach { it.save() }
 
         isLuckpermsEnabled = PluginManager.get().hasPlugin(LuckPermsId, SemverRange.WILDCARD)
 
-        channelManager = ChannelManager(this, config, channelConfigs)
+        channelManager = ChannelManager(this, config, channelConfigs, privateChannelConfig)
     }
 
     override fun start() {
@@ -69,6 +77,12 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         _config.save()
     }
 
+    fun saveChannelConfig(channelId: String) {
+        val cfg = if (channelId == PrivateChannel.ID) _privateChannelConfig else _channelConfigs[channelId]
+        cfg?.save()
+        channelManager.reloadChannel(channelId)
+    }
+
     private fun setupChannelConfigs(): Map<String, Config<ChannelConfig>> {
         val channelsFolder = File(dataDirectory.toFile(), "channels")
         if (!channelsFolder.exists()) {
@@ -88,7 +102,9 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
         val channels = mutableMapOf<String, Config<ChannelConfig>>()
         for (file in files) {
-            if (!file.extension.equals("json", true)) {
+            if (!file.extension.equals("json", true)
+                || file.nameWithoutExtension == PrivateChannel.ID
+            ) {
                 continue
             }
 

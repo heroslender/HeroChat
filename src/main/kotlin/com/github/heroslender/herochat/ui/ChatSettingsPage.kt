@@ -25,12 +25,7 @@ class ChatSettingsPage(
 ) {
     private val navController = NavController<UiState>(Destination.Settings, "#PageContent")
 
-    override fun build(
-        ref: Ref<EntityStore?>,
-        cmd: UICommandBuilder,
-        evt: UIEventBuilder,
-        store: Store<EntityStore?>
-    ) {
+    override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
         // Load the layout
         cmd.append(LAYOUT)
 
@@ -42,7 +37,18 @@ class ChatSettingsPage(
         )
         evt.onActivating("#ShowSettingsBtn", "NavigateTo" to Destination.Settings)
 
+        cmd.append("#NavChannels", "HeroChat/Sidebar/SidebarButton.ui")
+        cmd["#NavChannels[0].Text"] = channelManager.privateChannel.name
+        evt.onActivating("#NavChannels[0]", "NavigateTo" to Destination.Channel(channelManager.privateChannel.id))
+        navController.addNavLocation(
+            location = Destination.Channel(channelManager.privateChannel.id),
+            onEnter = { cmd -> cmd["#NavChannels[0].Style"] = NavBtnSelectedStyle },
+            onLeave = { cmd -> cmd["#NavChannels[0].Style"] = NavBtnStyle },
+            pageInitializer = { PrivateChannelSubPage(this, channelManager.privateChannel, playerRef) }
+        )
+
         channelManager.channels.values.forEachIndexed { i, channel ->
+            val i = i + 1
             cmd.append("#NavChannels", "HeroChat/Sidebar/SidebarButton.ui")
             cmd["#NavChannels[$i].Text"] = channel.name
             evt.onActivating("#NavChannels[$i]", "NavigateTo" to Destination.Channel(channel.id))
@@ -89,6 +95,9 @@ class ChatSettingsPage(
         // Settings page props
         var defaultChannel: String? = null
 
+        // Private channel props
+        var receiverFormat: String? = null
+
         // Channel page props
         var format: String? = null
         var permission: String? = null
@@ -127,6 +136,11 @@ class ChatSettingsPage(
                     KeyedCodec("@DefaultChannel", Codec.STRING),
                     { e, v -> e.defaultChannel = v },
                     { e -> e.defaultChannel }).add()
+                // Private channel props
+                .append(
+                    KeyedCodec("@ReceiverFormat", Codec.STRING),
+                    { e, v -> e.receiverFormat = v },
+                    { e -> e.receiverFormat }).add()
                 // Channel page props
                 .append(
                     KeyedCodec("@Format", Codec.STRING),

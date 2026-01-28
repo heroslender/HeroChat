@@ -24,7 +24,7 @@ class SettingsSubPage(
     private val channelManager: ChannelManager,
     override val playerRef: PlayerRef
 ) : SubPage<ChatSettingsPage.UiState> {
-    override val layoutPath: String = "HeroChat/SettingsSubPage.ui"
+    override val layoutPath: String = "HeroChat/SubPage/SettingsSubPage.ui"
 
     private val updatedData: UpdatedData = UpdatedData()
 

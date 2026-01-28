@@ -1,9 +1,9 @@
-$C = "../Common.ui";
+$C = "../../Common.ui";
 $S = "SettingComponents.ui";
 
 Group #PreviewContainer {
   Anchor: (Bottom: 16);
-  Background: (TexturePath: "../Common/ContainerPanelPatch.png", Border: 10);
+  Background: (TexturePath: "../../Common/ContainerPanelPatch.png", Border: 10);
   Padding: (Horizontal: 12, Vertical: 12);
 
   Label #PreviewLbl {
@@ -11,10 +11,20 @@ Group #PreviewContainer {
   }
 }
 
+Group #PreviewReceiverContainer {
+  Anchor: (Bottom: 16);
+  Background: (TexturePath: "../../Common/ContainerPanelPatch.png", Border: 10);
+  Padding: (Horizontal: 12, Vertical: 12);
+
+  Label #PreviewReceiverLbl {
+    Style: (FontSize: 16, TextColor: #ffffff, RenderBold: false);
+  }
+}
+
 Group {
   LayoutMode: Left;
   Label {
-    Text: "Format";
+    Text: "Sender Format";
     Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
     Anchor: (Bottom: 6, Left: 4);
   }
@@ -37,7 +47,7 @@ Group {
 
 Group {
   Anchor: (Bottom: 8);
-  Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 16);
+  Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 16);
   LayoutMode: Top;
 
   MultilineTextField #PreviewField {
@@ -50,18 +60,30 @@ Group {
   }
 }
 
+Label {
+  Text: "Receiver Format";
+  Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true, RenderUppercase: true);
+  Anchor: (Bottom: 6, Left: 4);
+}
+
+Group {
+  Anchor: (Bottom: 8);
+  Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 16);
+  LayoutMode: Top;
+
+  MultilineTextField #PreviewReceiverField {
+    AutoGrow: false;
+    Anchor: (Height: 64);
+    Padding: (Left: 10, Vertical: 6, Right:4);
+    ContentPadding: (Right:8);
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Style: (FontSize: 16, TextColor: #d4d4d4);
+  }
+}
+
 $S.@TextSetting #Permission {
   @Text = "Permission";
   @Placeholder = "Channel permission";
-}
-
-$S.@CheckSetting #CrossWorld {
-  @Text = "Cross world";
-}
-
-$S.@SliderSetting #Distance {
-  @Text = "Distance";
-  @ExtraText = "(Requires cross world off)";
 }
 
 Group { Anchor: (Height: 16); }

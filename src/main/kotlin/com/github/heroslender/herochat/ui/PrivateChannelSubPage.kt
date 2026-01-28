@@ -2,7 +2,7 @@ package com.github.heroslender.herochat.ui
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.chat.Channel
+import com.github.heroslender.herochat.chat.PrivateChannel
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -17,18 +17,19 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
 
-class ChannelSubPage(
+class PrivateChannelSubPage(
     val parent: ChatSettingsPage,
-    val channel: Channel,
+    val channel: PrivateChannel,
     override val playerRef: PlayerRef,
 ) : SubPage<ChatSettingsPage.UiState> {
-    override val layoutPath: String = "HeroChat/SubPage/ChannelSubPage.ui"
+    override val layoutPath: String = "HeroChat/SubPage/PrivateChannelSubPage.ui"
 
     companion object {
         const val LAYOUT_COMPONENT_LIST_ITEM: String = "HeroChat/ChatComponentListItem.ui"
     }
 
-    private var format: String = channel.format
+    private var senderFormat: String = channel.format
+    private var receiverFormat: String = channel.receiverFormat
 
     private val updatedData: UpdatedData = UpdatedData()
 
@@ -38,19 +39,18 @@ class ChannelSubPage(
         evt: UIEventBuilder,
         store: Store<EntityStore?>
     ) {
-        appendFormattedPreview(cmd)
+        appendFormattedSenderPreview(cmd)
+        appendFormattedReceiverPreview(cmd)
 
         populateComponents(cmd, evt)
 
-        cmd["#PreviewField.Value"] = format
+        cmd["#PreviewField.Value"] = senderFormat
+        cmd["#PreviewReceiverField.Value"] = receiverFormat
         cmd["#Permission #Txt.Value"] = channel.permission ?: ""
-        cmd["#CrossWorld #CheckBox.Value"] = channel.crossWorld
-        cmd["#Distance #Slider.Value"] = channel.distance?.toInt() ?: 1
 
         evt.onValueChanged("#PreviewField", "@Format" to "#PreviewField.Value")
+        evt.onValueChanged("#PreviewReceiverField", "@ReceiverFormat" to "#PreviewReceiverField.Value")
         evt.onValueChanged("#Permission #Txt", "@Permission" to "#Permission #Txt.Value")
-        evt.onValueChanged("#CrossWorld #CheckBox", "@CrossWorld" to "#CrossWorld #CheckBox.Value")
-        evt.onValueChanged("#Distance #Slider", "@Distance" to "#Distance #Slider.Value")
 
         evt.onActivating("#NewComponentBtn", "Action" to "newComponent")
         evt.onActivating("#Save", "Action" to "save")
@@ -137,7 +137,8 @@ class ChannelSubPage(
                 components[id] = ComponentConfig(text, perm?.ifEmpty { null })
 
                 parent.runUiCmdEvtUpdate { cmd, evt ->
-                    updatePreview()
+                    updateSenderPreview()
+                    updateReceiverPreview()
                     populateComponents(cmd, evt)
                     cmd.remove("#Popup");
                 }
@@ -155,7 +156,8 @@ class ChannelSubPage(
                     components.remove(id)
 
                     parent.runUiCmdEvtUpdate { cmd, evt ->
-                        updatePreview()
+                        updateSenderPreview()
+                        updateReceiverPreview()
                         populateComponents(cmd, evt)
                     }
                 }
@@ -163,22 +165,18 @@ class ChannelSubPage(
             }
 
             "save" -> {
-                val config = HeroChat.instance.channelConfigs[channel.id] ?: return
+                val config = HeroChat.instance.privateChannelConfig ?: return
                 var hasUpdatedData = false
-                if (updatedData.format != null) {
-                    config.format = updatedData.format!!
+                if (updatedData.senderFormat != null) {
+                    config.senderFormat = updatedData.senderFormat!!
+                    hasUpdatedData = true
+                }
+                if (updatedData.receiverFormat != null) {
+                    config.receiverFormat = updatedData.receiverFormat!!
                     hasUpdatedData = true
                 }
                 if (updatedData.permission != null) {
                     config.permission = updatedData.permission!!
-                    hasUpdatedData = true
-                }
-                if (updatedData.crossWorld != null) {
-                    config.crossWorld = updatedData.crossWorld
-                    hasUpdatedData = true
-                }
-                if (updatedData.distance != null) {
-                    config.distance = updatedData.distance
                     hasUpdatedData = true
                 }
                 if (updatedData.components != null) {
@@ -222,6 +220,7 @@ class ChannelSubPage(
                 parent.closePage()
                 return
             }
+
             ConfirmationPopup.ActionCancelPopup -> {
                 parent.runUiCmdUpdate { cmd ->
                     cmd.remove(ConfirmationPopup.PopupSelector);
@@ -239,15 +238,11 @@ class ChannelSubPage(
 
         if (data.permission != null) {
             updatedData.permission = data.permission
-        } else if (data.crossWorld != null) {
-            updatedData.crossWorld = data.crossWorld
-        } else if (data.distance != null) {
-            updatedData.distance = data.distance
         } else if (data.format != null) {
-            updatedData.format = data.format
-            this.format = data.format!!
+            updatedData.senderFormat = data.format
+            this.senderFormat = data.format!!
 
-            updatePreview()
+            updateSenderPreview()
         }
     }
 
@@ -282,36 +277,57 @@ class ChannelSubPage(
         }
     }
 
-    fun updatePreview() = parent.runUiCmdUpdate { cmd ->
-        appendFormattedPreview(cmd)
+    fun updateSenderPreview() = parent.runUiCmdUpdate { cmd ->
+        appendFormattedSenderPreview(cmd)
     }
 
-    fun appendFormattedPreview(cmd: UICommandBuilder, format: String = this.format) {
+    fun appendFormattedSenderPreview(cmd: UICommandBuilder, format: String = senderFormat) {
         val components = updatedData.components ?: channel.components
 
         val msg = ComponentParser.parse(
             playerRef.uuid,
             format,
-            HeroChat.instance.config.components + components + ("message" to ComponentConfig("Hello!! This is a test chat message."))
+            HeroChat.instance.config.components +
+                    components +
+                    ("message" to ComponentConfig("Hello!! This is a test chat message.")) +
+                    ("target_username" to ComponentConfig("Someone"))
         )
 
         cmd["#PreviewLbl.TextSpans"] = msg
     }
 
+    fun updateReceiverPreview() = parent.runUiCmdUpdate { cmd ->
+        appendFormattedReceiverPreview(cmd)
+    }
+
+    fun appendFormattedReceiverPreview(cmd: UICommandBuilder, format: String = receiverFormat) {
+        val components = updatedData.components ?: channel.components
+
+        val msg = ComponentParser.parse(
+            playerRef.uuid,
+            format,
+            HeroChat.instance.config.components +
+                    components +
+                    ("message" to ComponentConfig("Hello!! This is a test chat message.")) +
+                    ("target_username" to ComponentConfig("Someone"))
+        )
+
+        cmd["#PreviewReceiverLbl.TextSpans"] = msg
+    }
+
     data class UpdatedData(
-        var format: String? = null,
+        var senderFormat: String? = null,
+        var receiverFormat: String? = null,
         var permission: String? = null,
-        var distance: Double? = null,
-        var crossWorld: Boolean? = null,
         var components: MutableMap<String, ComponentConfig>? = null,
     ) {
-        fun hasChanges(): Boolean = format != null || permission != null || distance != null || crossWorld != null || components != null
+        fun hasChanges(): Boolean =
+            senderFormat != null || receiverFormat != null || permission != null || components != null
 
         fun clear() {
-            format = null
+            senderFormat = null
+            receiverFormat = null
             permission = null
-            distance = null
-            crossWorld = null
             components = null
         }
     }
