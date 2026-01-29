@@ -1,11 +1,11 @@
-$C = "../Common.ui";
+$C = "../../Common.ui";
 
 @Overlay = Group {
   Background: (Color: #000000(0.82));
   LayoutMode: Middle;
 };
 
-@Overlay #Popup {
+@Overlay #ComponentPopup {
   $C.@DecoratedContainer {
     Anchor: (Width: 560);
 
