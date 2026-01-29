@@ -1,6 +1,7 @@
 package com.github.heroslender.herochat.commands
 
-import com.github.heroslender.herochat.ui.MyPage
+import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.ui.ChatSettingsPage
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.server.core.Message
@@ -29,6 +30,6 @@ class ChatCommand : AbstractPlayerCommand("chat", "Opens the chat customization 
             context.sendMessage(Message.raw("Error: Could not get player"))
             return
         }
-        player.pageManager.openCustomPage(ref, store, MyPage(playerRef))
+        player.pageManager.openCustomPage(ref, store, ChatSettingsPage(playerRef, HeroChat.instance.channelManager))
     }
 }

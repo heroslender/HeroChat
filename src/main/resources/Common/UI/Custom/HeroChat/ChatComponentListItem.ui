@@ -51,7 +51,7 @@ Group {
 
         Group {
           Anchor: (Width: 24, Height: 24);
-          Background: "EditIcon.png";
+          Background: "Assets/EditIcon.png";
         }
       }
 
