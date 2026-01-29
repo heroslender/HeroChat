@@ -1,8 +1,15 @@
+<img src=".github/assets/icon.png" alt="HeroChat Icon" title="HeroChat" align="right"/>
+
 ## HeroChat
 
-A simple and customizable chat plugin for Hytale servers.
+[![GitHub stars](https://img.shields.io/github/stars/heroslender/HeroChat.svg)](https://github.com/heroslender/HeroChat/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues-raw/heroslender/HeroChat.svg?label=issues)](https://github.com/heroslender/HeroChat/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/heroslender/HeroChat)](https://github.com/heroslender/HeroChat/commit)
+[![GitHub last commit](https://img.shields.io/github/downloads/heroslender/HeroChat/total)](https://github.com/heroslender/HeroChat/releases)
+[![GitHub Tag](https://img.shields.io/github/v/tag/heroslender/HeroChat?label=Version)](https://github.com/heroslender/HeroChat/releases/latest)
+[![Discord](https://img.shields.io/discord/455337556746305538?label=Discord&logo=Discord&logoColor=white&labelColor=7289da&color=555555)](https://discord.gg/nWX7apX)
 
-![Discord_5k0eSX7xdW](https://github.com/user-attachments/assets/90adba8d-4dd7-486f-a9b0-597244329d0d)
+A simple and customizable chat plugin for Hytale servers.
 
 <!-- TOC -->
   * [HeroChat](#herochat)
@@ -101,6 +108,7 @@ chat-formatter:
 
 <img width="299" height="129" alt="{3EB12BE9-F0FE-4044-A973-B300883AD9BB}" src="https://github.com/user-attachments/assets/c5cac4a4-d4f3-403d-ad55-434a81e3168d" />
 
+![Discord_5k0eSX7xdW](https://github.com/user-attachments/assets/90adba8d-4dd7-486f-a9b0-597244329d0d)
 ![Settings Menu](https://github.com/user-attachments/assets/b9408714-9dcd-42ff-a274-3897e2315f02)
 ![Private Chat Settings Menu](https://github.com/user-attachments/assets/691cb48a-ac7c-4aef-bf68-9d3df3b3bb2f)
 ![Chat Settings Menu](https://github.com/user-attachments/assets/d4724448-63e5-42d5-ab2d-548cfc4ec996)
