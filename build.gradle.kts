@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.github.heroslender.herochat"
-version = "1.1.0"
+version = "1.2.0"
 
 val javaVersion = 25
 
@@ -18,7 +18,6 @@ dependencies {
 
     testImplementation(kotlin("test"))
 }
-
 
 tasks {
     shadowJar {
@@ -63,27 +62,5 @@ kotlin {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(javaVersion))
-    }
-}
-
-tasks {
-    register<Exec>("stopContainer") {
-        commandLine("docker", "stop", "hytale-server")
-
-        doLast { println("Container stopped") }
-    }
-
-    register<Copy>("deployToServer") {
-        dependsOn("shadowJar")
-        from(shadowJar.get().archiveFile)
-        into(File("C:\\Users\\bruno\\Desktop\\hytale-server\\data\\mods"))
-
-        doLast { println("Plugin deployed") }
-    }
-
-    register<Exec>("startContainer") {
-        commandLine("docker", "start", "hytale-server")
-
-        doLast { println("Container started") }
     }
 }
