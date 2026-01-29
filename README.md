@@ -9,6 +9,7 @@ A simple and customizable chat plugin for Hytale servers.
     * [Commands](#commands)
     * [Config](#config)
       * [Global config](#global-config)
+      * [Private channel config](#private-channel-config)
       * [Channel config](#channel-config)
     * [Available placeholders](#available-placeholders)
     * [Formatting placeholders](#formatting-placeholders)
@@ -100,4 +101,8 @@ chat-formatter:
 
 <img width="299" height="129" alt="{3EB12BE9-F0FE-4044-A973-B300883AD9BB}" src="https://github.com/user-attachments/assets/c5cac4a4-d4f3-403d-ad55-434a81e3168d" />
 
-![Discord_5k0eSX7xdW](https://github.com/user-attachments/assets/90adba8d-4dd7-486f-a9b0-597244329d0d)
+![Settings Menu](https://github.com/user-attachments/assets/b9408714-9dcd-42ff-a274-3897e2315f02)
+![Private Chat Settings Menu](https://github.com/user-attachments/assets/691cb48a-ac7c-4aef-bf68-9d3df3b3bb2f)
+![Chat Settings Menu](https://github.com/user-attachments/assets/d4724448-63e5-42d5-ab2d-548cfc4ec996)
+![Add component Menu](https://github.com/user-attachments/assets/92f0cf1a-7bcf-4fc4-a5e3-cb4d20a0c015)
+
