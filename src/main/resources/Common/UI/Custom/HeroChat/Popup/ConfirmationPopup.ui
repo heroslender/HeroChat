@@ -1,49 +1,27 @@
 $C = "../../Common.ui";
+$Popup = "Popup.ui";
 
-@Overlay = Group {
-  Background: (Color: #000000(0.82));
-  LayoutMode: Middle;
-};
+$Popup.@Popup #ConfirmationPopup {
+  @Title = "Add Chat Component";
 
-@Overlay #ConfirmationPopup {
-  $C.@DecoratedContainer {
-    Anchor: (Width: 560);
+  #Content {
+    Label #PopupMessage {
+      Style: (TextColor: #96a9be, FontSize: 18, Wrap: true);
+      Anchor: (Bottom: 8);
+    }
+  }
 
-    #Title {
-      Group {
-        $C.@Title #PopupTitle {
-          @Text = "Add Chat Component";
-        }
-      }
+  #BottomBar {
+    $C.@TextButton #ConfirmBtn {
+      @Text = "Confirm";
+      FlexWeight: 1;
+      Anchor: (Right: 10);
     }
 
-    #Content {
-      Padding: (Full: 24);
-
-      Label #PopupMessage {
-//        Text: "Tag";
-        Style: (TextColor: #96a9be, FontSize: 18, Wrap: true);
-        Anchor: (Bottom: 8);
-      }
-
-      Group {
-        Anchor: (Height: 2, Vertical: 16);
-        Background: (Color: #2b3542);
-      }
-
-      Group {
-        LayoutMode: Left;
-        $C.@TextButton #ConfirmBtn {
-          @Text = "Confirm";
-          FlexWeight: 1;
-          Anchor: (Right: 10);
-        }
-
-        $C.@SecondaryTextButton #CancelBtn {
-          @Text = "Cancel";
-          FlexWeight: 1;
-        }
-      }
+    $C.@SecondaryTextButton #CancelBtn {
+      @Text = "Cancel";
+      FlexWeight: 1;
     }
   }
 }
+

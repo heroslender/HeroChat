@@ -1,0 +1,53 @@
+$C = "../../Common.ui";
+
+@Popup = Group {
+  @Title = "";
+  @Anchor = Anchor();
+
+  Background: (Color: #000000(0.82));
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (...@Anchor, Width: 560);
+
+    Group #Title {
+      Anchor: (Height: $C.@TitleHeight, Top: 0);
+      Background: (TexturePath: "../../Common/ContainerHeader.png", HorizontalBorder: 50, VerticalBorder: 0);
+      Padding: (Top: 7);
+
+      Group #ContainerDecorationTop {
+        Anchor: (Width: 236, Height: 11, Top: -12);
+        Background: "../../Common/ContainerDecorationTop.png";
+      }
+
+      $C.@Title #PopupTitle {
+        @Text = @Title;
+      }
+    }
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Top: $C.@TitleHeight);
+      Padding: (Full: 24);
+      Background: (TexturePath: "../../Common/ContainerPatch.png", Border: 23);
+
+      Group #Content {
+        LayoutMode: Top;
+      }
+
+      Group {
+        Anchor: (Height: 2, Vertical: 16);
+        Background: (Color: #2b3542);
+      }
+
+      Group #BottomBar {
+        LayoutMode: Left;
+      }
+    }
+
+    Group #ContainerDecorationBottom {
+      Anchor: (Width: 236, Height: 11, Bottom: -6);
+      Background: "../../Common/ContainerDecorationBottom.png";
+    }
+  }
+};

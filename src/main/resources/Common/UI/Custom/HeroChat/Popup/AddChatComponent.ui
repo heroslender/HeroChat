@@ -1,76 +1,54 @@
 $C = "../../Common.ui";
+$Popup = "Popup.ui";
 
-@Overlay = Group {
-  Background: (Color: #000000(0.82));
-  LayoutMode: Middle;
-};
+$Popup.@Popup #ComponentPopup {
+  @Title = "Add Chat Component";
 
-@Overlay #ComponentPopup {
-  $C.@DecoratedContainer {
-    Anchor: (Width: 560);
-
-    #Title {
-      Group {
-        $C.@Title #PopupTitle {
-          @Text = "Add Chat Component";
-        }
-      }
+  #Content {
+    Label {
+      Text: "Tag";
+      Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true);
+      Anchor: (Bottom: 8);
     }
 
-    #Content {
-      Padding: (Full: 24);
+    $C.@TextField #Tag {
+      Anchor: (Height: 38, Bottom: 12);
+      Style: (FontSize: 16, TextColor: #ffffff);
+    }
 
-      Label {
-        Text: "Tag";
-        Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true);
-        Anchor: (Bottom: 8);
-      }
+    Label {
+      Text: "Format";
+      Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true);
+      Anchor: (Bottom: 8);
+    }
 
-      $C.@TextField #Tag {
-        Anchor: (Height: 38, Bottom: 12);
-        Style: (FontSize: 16, TextColor: #ffffff);
-      }
+    $C.@TextField #Format {
+      Anchor: (Height: 44, Bottom: 12);
+      Style: (FontSize: 16, TextColor: #ffffff);
+    }
 
-      Label {
-        Text: "Format";
-        Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true);
-        Anchor: (Bottom: 8);
-      }
+    Label {
+      Text: "Permission";
+      Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true);
+      Anchor: (Bottom: 8);
+    }
 
-      $C.@TextField #Format {
-        Anchor: (Height: 44, Bottom: 12);
-        Style: (FontSize: 16, TextColor: #ffffff);
-      }
+    $C.@TextField #Permission {
+      Anchor: (Height: 44);
+      Style: (FontSize: 16, TextColor: #ffffff);
+    }
+  }
 
-      Label {
-        Text: "Permission";
-        Style: (TextColor: #96a9be, FontSize: 14, RenderBold: true);
-        Anchor: (Bottom: 8);
-      }
+  #BottomBar {
+    $C.@TextButton #AddBtn {
+      @Text = "Add";
+      FlexWeight: 1;
+      Anchor: (Right: 10);
+    }
 
-      $C.@TextField #Permission {
-        Anchor: (Height: 44);
-        Style: (FontSize: 16, TextColor: #ffffff);
-      }
-
-      Group {
-        Anchor: (Height: 2, Vertical: 16);
-        Background: (Color: #2b3542);
-      }
-
-      Group {
-        LayoutMode: Left;
-        $C.@TextButton #AddBtn {
-          @Text = "Add";
-          FlexWeight: 1;
-          Anchor: (Right: 10);
-        }
-
-        $C.@SecondaryTextButton #Close {
-          @Text = "Cancel";
-          FlexWeight: 1;
-        }
-      }
+    $C.@SecondaryTextButton #Close {
+      @Text = "Cancel";
+      FlexWeight: 1;
     }
   }
 }
