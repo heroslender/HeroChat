@@ -1,9 +1,10 @@
-package com.github.heroslender.herochat.ui
+package com.github.heroslender.herochat.ui.settings
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.chat.Channel
 import com.github.heroslender.herochat.config.ComponentConfig
+import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -14,16 +15,13 @@ import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
-import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
 
 class ChannelSubPage(
-    val parent: ChatSettingsPage,
+    parent: ChatSettingsPage,
     val channel: Channel,
-    override val playerRef: PlayerRef,
-) : SubPage<ChatSettingsPage.UiState> {
-    override val layoutPath: String = "HeroChat/SubPage/ChannelSubPage.ui"
+) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/ChannelSubPage.ui") {
 
     companion object {
         const val LAYOUT_COMPONENT_LIST_ITEM: String = "HeroChat/ChatComponentListItem.ui"
@@ -59,23 +57,21 @@ class ChannelSubPage(
         evt.onActivating("#Save", "Action" to "save")
     }
 
-    override fun handleDataEvent(
-        ref: Ref<EntityStore?>,
-        store: Store<EntityStore?>,
-        data: ChatSettingsPage.UiState
-    ) {
+    override fun handleDataEvent(ref: Ref<EntityStore?>, store: Store<EntityStore?>, data: ChatSettingsPage.UiState) {
         when (data.action) {
             "newComponent", "editComponent" -> {
-                parent.runUiCmdEvtUpdate { cmd, evt ->
-                    val id = data.componentId
-                    val component = if (id != null) {
-                        updatedData.components?.get(id) ?: channel.components[id]
-                    } else null
+                val id = data.componentId
+                val component = id?.let { id -> updatedData.components?.get(id) ?: channel.components[id] }
 
-                    val popup = ComponentPopup<ChatSettingsPage.UiState>(id, component)
-                    cmd.append(popup.layoutPath)
-                    popup.build(ref, cmd, evt, store)
-                }
+                ComponentPopup(parent, id, component) { data ->
+                    when (data.action) {
+                        ComponentPopup.ActionCancelPopup -> closePopup()
+                        ComponentPopup.ActionConfirmPopup -> {
+                            onSaveChatComponent(data)
+                            closePopup()
+                        }
+                    }
+                }.openPopup(ref, store)
 
                 return
             }
@@ -90,7 +86,7 @@ class ChannelSubPage(
 
                     components.remove(id)
 
-                    parent.runUiCmdEvtUpdate { cmd, evt ->
+                    runUiCmdEvtUpdate { cmd, evt ->
                         updatePreview()
                         populateComponents(cmd, evt)
                     }
@@ -138,78 +134,18 @@ class ChannelSubPage(
 
             "closeUI" -> {
                 if (updatedData.hasChanges()) {
-                    parent.runUiCmdEvtUpdate { cmd, evt ->
-                        val confirmationPopup = ConfirmationPopup<ChatSettingsPage.UiState>(
-                            title = "Unsaved Changes",
-                            message = "Are you sure you want to leave without saving the changes made?",
-                        )
-                        cmd.append(confirmationPopup.layoutPath)
-                        confirmationPopup.build(ref, cmd, evt, store)
-                    }
-
+                    ConfirmationPopup(
+                        parent,
+                        title = "Unsaved Changes",
+                        message = "Are you sure you want to leave without saving the changes made?",
+                        onConfirm = {
+                            parent.closePage()
+                        }
+                    ).openPopup(ref, store)
                     return
                 }
 
                 parent.closePage()
-                return
-            }
-
-            ConfirmationPopup.ActionConfirmPopup -> {
-                parent.closePage()
-                return
-            }
-
-            ConfirmationPopup.ActionCancelPopup -> {
-                parent.runUiCmdUpdate { cmd ->
-                    cmd.remove(ConfirmationPopup.PopupSelector);
-                }
-                return
-            }
-
-            ComponentPopup.ActionConfirmPopup -> {
-                val id = data.componentId
-                val text = data.componentText
-                val perm = data.componentPermission
-
-                if (id == null) {
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler,
-                        Message.raw("Missing fields"),
-                        Message.raw("Component tag is not defined."),
-                        NotificationStyle.Danger
-                    )
-                    return
-                }
-
-                if (text == null) {
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler,
-                        Message.raw("Missing fields"),
-                        Message.raw("Component format is not defined."),
-                        NotificationStyle.Danger
-                    )
-                    return
-                }
-
-                var components = updatedData.components
-                if (components == null) {
-                    components = HashMap(channel.components)
-                    updatedData.components = components
-                }
-                components[id] = ComponentConfig(text, perm?.ifEmpty { null })
-
-                parent.runUiCmdEvtUpdate { cmd, evt ->
-                    updatePreview()
-                    populateComponents(cmd, evt)
-                    cmd.remove(ComponentPopup.PopupSelector);
-                }
-                return
-            }
-
-            ComponentPopup.ActionCancelPopup -> {
-                parent.runUiCmdUpdate { cmd ->
-                    cmd.remove(ComponentPopup.PopupSelector)
-                }
                 return
             }
         }
@@ -228,6 +164,46 @@ class ChannelSubPage(
         }
     }
 
+    fun onSaveChatComponent(data: ChatSettingsPage.UiState) {
+        val id = data.componentId
+        val text = data.componentText
+        val perm = data.componentPermission
+
+        if (id == null) {
+            NotificationUtil.sendNotification(
+                playerRef.packetHandler,
+                Message.raw("Missing fields"),
+                Message.raw("Component tag is not defined."),
+                NotificationStyle.Danger
+            )
+            return
+        }
+
+        if (text == null) {
+            NotificationUtil.sendNotification(
+                playerRef.packetHandler,
+                Message.raw("Missing fields"),
+                Message.raw("Component format is not defined."),
+                NotificationStyle.Danger
+            )
+            return
+        }
+
+        var components = updatedData.components
+        if (components == null) {
+            components = HashMap(channel.components)
+            updatedData.components = components
+        }
+        components[id] = ComponentConfig(text, perm?.ifEmpty { null })
+
+        runUiCmdEvtUpdate { cmd, evt ->
+            updatePreview()
+            populateComponents(cmd, evt)
+        }
+        return
+    }
+
+
     fun populateComponents(cmd: UICommandBuilder, evt: UIEventBuilder) {
         cmd.clear("#ListContainer")
 
@@ -240,7 +216,7 @@ class ChannelSubPage(
             cmd["#ListContainer[$i] #TagText.Text"] = component.value.text
             if (component.value.permission != null) {
                 cmd["#ListContainer[$i] #PermGroup.Visible"] = true
-                cmd["#ListContainer[$i] #Permission.Text"] = "{${component.key}}"
+                cmd["#ListContainer[$i] #Permission.Text"] = "{${component.value.permission}}"
             }
 
             evt.onActivating(
@@ -259,7 +235,7 @@ class ChannelSubPage(
         }
     }
 
-    fun updatePreview() = parent.runUiCmdUpdate { cmd ->
+    fun updatePreview() = runUiCmdUpdate { cmd ->
         appendFormattedPreview(cmd)
     }
 

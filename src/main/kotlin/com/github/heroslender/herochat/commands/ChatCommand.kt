@@ -1,7 +1,7 @@
 package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.ui.ChatSettingsPage
+import com.github.heroslender.herochat.ui.settings.ChatSettingsPage
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.server.core.Message

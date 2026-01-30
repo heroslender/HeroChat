@@ -1,9 +1,9 @@
-package com.github.heroslender.herochat.ui
+package com.github.heroslender.herochat.ui.settings
 
 import com.github.heroslender.herochat.ChannelManager
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
-import com.github.heroslender.herochat.ui.ChannelSubPage.Companion.LAYOUT_COMPONENT_LIST_ITEM
+import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -16,16 +16,13 @@ import com.hypixel.hytale.server.core.ui.DropdownEntryInfo
 import com.hypixel.hytale.server.core.ui.LocalizableString
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
-import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
 
 class SettingsSubPage(
-    val parent: ChatSettingsPage,
+    parent: ChatSettingsPage,
     private val channelManager: ChannelManager,
-    override val playerRef: PlayerRef
-) : SubPage<ChatSettingsPage.UiState> {
-    override val layoutPath: String = "HeroChat/SubPage/SettingsSubPage.ui"
+) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/SettingsSubPage.ui") {
 
     private val updatedData: UpdatedData = UpdatedData()
 
@@ -58,16 +55,20 @@ class SettingsSubPage(
     ) {
         when (data.action) {
             "newComponent", "editComponent" -> {
-                parent.runUiCmdEvtUpdate { cmd, evt ->
-                    val id = data.componentId
-                    val component = if (id != null) {
-                        updatedData.components?.get(id) ?: HeroChat.instance.config.components[id]
-                    } else null
+                val id = data.componentId
+                val component = if (id != null) {
+                    updatedData.components?.get(id) ?: HeroChat.instance.config.components[id]
+                } else null
 
-                    val popup = ComponentPopup<ChatSettingsPage.UiState>(id, component)
-                    cmd.append(popup.layoutPath)
-                    popup.build(ref, cmd, evt, store)
-                }
+                ComponentPopup(parent, id, component) { data ->
+                    when (data.action) {
+                        ComponentPopup.ActionCancelPopup -> closePopup()
+                        ComponentPopup.ActionConfirmPopup -> {
+                            onSaveChatComponent(data)
+                            closePopup()
+                        }
+                    }
+                }.openPopup(ref, store)
 
                 return
             }
@@ -81,7 +82,7 @@ class SettingsSubPage(
                     }
                     components.remove(id)
 
-                    parent.runUiCmdEvtUpdate { cmd, evt ->
+                    runUiCmdEvtUpdate { cmd, evt ->
                         populateComponents(cmd, evt)
                     }
                 }
@@ -117,77 +118,18 @@ class SettingsSubPage(
 
             "closeUI" -> {
                 if (updatedData.hasChanges()) {
-                    parent.runUiCmdEvtUpdate { cmd, evt ->
-                        val confirmationPopup = ConfirmationPopup<ChatSettingsPage.UiState>(
-                            title = "Unsaved Changes",
-                            message = "Are you sure you want to leave without saving the changes made?",
-                        )
-                        cmd.append(confirmationPopup.layoutPath)
-                        confirmationPopup.build(ref, cmd, evt, store)
-                    }
-
+                    ConfirmationPopup(
+                        parent,
+                        title = "Unsaved Changes",
+                        message = "Are you sure you want to leave without saving the changes made?",
+                        onConfirm = {
+                            parent.closePage()
+                        }
+                    ).openPopup(ref, store)
                     return
                 }
 
                 parent.closePage()
-                return
-            }
-
-            ConfirmationPopup.ActionConfirmPopup -> {
-                parent.closePage()
-                return
-            }
-
-            ConfirmationPopup.ActionCancelPopup -> {
-                parent.runUiCmdUpdate { cmd ->
-                    cmd.remove(ConfirmationPopup.PopupSelector);
-                }
-                return
-            }
-
-            ComponentPopup.ActionConfirmPopup -> {
-                val id = data.componentId
-                val text = data.componentText
-                val perm = data.componentPermission
-
-                if (id == null) {
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler,
-                        Message.raw("Missing fields"),
-                        Message.raw("Component tag is not defined."),
-                        NotificationStyle.Danger
-                    )
-                    return
-                }
-
-                if (text == null) {
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler,
-                        Message.raw("Missing fields"),
-                        Message.raw("Component format is not defined."),
-                        NotificationStyle.Danger
-                    )
-                    return
-                }
-
-                var components = updatedData.components
-                if (components == null) {
-                    components = HashMap(HeroChat.instance.config.components)
-                    updatedData.components = components
-                }
-                components[id] = ComponentConfig(text, perm?.ifEmpty { null })
-
-                parent.runUiCmdEvtUpdate { cmd, evt ->
-                    populateComponents(cmd, evt)
-                    cmd.remove(ComponentPopup.PopupSelector)
-                }
-                return
-            }
-
-            ComponentPopup.ActionCancelPopup -> {
-                parent.runUiCmdUpdate { cmd ->
-                    cmd.remove(ComponentPopup.PopupSelector)
-                }
                 return
             }
         }
@@ -197,18 +139,55 @@ class SettingsSubPage(
         }
     }
 
+    fun onSaveChatComponent(data: ChatSettingsPage.UiState) {
+        val id = data.componentId
+        val text = data.componentText
+        val perm = data.componentPermission
+
+        if (id == null) {
+            NotificationUtil.sendNotification(
+                playerRef.packetHandler,
+                Message.raw("Missing fields"),
+                Message.raw("Component tag is not defined."),
+                NotificationStyle.Danger
+            )
+            return
+        }
+
+        if (text == null) {
+            NotificationUtil.sendNotification(
+                playerRef.packetHandler,
+                Message.raw("Missing fields"),
+                Message.raw("Component format is not defined."),
+                NotificationStyle.Danger
+            )
+            return
+        }
+
+        var components = updatedData.components
+        if (components == null) {
+            components = HashMap(HeroChat.instance.config.components)
+            updatedData.components = components
+        }
+        components[id] = ComponentConfig(text, perm?.ifEmpty { null })
+
+        runUiCmdEvtUpdate { cmd, evt ->
+            populateComponents(cmd, evt)
+        }
+    }
+
     fun populateComponents(cmd: UICommandBuilder, evt: UIEventBuilder) {
         cmd.clear("#ListContainer")
         val components = updatedData.components ?: HeroChat.instance.config.components
 
         var i = 0
         for (component in components) {
-            cmd.append("#ListContainer", LAYOUT_COMPONENT_LIST_ITEM)
+            cmd.append("#ListContainer", ChannelSubPage.Companion.LAYOUT_COMPONENT_LIST_ITEM)
             cmd["#ListContainer[$i] #Tag.Text"] = "{${component.key}}"
             cmd["#ListContainer[$i] #TagText.Text"] = component.value.text
             if (component.value.permission != null) {
                 cmd["#ListContainer[$i] #PermGroup.Visible"] = true
-                cmd["#ListContainer[$i] #Permission.Text"] = "{${component.key}}"
+                cmd["#ListContainer[$i] #Permission.Text"] = "{${component.value.permission}}"
             }
 
             evt.onActivating(

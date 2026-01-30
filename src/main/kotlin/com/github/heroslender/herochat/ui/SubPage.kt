@@ -7,15 +7,21 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
-interface SubPage<T> {
-    val playerRef: PlayerRef
-    val layoutPath: String
+abstract class SubPage<T>(
+    val parent: Page<T>,
+    val layoutPath: String,
+) {
+    val playerRef: PlayerRef get() = parent.playerRef
 
-    fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>)
+    abstract fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>)
 
-    fun handleDataEvent(
-        ref: Ref<EntityStore?>,
-        store: Store<EntityStore?>,
-        data: T
-    )
+    abstract fun handleDataEvent(ref: Ref<EntityStore?>, store: Store<EntityStore?>, data: T)
+
+    fun runUiCmdUpdate(
+        clear: Boolean = false, func: (cmd: UICommandBuilder) -> Unit
+    ) = parent.runUiCmdUpdate(clear, func)
+
+    fun runUiCmdEvtUpdate(
+        clear: Boolean = false, func: (cmd: UICommandBuilder, evt: UIEventBuilder) -> Unit
+    ) = parent.runUiCmdEvtUpdate(clear, func)
 }

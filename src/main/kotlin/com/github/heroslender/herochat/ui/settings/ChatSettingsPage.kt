@@ -1,15 +1,16 @@
-package com.github.heroslender.herochat.ui
+package com.github.heroslender.herochat.ui.settings
 
 import com.github.heroslender.herochat.ChannelManager
+import com.github.heroslender.herochat.ui.Page
+import com.github.heroslender.herochat.ui.event.ActionEventData
 import com.github.heroslender.herochat.ui.navigation.NavController
+import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
-import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage
 import com.hypixel.hytale.server.core.ui.Value
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
@@ -20,20 +21,17 @@ import javax.annotation.Nonnull
 class ChatSettingsPage(
     playerRef: PlayerRef,
     val channelManager: ChannelManager,
-) : InteractiveCustomUIPage<ChatSettingsPage.UiState>(
-    playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, UiState.CODEC
-) {
+) : Page<ChatSettingsPage.UiState>(playerRef, UiState.CODEC) {
     private val navController = NavController<UiState>(Destination.Settings, "#PageContent")
 
     override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
-        // Load the layout
         cmd.append(LAYOUT)
 
         navController.addNavLocation(
             location = Destination.Settings,
             onEnter = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnSelectedStyle },
             onLeave = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnStyle },
-            pageInitializer = { SettingsSubPage(this, channelManager, playerRef) }
+            pageInitializer = { SettingsSubPage(this, channelManager) }
         )
         evt.onActivating("#ShowSettingsBtn", "NavigateTo" to Destination.Settings)
 
@@ -44,7 +42,7 @@ class ChatSettingsPage(
             location = Destination.Channel(channelManager.privateChannel.id),
             onEnter = { cmd -> cmd["#NavChannels[0].Style"] = NavBtnSelectedStyle },
             onLeave = { cmd -> cmd["#NavChannels[0].Style"] = NavBtnStyle },
-            pageInitializer = { PrivateChannelSubPage(this, channelManager.privateChannel, playerRef) }
+            pageInitializer = { PrivateChannelSubPage(this, channelManager.privateChannel) }
         )
 
         channelManager.channels.values.forEachIndexed { i, channel ->
@@ -57,7 +55,7 @@ class ChatSettingsPage(
                 location = Destination.Channel(channel.id),
                 onEnter = { cmd -> cmd["#NavChannels[$i].Style"] = NavBtnSelectedStyle },
                 onLeave = { cmd -> cmd["#NavChannels[$i].Style"] = NavBtnStyle },
-                pageInitializer = { ChannelSubPage(this, channel, playerRef) }
+                pageInitializer = { ChannelSubPage(this, channel) }
             )
         }
 
@@ -69,6 +67,8 @@ class ChatSettingsPage(
         @Nonnull store: Store<EntityStore?>,
         @Nonnull data: UiState
     ) {
+        super.handleDataEvent(ref, store, data)
+
         val navDest = data.navigateTo
         if (navDest != null) {
             runUiCmdEvtUpdate { cmd, evt ->
@@ -81,8 +81,8 @@ class ChatSettingsPage(
         navController.currentPage?.handleDataEvent(ref, store, data)
     }
 
-    class UiState {
-        var action: String? = null
+    class UiState: ActionEventData {
+        override var action: String? = null
 
         // Navigation
         var navigateTo: String? = null
@@ -105,7 +105,7 @@ class ChatSettingsPage(
         var distance: Double? = null
 
         companion object {
-            val CODEC: BuilderCodec<UiState?> = BuilderCodec.builder(
+            val CODEC: BuilderCodec<UiState> = BuilderCodec.builder(
                 UiState::class.java, { UiState() })
                 .append(
                     KeyedCodec("Action", Codec.STRING),
@@ -174,26 +174,5 @@ class ChatSettingsPage(
         const val Settings = "Settings"
 
         fun Channel(channel: String): String = "channel-$channel"
-    }
-
-    fun closePage() {
-        close()
-    }
-
-    fun runUiCmdUpdate(
-        clear: Boolean = false, func: (cmd: UICommandBuilder) -> Unit
-    ) {
-        val cmd = UICommandBuilder()
-        func(cmd)
-        sendUpdate(cmd, clear)
-    }
-
-    fun runUiCmdEvtUpdate(
-        clear: Boolean = false, func: (cmd: UICommandBuilder, evt: UIEventBuilder) -> Unit
-    ) {
-        val cmd = UICommandBuilder()
-        val evt = UIEventBuilder()
-        func(cmd, evt)
-        sendUpdate(cmd, evt, clear)
     }
 }
