@@ -64,6 +64,11 @@ specific channel. A channel ID is its file name.
 ```json
 {
   "Name": "Whisper",
+  "Commands": [
+    "tell",
+    "w",
+    "whisper"
+  ],
   "SenderFormat": "Message to {target_username}{#555555}{bold}> {#aaa}{message}",
   "ReceiverFormat": "Message from {player_username}{#555555}{bold}> {#AAAAAA}{message}",
   "Permission": "chat.tell", // Optional

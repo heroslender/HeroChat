@@ -15,7 +15,7 @@ import com.hypixel.hytale.server.core.universe.Universe
 class Channel(id: String, config: ChannelConfig) {
     val id: String = id
     val name: String = config.name
-    val commands: Array<String> = if (config.commands.isNotEmpty()) config.commands else arrayOf(id)
+    val commands: Array<String> = config.commands
     val format: String = config.format
     val permission: String? = config.permission
     val components: Map<String, ComponentConfig> = config.components

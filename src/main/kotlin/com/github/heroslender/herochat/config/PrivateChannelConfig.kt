@@ -7,6 +7,7 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec
 
 class PrivateChannelConfig {
     var name: String = "Whisper"
+    var commands: Array<String> = arrayOf("tell", "w", "whisper", "pm")
     var senderFormat: String = "Message to {target_username}{#555555}{bold}> {#AAAAAA}{message}"
     var receiverFormat: String = "Message from {player_username}{#555555}{bold}> {#AAAAAA}{message}"
     var permission: String? = null
@@ -22,6 +23,11 @@ class PrivateChannelConfig {
                 KeyedCodec("Name", Codec.STRING),
                 { config, value -> config.name = value },
                 { config -> config.name }
+            ).add()
+            .append(
+                KeyedCodec("Commands", Codec.STRING_ARRAY, false),
+                { config, value -> config.commands = value ?: emptyArray() },
+                { config -> config.commands }
             ).add()
             .append(
                 KeyedCodec("SenderFormat", Codec.STRING),

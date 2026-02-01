@@ -10,12 +10,16 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 import java.util.concurrent.CompletableFuture
 
 class PrivateChannelCommand(val channel: PrivateChannel) :
-    AbstractAsyncCommand(channel.id, "Sends a chat message in a specific channel") {
+    AbstractAsyncCommand(channel.commands.first(), "Sends a chat message in a specific channel") {
     private val targetArg: RequiredArg<PlayerRef> = withRequiredArg("player", "Target player", ArgTypes.PLAYER_REF)
     private val msgArg: RequiredArg<String> = withRequiredArg("msg", "message", ArgTypes.STRING)
 
     init {
         setAllowsExtraArguments(true)
+
+        if (channel.commands.size > 1) {
+            addAliases(*channel.commands.drop(1).toTypedArray())
+        }
     }
 
     override fun canGeneratePermission(): Boolean {

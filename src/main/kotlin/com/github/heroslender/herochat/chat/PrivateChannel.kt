@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 class PrivateChannel(config: PrivateChannelConfig) {
     val id: String = ID
     val name: String = config.name
+    val commands: Array<String> = config.commands
     val format: String = config.senderFormat
     val receiverFormat: String = config.receiverFormat
     val permission: String? = config.permission

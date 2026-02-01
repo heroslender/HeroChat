@@ -7,7 +7,7 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec
 
 class ChannelConfig {
     var name: String = "Global"
-    var commands: Array<String> = emptyArray()
+    var commands: Array<String> = arrayOf("g", "global")
     var format: String = "{player_username}{#555555}{bold}> {#AAAAAA}{message}"
     var permission: String? = null
     var distance: Double? = null

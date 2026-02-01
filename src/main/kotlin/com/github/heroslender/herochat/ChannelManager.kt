@@ -56,15 +56,21 @@ class ChannelManager(
     }
 
     fun loadChannel(channel: Channel) {
-        val cmd = ChannelCommand(channel)
-        commands[channel.id] = plugin.commandRegistry.registerCommand(cmd)
-        logger.atInfo().log("Registered channel command ${channel.id}")
+        if (channel.commands.isNotEmpty()) {
+            val cmd = ChannelCommand(channel)
+            commands[channel.id] = plugin.commandRegistry.registerCommand(cmd)
+            logger.atInfo()
+                .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
+        }
     }
 
     fun loadChannel(channel: PrivateChannel) {
-        val cmd = PrivateChannelCommand(channel)
-        commands[channel.id] = plugin.commandRegistry.registerCommand(cmd)
-        logger.atInfo().log("Registered channel command ${channel.id}")
+        if (channel.commands.isNotEmpty()) {
+            val cmd = PrivateChannelCommand(channel)
+            commands[channel.id] = plugin.commandRegistry.registerCommand(cmd)
+            logger.atInfo()
+                .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
+        }
     }
 
     fun updateDefaultChannel(channelId: String) {
