@@ -10,11 +10,15 @@ import java.util.concurrent.CompletableFuture
 
 
 class ChannelCommand(val channel: Channel) :
-    AbstractAsyncCommand(channel.id, "Sends a chat message in a specific channel") {
+    AbstractAsyncCommand(channel.commands.first(), "Sends a chat message in a specific channel") {
     private val msgArg: RequiredArg<String> = withRequiredArg("msg", "message", ArgTypes.STRING)
 
     init {
         setAllowsExtraArguments(true)
+
+        if (channel.commands.size > 1) {
+            addAliases(*channel.commands.drop(1).toTypedArray())
+        }
     }
 
     override fun canGeneratePermission(): Boolean {

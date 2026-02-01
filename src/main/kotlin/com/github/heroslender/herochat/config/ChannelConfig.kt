@@ -7,6 +7,7 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec
 
 class ChannelConfig {
     var name: String = "Global"
+    var commands: Array<String> = emptyArray()
     var format: String = "{player_username}{#555555}{bold}> {#AAAAAA}{message}"
     var permission: String? = null
     var distance: Double? = null
@@ -23,6 +24,11 @@ class ChannelConfig {
                 KeyedCodec("Name", Codec.STRING),
                 { config, value -> config.name = value },
                 { config -> config.name }
+            ).add()
+            .append(
+                KeyedCodec("Commands", Codec.STRING_ARRAY, false),
+                { config, value -> config.commands = value ?: emptyArray() },
+                { config -> config.commands }
             ).add()
             .append(
                 KeyedCodec("Format", Codec.STRING),
