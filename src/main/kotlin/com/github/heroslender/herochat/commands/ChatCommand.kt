@@ -14,6 +14,11 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import javax.annotation.Nonnull
 
 class ChatCommand : AbstractPlayerCommand("chat", "Opens the chat customization UI") {
+
+    init {
+        requirePermission("herochat.commands.chat")
+    }
+
     override fun canGeneratePermission(): Boolean {
         return false
     }
