@@ -16,6 +16,9 @@ dependencies {
     compileOnly(files("libs/HytaleServer.jar"))
     compileOnly(files("libs/LuckPerms-Hytale-5.5.25-beta10.jar"))
 
+    implementation("com.h2database:h2:2.2.224")
+    implementation("com.zaxxer:HikariCP:5.1.0")
+
     testImplementation(kotlin("test"))
 }
 

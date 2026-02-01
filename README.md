@@ -30,7 +30,9 @@ A simple and customizable chat plugin for Hytale servers.
 ### Commands
 
 - `/chat` - Opens the chat customization menu;
+- `/tell <player>` - Change the default chat to this private channel;
 - `/tell <player> <message>` - Sends a private message;
+- `/<channel-id>` - Change the default chat to this channel;
 - `/<channel-id> <message>` - Sends a message in a specific channel
 
 ### Permissions

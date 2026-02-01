@@ -1,12 +1,14 @@
 package com.github.heroslender.herochat.chat
 
 import com.github.heroslender.herochat.ComponentParser
+import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.utils.distanceSquared
 import com.github.heroslender.herochat.utils.sendMessage
 import com.github.heroslender.herochat.utils.square
+import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.command.system.CommandSender
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -30,14 +32,11 @@ class Channel(id: String, config: ChannelConfig) {
             return
         }
 
-        val comp = components + ("message" to ComponentConfig(msg))
-        println(format)
-        val message = ComponentParser.parse(sender.uuid, format, comp)
-
-        val players: Collection<PlayerRef> = if (crossWorld) {
+        val recipients: Collection<PlayerRef> = if (crossWorld) {
             Universe.get().players
         } else {
             if (sender !is Player) {
+                sender.sendMessage(Message.raw("You can't send messages in this channel! Not a global channel."))
                 return
             }
 
@@ -61,8 +60,20 @@ class Channel(id: String, config: ChannelConfig) {
             }
         }
 
-        for (player in players) {
-            player.sendMessage(message)
+        var finalMsg = msg
+        val settings = HeroChat.instance.userService.getSettings(sender.uuid)
+        if (!settings.messageColor.isNullOrEmpty()) {
+            finalMsg = settings.messageColor + msg
+        }
+
+        val comp = components + ("message" to ComponentConfig(finalMsg))
+        val message = ComponentParser.parse(sender.uuid, format, comp)
+
+        for (recipient in recipients) {
+            val settings = HeroChat.instance.userService.getSettings(recipient.uuid)
+            if (!settings.disabledChannels.contains(this.id)) {
+                recipient.sendMessage(message)
+            }
         }
     }
 }

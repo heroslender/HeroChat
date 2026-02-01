@@ -9,11 +9,11 @@ import kotlin.reflect.KProperty1
 
 fun CommandSender.sendMessage(
     msgProp: KProperty1<MessagesConfig, String>,
-    vararg placeholders: Map.Entry<String, String>,
+    vararg placeholders: Pair<String, String>,
 ) {
     val message = msgProp.get(HeroChat.instance.messages)
     val placeholderComponents = if (placeholders.isNotEmpty())
-        mapOf(*placeholders.map { (it.key to ComponentConfig(it.value)) }.toTypedArray())
+        mapOf(*placeholders.map { (key, value) -> (key to ComponentConfig(value)) }.toTypedArray())
     else emptyMap()
 
     val parsedMsg = ComponentParser.parse(uuid, message, placeholderComponents)
