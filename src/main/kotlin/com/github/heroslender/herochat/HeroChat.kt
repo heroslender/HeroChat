@@ -4,6 +4,7 @@ import com.github.heroslender.herochat.chat.PrivateChannel
 import com.github.heroslender.herochat.commands.ChatCommand
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ChatConfig
+import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.hypixel.hytale.common.plugin.PluginIdentifier
 import com.hypixel.hytale.common.semver.SemverRange
@@ -23,7 +24,12 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     val config: ChatConfig
         get() = _config.get()
 
-    private val _privateChannelConfig: Config<PrivateChannelConfig> = withConfig("channels/${PrivateChannel.ID}", PrivateChannelConfig.CODEC)
+    private val _messagesConfig: Config<MessagesConfig> = withConfig("messages", MessagesConfig.CODEC)
+    val messages: MessagesConfig
+        get() = _messagesConfig.get()
+
+    private val _privateChannelConfig: Config<PrivateChannelConfig> =
+        withConfig("channels/${PrivateChannel.ID}", PrivateChannelConfig.CODEC)
     val privateChannelConfig: PrivateChannelConfig
         get() = _privateChannelConfig.get()
 
@@ -48,6 +54,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
     override fun setup() {
         _config.save()
+        _messagesConfig.save()
         _privateChannelConfig.save()
         _channelConfigs.values.forEach { it.save() }
 

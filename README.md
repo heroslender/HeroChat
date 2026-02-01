@@ -14,10 +14,12 @@ A simple and customizable chat plugin for Hytale servers.
 <!-- TOC -->
   * [HeroChat](#herochat)
     * [Commands](#commands)
+    * [Permissions](#permissions)
     * [Config](#config)
       * [Global config](#global-config)
       * [Private channel config](#private-channel-config)
       * [Channel config](#channel-config)
+      * [Messages Config](#messages-config)
     * [Available placeholders](#available-placeholders)
     * [Formatting placeholders](#formatting-placeholders)
     * [Plugin Compatibility](#plugin-compatibility)
@@ -30,6 +32,10 @@ A simple and customizable chat plugin for Hytale servers.
 - `/chat` - Opens the chat customization menu;
 - `/tell <player> <message>` - Sends a private message;
 - `/<channel-id> <message>` - Sends a message in a specific channel
+
+### Permissions
+
+- `herochat.commands.chat` - Permission to open the chat settings menu(`/chat`)
 
 ### Config
 
@@ -70,11 +76,24 @@ specific channel. A channel ID is its file name.
 ```json
 {
   "Name": "Local",
+  "Commands": [
+    "g",
+    "global"
+  ],
   "Format": "{#FFFF55}[L] {player_username}{#555555}{bold}> {#AAAAAA}{message}",
   "Permission": "chat.local", // Optional
   "Distance": 60, // Optional
   "CrossWorld": false, // Optional
   "Components": {}
+}
+```
+
+#### Messages Config
+
+```json
+{
+  "ChannelNoPermission": "{#FF5555}You do not have permission to send messages in this channel.",
+  "PrivateChatSelf": "{#FF5555}You cannot start a private conversation with yourself."
 }
 ```
 

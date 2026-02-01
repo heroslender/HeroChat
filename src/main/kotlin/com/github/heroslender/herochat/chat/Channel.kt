@@ -1,12 +1,12 @@
 package com.github.heroslender.herochat.chat
 
 import com.github.heroslender.herochat.ComponentParser
-import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
+import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.utils.distanceSquared
+import com.github.heroslender.herochat.utils.sendMessage
 import com.github.heroslender.herochat.utils.square
-import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.command.system.CommandSender
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -26,7 +26,7 @@ class Channel(id: String, config: ChannelConfig) {
 
     fun sendMessage(sender: CommandSender, msg: String) {
         if (permission != null && !sender.hasPermission(permission)) {
-            sender.sendMessage(Message.raw("You do not have permission to send messages in this channel."))
+            sender.sendMessage(MessagesConfig::channelNoPermission)
             return
         }
 
