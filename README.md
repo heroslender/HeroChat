@@ -30,6 +30,7 @@ A simple and customizable chat plugin for Hytale servers.
 ### Commands
 
 - `/chat` - Opens the chat customization menu;
+- `/chat spy` - Toggle chat spy;
 - `/tell <player>` - Change the default chat to this private channel;
 - `/tell <player> <message>` - Sends a private message;
 - `/<channel-id>` - Change the default chat to this channel;
@@ -38,6 +39,7 @@ A simple and customizable chat plugin for Hytale servers.
 ### Permissions
 
 - `herochat.commands.chat` - Permission to open the chat settings menu(`/chat`)
+- `herochat.admin.spy` - Permission enable chat spy
 
 ### Config
 

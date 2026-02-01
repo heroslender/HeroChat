@@ -12,6 +12,8 @@ class MessagesConfig {
     var privateChatPlayerNotFound: String = "{#FF5555}The player is not online."
     var privateChatSelf: String = "{#FF5555}You cannot start a private conversation with yourself."
     var privateChatNotActive: String = "{#FF5555}You are not in a private conversation."
+    var spyNoPermission: String = "{#FF5555}You do not have permission to use chat spy."
+    var spyToggle: String = "{#CCCCCC}Chat spy has been {status}{#CCCCCC}."
 
     companion object {
         @JvmField

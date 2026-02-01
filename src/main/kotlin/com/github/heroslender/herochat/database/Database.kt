@@ -30,10 +30,11 @@ class Database(dataFolder: File) {
                 stmt.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS user_settings (
                         uuid VARCHAR(36) PRIMARY KEY,
-                        focused_channel VARCHAR(64) NOT NULL DEFAULT 'global',
+                        focused_channel VARCHAR(64),
                         focused_target VARCHAR(36),
                         message_color VARCHAR(16),
-                        disabled_channels TEXT
+                        disabled_channels TEXT,
+                        spy_mode BOOLEAN DEFAULT FALSE
                     );
                 """.trimIndent())
             }

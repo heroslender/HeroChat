@@ -1,21 +1,22 @@
 package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.ui.settings.ChatSettingsPage
-import com.hypixel.hytale.component.Ref
-import com.hypixel.hytale.component.Store
+import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.command.system.AbstractCommand
 import com.hypixel.hytale.server.core.command.system.CommandContext
-import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.core.universe.world.World
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import javax.annotation.Nonnull
+import java.util.concurrent.CompletableFuture
 
-class ChatCommand : AbstractPlayerCommand("chat", "Opens the chat customization UI") {
+class ChatCommand : AbstractCommand("chat", "Opens the chat customization UI") {
+    private val arg1 = withOptionalArg("arg1", "argument 1", ArgTypes.STRING)
 
     init {
+        setAllowsExtraArguments(true)
         requirePermission("herochat.commands.chat")
     }
 
@@ -23,18 +24,36 @@ class ChatCommand : AbstractPlayerCommand("chat", "Opens the chat customization 
         return false
     }
 
-    override fun execute(
-        @Nonnull context: CommandContext,
-        @Nonnull store: Store<EntityStore?>,
-        @Nonnull ref: Ref<EntityStore?>,
-        @Nonnull playerRef: PlayerRef,
-        @Nonnull world: World
-    ) {
-        val player = store.getComponent(ref, Player.getComponentType())
-        if (player == null) {
-            context.sendMessage(Message.raw("Error: Could not get player"))
-            return
+    override fun execute(ctx: CommandContext): CompletableFuture<Void?>? {
+        return CompletableFuture.runAsync {
+            val args = ctx.inputString.split(" ").drop(1) // simple arg parsing
+            val sender = ctx.sender()
+            if (args.isNotEmpty() && args[0].equals("spy", true)) {
+                if (!sender.hasPermission("herochat.admin.spy")) {
+                    sender.sendMessage(MessagesConfig::spyNoPermission)
+                    return@runAsync
+                }
+
+                HeroChat.instance.userService.updateSettings(sender.uuid) {
+                    it.spyMode = !it.spyMode
+
+                    val status = if (it.spyMode) "{#55FF55}enabled" else "{#FF5555}disabled"
+                    sender.sendMessage(MessagesConfig::spyToggle, "status" to status)
+                }
+                return@runAsync
+            }
+
+            // Open page
+            if (!ctx.isPlayer) {
+                sender.sendMessage(Message.raw("You are not a player!"))
+                return@runAsync
+            }
+
+            val ref = ctx.senderAsPlayerRef() ?: return@runAsync
+            val store = ref.store
+            val player = store.getComponent(ref, Player.getComponentType()) ?: return@runAsync
+            val playerRef = store.getComponent(ref, PlayerRef.getComponentType()) ?: return@runAsync
+            player.pageManager.openCustomPage(ref, store, ChatSettingsPage(playerRef, HeroChat.instance.channelManager))
         }
-        player.pageManager.openCustomPage(ref, store, ChatSettingsPage(playerRef, HeroChat.instance.channelManager))
     }
 }

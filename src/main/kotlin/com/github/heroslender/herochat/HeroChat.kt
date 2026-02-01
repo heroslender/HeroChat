@@ -12,6 +12,7 @@ import com.github.heroslender.herochat.listeners.PlayerListener
 import com.github.heroslender.herochat.service.UserService
 import com.hypixel.hytale.common.plugin.PluginIdentifier
 import com.hypixel.hytale.common.semver.SemverRange
+import com.hypixel.hytale.server.core.console.ConsoleSender
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
 import com.hypixel.hytale.server.core.plugin.PluginManager
@@ -71,6 +72,8 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     }
 
     override fun start() {
+        userService.loadUserAsync(ConsoleSender.INSTANCE.uuid)
+
         PlayerListener(userService, channelManager)
 
         commandRegistry.registerCommand(ChatCommand())

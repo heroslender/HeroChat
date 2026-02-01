@@ -8,6 +8,7 @@ import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.CommandSender
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.Universe
 
 class PrivateChannel(config: PrivateChannelConfig) {
     val id: String = ID
@@ -42,6 +43,22 @@ class PrivateChannel(config: PrivateChannelConfig) {
 
         sender.sendMessage(message)
         extra.sendMessage(receivedMessage)
+
+        val spies = HeroChat.instance.userService.getSpies()
+        if (spies.isEmpty()) {
+            return
+        }
+
+        // Spy format: [SPY] Sender -> Target: Message
+        val spyText =
+            "{#FF5555}[SPY] {#AAAAAA}${sender.displayName} {#555555}-> {#AAAAAA}${extra.username}{#555555}: {#FFFFFF}$msg"
+        val spyMsg = ComponentParser.parse(sender.uuid, spyText)
+
+        for (spyUuid in spies) {
+            if (spyUuid != sender.uuid && spyUuid != extra.uuid) {
+                Universe.get().sendMessage(spyUuid, spyMsg)
+            }
+        }
     }
 
     companion object {

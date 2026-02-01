@@ -16,7 +16,7 @@ object ComponentParser {
     fun parse(
         sender: UUID,
         message: String,
-        components: Map<String, ComponentConfig>,
+        components: Map<String, ComponentConfig> = emptyMap(),
         component: Message = Message.empty()
     ): Message {
         if (!message.contains(PLACEHOLDER_START)) {

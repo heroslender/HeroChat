@@ -2,7 +2,7 @@ package com.github.heroslender.herochat.database
 
 import com.github.heroslender.herochat.data.UserSettings
 import java.sql.SQLException
-import java.util.UUID
+import java.util.*
 
 class UserSettingsRepository(private val database: Database) {
 
@@ -18,6 +18,7 @@ class UserSettingsRepository(private val database: Database) {
                         val focusedTargetStr = rs.getString("focused_target")
                         val messageColor = rs.getString("message_color")
                         val disabledChannelsStr = rs.getString("disabled_channels")
+                        val spyMode = rs.getBoolean("spy_mode")
 
                         val focusedTarget = if (focusedTargetStr != null) UUID.fromString(focusedTargetStr) else null
                         val disabledChannels = if (disabledChannelsStr != null && disabledChannelsStr.isNotEmpty()) {
@@ -26,7 +27,14 @@ class UserSettingsRepository(private val database: Database) {
                             mutableSetOf()
                         }
 
-                        return UserSettings(uuid, focusedChannel, focusedTarget, messageColor, disabledChannels)
+                        return UserSettings(
+                            uuid,
+                            focusedChannel,
+                            focusedTarget,
+                            messageColor,
+                            disabledChannels,
+                            spyMode
+                        )
                     }
                 }
             }
@@ -38,9 +46,9 @@ class UserSettingsRepository(private val database: Database) {
 
     fun save(settings: UserSettings) {
         val query = """
-            MERGE INTO user_settings (uuid, focused_channel, focused_target, message_color, disabled_channels) 
+            MERGE INTO user_settings (uuid, focused_channel, focused_target, message_color, disabled_channels, spy_mode) 
             KEY (uuid) 
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         try {
@@ -51,6 +59,7 @@ class UserSettingsRepository(private val database: Database) {
                     stmt.setString(3, settings.focusedPrivateTarget?.toString())
                     stmt.setString(4, settings.messageColor)
                     stmt.setString(5, settings.disabledChannels.joinToString(","))
+                    stmt.setBoolean(6, settings.spyMode)
                     stmt.executeUpdate()
                 }
             }

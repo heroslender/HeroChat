@@ -69,10 +69,26 @@ class Channel(id: String, config: ChannelConfig) {
         val comp = components + ("message" to ComponentConfig(finalMsg))
         val message = ComponentParser.parse(sender.uuid, format, comp)
 
+        val actualRecipients = mutableSetOf<PlayerRef>()
         for (recipient in recipients) {
             val settings = HeroChat.instance.userService.getSettings(recipient.uuid)
             if (!settings.disabledChannels.contains(this.id)) {
                 recipient.sendMessage(message)
+                actualRecipients.add(recipient)
+            }
+        }
+
+        val spies = HeroChat.instance.userService.getSpies()
+        if (spies.isEmpty())
+            return
+
+        val spyMessage = Message.empty()
+            .insert(Message.raw("[SPY] ").color("#FF5555").bold(true))
+            .insert(message)
+
+        for (spyUuid in spies) {
+            if (actualRecipients.none { it.uuid == spyUuid }) {
+                Universe.get().sendMessage(spyUuid, spyMessage)
             }
         }
     }

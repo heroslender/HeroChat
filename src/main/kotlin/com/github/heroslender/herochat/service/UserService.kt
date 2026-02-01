@@ -48,4 +48,8 @@ class UserService(private val repository: UserSettingsRepository) {
     fun saveAll() {
         cache.values.forEach { repository.save(it) }
     }
+
+    fun getSpies(): List<UUID> {
+        return cache.values.filter { it.spyMode }.map { it.uuid }
+    }
 }
