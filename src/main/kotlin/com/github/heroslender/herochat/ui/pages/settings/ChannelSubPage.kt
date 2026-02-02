@@ -1,8 +1,8 @@
-package com.github.heroslender.herochat.ui.settings
+package com.github.heroslender.herochat.ui.pages.settings
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.chat.PrivateChannel
+import com.github.heroslender.herochat.chat.Channel
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
@@ -17,18 +17,18 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
+import kotlin.collections.iterator
 
-class PrivateChannelSubPage(
+class ChannelSubPage(
     parent: ChatSettingsPage,
-    val channel: PrivateChannel,
-) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/PrivateChannelSubPage.ui") {
+    val channel: Channel,
+) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/ChannelSubPage.ui") {
 
     companion object {
         const val LAYOUT_COMPONENT_LIST_ITEM: String = "HeroChat/ChatComponentListItem.ui"
     }
 
-    private var senderFormat: String = channel.format
-    private var receiverFormat: String = channel.receiverFormat
+    private var format: String = channel.format
 
     private val updatedData: UpdatedData = UpdatedData()
 
@@ -38,36 +38,31 @@ class PrivateChannelSubPage(
         evt: UIEventBuilder,
         store: Store<EntityStore?>
     ) {
-        appendFormattedSenderPreview(cmd)
-        appendFormattedReceiverPreview(cmd)
+        appendFormattedPreview(cmd)
 
         populateComponents(cmd, evt)
 
-        cmd["#PreviewField.Value"] = senderFormat
-        cmd["#PreviewReceiverField.Value"] = receiverFormat
+        cmd["#PreviewField.Value"] = format
         cmd["#Permission #Txt.Value"] = channel.permission ?: ""
+        cmd["#CrossWorld #CheckBox.Value"] = channel.crossWorld
+        cmd["#Distance #Slider.Value"] = channel.distance?.toInt() ?: 1
 
         evt.onValueChanged("#PreviewField", "@Format" to "#PreviewField.Value")
-        evt.onValueChanged("#PreviewReceiverField", "@ReceiverFormat" to "#PreviewReceiverField.Value")
         evt.onValueChanged("#Permission #Txt", "@Permission" to "#Permission #Txt.Value")
+        evt.onValueChanged("#CrossWorld #CheckBox", "@CrossWorld" to "#CrossWorld #CheckBox.Value")
+        evt.onValueChanged("#Distance #Slider", "@Distance" to "#Distance #Slider.Value")
 
         evt.onActivating("#NewComponentBtn", "Action" to "newComponent")
-        evt.onActivating("#Save", "Action" to "save")
         evt.onActivating("#CloseButton", "Action" to "closeUI")
         evt.onActivating("#Cancel", "Action" to "closeUI")
+        evt.onActivating("#Save", "Action" to "save")
     }
 
-    override fun handleDataEvent(
-        ref: Ref<EntityStore?>,
-        store: Store<EntityStore?>,
-        data: ChatSettingsPage.UiState
-    ) {
+    override fun handleDataEvent(ref: Ref<EntityStore?>, store: Store<EntityStore?>, data: ChatSettingsPage.UiState) {
         when (data.action) {
             "newComponent", "editComponent" -> {
                 val id = data.componentId
-                val component = if (id != null) {
-                    updatedData.components?.get(id) ?: channel.components[id]
-                } else null
+                val component = id?.let { id -> updatedData.components?.get(id) ?: channel.components[id] }
 
                 ComponentPopup(parent, id, component) { data ->
                     when (data.action) {
@@ -78,6 +73,7 @@ class PrivateChannelSubPage(
                         }
                     }
                 }.openPopup(ref, store)
+
                 return
             }
 
@@ -92,8 +88,7 @@ class PrivateChannelSubPage(
                     components.remove(id)
 
                     runUiCmdEvtUpdate { cmd, evt ->
-                        updateSenderPreview()
-                        updateReceiverPreview()
+                        updatePreview()
                         populateComponents(cmd, evt)
                     }
                 }
@@ -101,18 +96,22 @@ class PrivateChannelSubPage(
             }
 
             "save" -> {
-                val config = HeroChat.instance.privateChannelConfig ?: return
+                val config = HeroChat.instance.channelConfigs[channel.id] ?: return
                 var hasUpdatedData = false
-                if (updatedData.senderFormat != null) {
-                    config.senderFormat = updatedData.senderFormat!!
-                    hasUpdatedData = true
-                }
-                if (updatedData.receiverFormat != null) {
-                    config.receiverFormat = updatedData.receiverFormat!!
+                if (updatedData.format != null) {
+                    config.format = updatedData.format!!
                     hasUpdatedData = true
                 }
                 if (updatedData.permission != null) {
                     config.permission = updatedData.permission!!
+                    hasUpdatedData = true
+                }
+                if (updatedData.crossWorld != null) {
+                    config.crossWorld = updatedData.crossWorld
+                    hasUpdatedData = true
+                }
+                if (updatedData.distance != null) {
+                    config.distance = updatedData.distance
                     hasUpdatedData = true
                 }
                 if (updatedData.components != null) {
@@ -154,11 +153,15 @@ class PrivateChannelSubPage(
 
         if (data.permission != null) {
             updatedData.permission = data.permission
+        } else if (data.crossWorld != null) {
+            updatedData.crossWorld = data.crossWorld
+        } else if (data.distance != null) {
+            updatedData.distance = data.distance
         } else if (data.format != null) {
-            updatedData.senderFormat = data.format
-            this.senderFormat = data.format!!
+            updatedData.format = data.format
+            this.format = data.format!!
 
-            updateSenderPreview()
+            updatePreview()
         }
     }
 
@@ -195,11 +198,12 @@ class PrivateChannelSubPage(
         components[id] = ComponentConfig(text, perm?.ifEmpty { null })
 
         runUiCmdEvtUpdate { cmd, evt ->
-            updateSenderPreview()
-            updateReceiverPreview()
+            updatePreview()
             populateComponents(cmd, evt)
         }
+        return
     }
+
 
     fun populateComponents(cmd: UICommandBuilder, evt: UIEventBuilder) {
         cmd.clear("#ListContainer")
@@ -232,57 +236,37 @@ class PrivateChannelSubPage(
         }
     }
 
-    fun updateSenderPreview() = runUiCmdUpdate { cmd ->
-        appendFormattedSenderPreview(cmd)
+    fun updatePreview() = runUiCmdUpdate { cmd ->
+        appendFormattedPreview(cmd)
     }
 
-    fun appendFormattedSenderPreview(cmd: UICommandBuilder, format: String = senderFormat) {
+    fun appendFormattedPreview(cmd: UICommandBuilder, format: String = this.format) {
         val components = updatedData.components ?: channel.components
 
         val msg = ComponentParser.parse(
             playerRef.uuid,
             format,
-            HeroChat.instance.config.components +
-                    components +
-                    ("message" to ComponentConfig("Hello!! This is a test chat message.")) +
-                    ("target_username" to ComponentConfig("Someone"))
+            HeroChat.instance.config.components + components + ("message" to ComponentConfig("Hello!! This is a test chat message."))
         )
 
         cmd["#PreviewLbl.TextSpans"] = msg
     }
 
-    fun updateReceiverPreview() = runUiCmdUpdate { cmd ->
-        appendFormattedReceiverPreview(cmd)
-    }
-
-    fun appendFormattedReceiverPreview(cmd: UICommandBuilder, format: String = receiverFormat) {
-        val components = updatedData.components ?: channel.components
-
-        val msg = ComponentParser.parse(
-            playerRef.uuid,
-            format,
-            HeroChat.instance.config.components +
-                    components +
-                    ("message" to ComponentConfig("Hello!! This is a test chat message.")) +
-                    ("target_username" to ComponentConfig("Someone"))
-        )
-
-        cmd["#PreviewReceiverLbl.TextSpans"] = msg
-    }
-
     data class UpdatedData(
-        var senderFormat: String? = null,
-        var receiverFormat: String? = null,
+        var format: String? = null,
         var permission: String? = null,
+        var distance: Double? = null,
+        var crossWorld: Boolean? = null,
         var components: MutableMap<String, ComponentConfig>? = null,
     ) {
         fun hasChanges(): Boolean =
-            senderFormat != null || receiverFormat != null || permission != null || components != null
+            format != null || permission != null || distance != null || crossWorld != null || components != null
 
         fun clear() {
-            senderFormat = null
-            receiverFormat = null
+            format = null
             permission = null
+            distance = null
+            crossWorld = null
             components = null
         }
     }

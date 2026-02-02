@@ -2,7 +2,8 @@ package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.MessagesConfig
-import com.github.heroslender.herochat.ui.settings.ChatSettingsPage
+import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
+import com.github.heroslender.herochat.ui.pages.usersettings.UserSettingsPage
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.command.system.CommandContext
@@ -49,16 +50,30 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
             return CompletableFuture.completedFuture(null)
         }
 
+        val openUserSettings = !sender.hasPermission("herochat.admin.settings")
+                || (args.isNotEmpty() && args[0].equals("settings", true))
+
         val ref = ctx.senderAsPlayerRef() ?: return CompletableFuture.completedFuture<Void>(null)
         val store = ref.store
         return CompletableFuture.runAsync({
             val player = store.getComponent(ref, Player.getComponentType()) ?: return@runAsync
             val playerRef = store.getComponent(ref, PlayerRef.getComponentType()) ?: return@runAsync
+            if (!openUserSettings) {
+                player.pageManager.openCustomPage(
+                    ref,
+                    store,
+                    ChatSettingsPage(playerRef, HeroChat.instance.channelManager)
+                )
+                return@runAsync
+            }
+
+            val userSettings = HeroChat.instance.userService.getSettings(sender.uuid)
             player.pageManager.openCustomPage(
                 ref,
                 store,
-                ChatSettingsPage(playerRef, HeroChat.instance.channelManager)
+                UserSettingsPage(playerRef, userSettings)
             )
+
         }, store.externalData.world)
     }
 }

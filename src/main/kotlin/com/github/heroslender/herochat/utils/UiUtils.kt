@@ -21,10 +21,17 @@ fun UIEventBuilder.onValueChanged(
     selector: String,
     vararg data: Pair<String, String>,
     locksInterface: Boolean = false
-) = bind(CustomUIEventBindingType.ValueChanged, selector, *data, locksInterface = locksInterface)
+) = onEvent(CustomUIEventBindingType.ValueChanged, selector, *data, locksInterface = locksInterface)
 
 fun UIEventBuilder.onActivating(
     selector: String,
     vararg data: Pair<String, String>,
     locksInterface: Boolean = false
-) = bind(CustomUIEventBindingType.Activating, selector, *data, locksInterface = locksInterface)
+) = onEvent(CustomUIEventBindingType.Activating, selector, *data, locksInterface = locksInterface)
+
+fun UIEventBuilder.onEvent(
+    eventType: CustomUIEventBindingType,
+    selector: String,
+    vararg data: Pair<String, String>,
+    locksInterface: Boolean = false
+) = bind(eventType, selector, *data, locksInterface = locksInterface)

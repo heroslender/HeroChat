@@ -4,6 +4,8 @@ import com.github.heroslender.herochat.HeroChat
 import com.hypixel.hytale.event.EventPriority
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.console.ConsoleSender
+import com.hypixel.hytale.server.core.permissions.PermissionsModule
+import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.Universe
 import java.util.*
 
@@ -22,3 +24,5 @@ fun Universe.sendMessage(uuid: UUID, message: Message) {
         getPlayer(uuid)?.sendMessage(message)
     }
 }
+
+fun PlayerRef.hasPermission(permission: String): Boolean = PermissionsModule.get().hasPermission(uuid, permission)

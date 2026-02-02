@@ -14,6 +14,8 @@ class MessagesConfig {
     var privateChatNotActive: String = "{#FF5555}You are not in a private conversation."
     var spyNoPermission: String = "{#FF5555}You do not have permission to use chat spy."
     var spyToggle: String = "{#CCCCCC}Chat spy has been {status}{#CCCCCC}."
+    var menuSuccessNotificationTitle: String = "Settings Saved"
+    var menuSuccessNotificationDescription: String = "Your settings were successfully saved!"
 
     companion object {
         @JvmField

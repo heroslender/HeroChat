@@ -17,7 +17,7 @@ $Sounds = "../../Sounds.ui";
   }
 
   LabeledCheckBox #CheckBox {
-    Anchor: (Left: 0, Width: 300);
+    Anchor: (Left: 0, Width: 290);
     Style: (
       Checked: (
         DefaultBackground: "../Assets/CheckBox.png",

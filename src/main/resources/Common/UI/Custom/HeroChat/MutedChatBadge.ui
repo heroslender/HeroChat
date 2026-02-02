@@ -1,0 +1,28 @@
+$C = "../Common.ui";
+
+Group {
+  @Text = "Channel";
+  LayoutMode: Left;
+  Anchor: (Height: 28, Left: 8);
+  Background: #38496c;
+  Padding: (Left: 8, Right: 4);
+
+  Label #Txt{
+    Text: @Text;
+    Style: (TextColor: #bfcdd5, FontSize: 16, RenderBold: true, VerticalAlignment: Center);
+  }
+
+  $C.@TextButton #DeleteBtn {
+    @Text = "x";
+    Anchor: (Width: 24, Height: 24);
+    Style: (
+      ...$C.@DefaultTextButtonStyle,
+      Default: (LabelStyle: $C.@DefaultButtonLabelStyle),
+      Hovered: (LabelStyle: $C.@DefaultButtonLabelStyle),
+      Pressed: (LabelStyle: $C.@DefaultButtonLabelStyle),
+      Disabled: (LabelStyle: $C.@DefaultButtonDisabledLabelStyle),
+    );
+    TooltipText: "Unmute channel";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}

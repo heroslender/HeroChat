@@ -1,4 +1,4 @@
-package com.github.heroslender.herochat.ui.settings
+package com.github.heroslender.herochat.ui.pages.settings
 
 import com.github.heroslender.herochat.ChannelManager
 import com.github.heroslender.herochat.HeroChat
@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
+import kotlin.collections.iterator
 
 class SettingsSubPage(
     parent: ChatSettingsPage,

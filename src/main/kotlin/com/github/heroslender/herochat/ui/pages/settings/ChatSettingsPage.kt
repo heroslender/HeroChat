@@ -1,10 +1,9 @@
-package com.github.heroslender.herochat.ui.settings
+package com.github.heroslender.herochat.ui.pages.settings
 
 import com.github.heroslender.herochat.ChannelManager
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
 import com.github.heroslender.herochat.ui.navigation.NavController
-import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec

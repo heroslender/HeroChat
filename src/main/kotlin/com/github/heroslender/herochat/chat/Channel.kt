@@ -62,8 +62,8 @@ class Channel(id: String, config: ChannelConfig) {
 
         var finalMsg = msg
         val settings = HeroChat.instance.userService.getSettings(sender.uuid)
-        if (!settings.messageColor.isNullOrEmpty()) {
-            finalMsg = settings.messageColor + msg
+        if (sender.hasPermission("herochat.chat.message-color")) {
+            finalMsg = "{${settings.messageColor.orEmpty()}}$msg"
         }
 
         val comp = components + ("message" to ComponentConfig(finalMsg))

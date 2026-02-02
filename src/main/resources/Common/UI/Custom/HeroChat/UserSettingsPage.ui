@@ -1,0 +1,146 @@
+$C = "../Common.ui";
+$Sounds = "../Sounds.ui";
+$Components = "SubPage/SettingComponents.ui";
+
+@TitledDropdownBoxStyle = DropdownBoxStyle(
+  ...$C.@DefaultDropdownBoxStyle,
+  PanelPadding: 29,
+  PanelBackground: (TexturePath: "Assets/TitledDropdownBox.png", Border: 57),
+  PanelTitleLabelStyle: LabelStyle(TextColor: #96a9be, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center, FontSize: 13),
+  EntryIconWidth: 13,
+  EntryIconHeight: 10,
+  SelectedEntryIconBackground: (TexturePath: "Assets/Checkmark.png"),
+);
+
+Group {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 700);
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "User chat Settings";
+        }
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+
+      Group #FocusedChannel {
+        LayoutMode: Left;
+        Anchor: (Bottom: 8);
+
+        Group {
+          Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 10);
+          FlexWeight: 1;
+          Anchor: (Right: 8);
+          Padding: (Horizontal: 12, Vertical: 8);
+
+          Label {
+            Text: "Focused Channel";
+            Style: (TextColor: #96a9be, FontSize: 18, VerticalAlignment: Center);
+          }
+        }
+
+        $C.@DropdownBox #Dropdown {
+          Anchor: (Width: 285, Height: 40);
+          Style: DropdownBoxStyle(
+            ...$C.@DefaultDropdownBoxStyle,
+            LabelStyle: (...$C.@DefaultDropdownBoxLabelStyle, RenderBold: true, FontSize: 16)
+          );
+        }
+      }
+
+      Group #MutedChannels {
+        LayoutMode: Left;
+        Anchor: (Bottom: 8);
+        Visible: false;
+
+        Group {
+          LayoutMode: Left;
+          Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 10);
+          FlexWeight: 1;
+          Anchor: (Right: 8);
+          Padding: (Horizontal: 12, Vertical: 8);
+
+          Label {
+            Text: "Muted Channels";
+            Style: (TextColor: #96a9be, FontSize: 18, VerticalAlignment: Center);
+          }
+
+          Group { FlexWeight: 1; }
+
+          Group #MutedChannelsList { LayoutMode: Left; }
+        }
+
+        $C.@DropdownBox #Dropdown {
+          Anchor: (Width: 44, Height: 44);
+          Style: DropdownBoxStyle(
+            ...@TitledDropdownBoxStyle,
+            PanelTitleLabelStyle: LabelStyle(TextColor: #96a9be, RenderItalics: true, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center, FontSize: 13),
+            PanelWidth: 270,
+            EntryHeight: 29,
+            SelectedEntryLabelStyle: (TextColor: #d3ecfb, RenderUppercase: true, RenderBold: true, VerticalAlignment: Center, FontSize: 13),
+              HorizontalPadding: 15
+          );
+          PanelTitleText: "Select:";
+          MaxSelection: 0;
+        }
+      }
+
+      Group #MessageColor {
+        LayoutMode: Left;
+        Anchor: (Bottom: 8);
+        Visible: false;
+
+        Group {
+          Background: (TexturePath: "Assets/OptionBackgroundPatch.png", Border: 10);
+          FlexWeight: 1;
+          Padding: (Horizontal: 12, Vertical: 8);
+
+          Label {
+            Text: "Chat Color";
+            Style: (TextColor: #96a9be, FontSize: 18, VerticalAlignment: Center);
+          }
+        }
+
+        ColorPickerDropdownBox #ColorPicker {
+          Anchor: (Width: 285, Height: 44, Left: 8);
+          DisplayTextField: true;
+          Style: ColorPickerDropdownBoxStyle(
+            ...$C.@DefaultColorPickerDropdownBoxStyle,
+            Overlay: (Default: "Assets/ColorPickerDropdownBoxOverlay.png")
+          );
+          Color: #aaaaaaFF;
+        }
+      }
+
+      $Components.@CheckSetting #SpyMode {
+        @Text = "Spy Mode";
+        Visible: false;
+      }
+
+      Group {
+        Anchor: (Height: 2, Vertical: 16);
+        Background: (Color: #2b3542);
+      }
+
+      Group {
+        LayoutMode: Right;
+
+        $C.@TextButton #Save {
+          @Text = "Save";
+          Anchor: (Width: 120, Height: 44, Right: 12);
+        }
+
+        $C.@SecondaryTextButton #Cancel {
+          @Text = "Cancel";
+          Anchor: (Width: 120, Height: 44);
+        }
+      }
+    }
+  }
+}
