@@ -12,5 +12,8 @@
   "Main": "com.github.heroslender.herochat.HeroChat",
   "ServerVersion": "*",
   "Description": "A chat plugin",
-  "IncludesAssetPack": true
+  "IncludesAssetPack": true,
+  "OptionalDependencies": {
+    "HelpChat:PlaceholderAPI": ">= 1.0.2"
+  }
 }

@@ -125,10 +125,13 @@ specific channel. A channel ID is its file name.
 
 ### Available placeholders
 
-- `{message}`
-- `{player_username}`
-- `{luckperms_prefix}`
-- `{luckperms_suffix}`
+If you are using PlaceholderAPI in your server you can use all of [its placeholders](https://wiki.placeholderapi.com/users/placeholder-list/hytale/),
+but using the format `{placeholder}`.
+
+Default placeholders available:
+
+- `{message}` - The message to be sent by the player
+- `{player_username}` - The player username
 
 ### Formatting placeholders
 

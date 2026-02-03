@@ -45,11 +45,11 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     lateinit var channelService: ChannelService
         private set
 
-    var isLuckpermsEnabled: Boolean = false
+    var isPlaceholderApiEnabled: Boolean = false
         private set
 
     companion object {
-        val LuckPermsId = PluginIdentifier("LuckPerms", "LuckPerms")
+        val PlaceholderApiId = PluginIdentifier("HelpChat", "PlaceholderAPI")
         lateinit var instance: HeroChat
     }
 
@@ -63,7 +63,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         _privateChannelConfig.save()
         _channelConfigs.values.forEach { it.save() }
 
-        isLuckpermsEnabled = PluginManager.get().hasPlugin(LuckPermsId, SemverRange.WILDCARD)
+        isPlaceholderApiEnabled = PluginManager.get().hasPlugin(PlaceholderApiId, SemverRange.fromString(">= 1.0.2"))
 
         database = Database(dataDirectory.toFile())
         val repository = UserSettingsRepository(database)

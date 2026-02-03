@@ -1,10 +1,9 @@
 package com.github.heroslender.herochat
 
 import com.github.heroslender.herochat.config.ComponentConfig
-import com.github.heroslender.herochat.dependencies.LuckPermsDependency
-import com.github.heroslender.herochat.dependencies.LuckPermsDependency.prefix
-import com.github.heroslender.herochat.dependencies.LuckPermsDependency.suffix
+import com.github.heroslender.herochat.dependencies.PlaceholderAPIDependency
 import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.console.ConsoleSender
 import com.hypixel.hytale.server.core.permissions.PermissionsModule
 import com.hypixel.hytale.server.core.universe.Universe
 import java.util.*
@@ -102,14 +101,15 @@ object ComponentParser {
     }
 
     fun parsePlaceholder(sender: UUID, placeholder: String): String? {
-        val user = LuckPermsDependency.getUser(sender)
+        if (sender == ConsoleSender.INSTANCE.uuid) {
+            if (placeholder.equals("player_username", ignoreCase = true)) {
+                return ConsoleSender.INSTANCE.displayName
+            }
 
-        return when (placeholder) {
-            "luckperms_prefix" -> user?.prefix
-            "luckperms_suffix" -> user?.suffix
-            "player_username" -> Universe.get().getPlayer(sender)?.username
-            else -> null
+            return null
         }
+
+        return PlaceholderAPIDependency.parsePlaceholder(Universe.get().getPlayer(sender), placeholder)
     }
 
     fun String.isFormatting(): Boolean {
