@@ -106,7 +106,20 @@ specific channel. A channel ID is its file name.
 ```json
 {
   "ChannelNoPermission": "{#FF5555}You do not have permission to send messages in this channel.",
-  "PrivateChatSelf": "{#FF5555}You cannot start a private conversation with yourself."
+  "ChannelNotFound": "{#FF5555}Channel not found.",
+  "ChannelJoined": "{#55FF55}You are now talking in {#FFFFFF}{channel}{#55FF55}.",
+  "PrivateChatStarted": "{#55FF55}You are now in a private conversation with {#FFFFFF}{player}{#55FF55}.",
+  "PrivateChatPlayerNotFound": "{#FF5555}Player not found.",
+  "PrivateChatSelf": "{#FF5555}You cannot start a private conversation with yourself.",
+  "PrivateChatNotActive": "{#FF5555}You are not in a private conversation.",
+  "MenuFocusedChannel": "Focused Channel",
+  "MenuMutedChannels": "Muted Channels",
+  "MenuMessageColor": "Message Color",
+  "MenuSpyMode": "Spy Mode",
+  "MenuSaveButton": "Save",
+  "MenuCancelButton": "Close",
+  "MenuSuccessNotificationTitle": "Settings Saved",
+  "MenuSuccessNotificationDescription": "Your settings were successfully saved!"
 }
 ```
 
@@ -140,6 +153,7 @@ chat-formatter:
 
 <img width="299" height="129" alt="{3EB12BE9-F0FE-4044-A973-B300883AD9BB}" src="https://github.com/user-attachments/assets/c5cac4a4-d4f3-403d-ad55-434a81e3168d" />
 
+![User Settings Menu](https://github.com/user-attachments/assets/a8091df1-1e74-43a7-b259-9ae1bf5e9549)
 ![Discord_5k0eSX7xdW](https://github.com/user-attachments/assets/90adba8d-4dd7-486f-a9b0-597244329d0d)
 ![Settings Menu](https://github.com/user-attachments/assets/b9408714-9dcd-42ff-a274-3897e2315f02)
 ![Private Chat Settings Menu](https://github.com/user-attachments/assets/691cb48a-ac7c-4aef-bf68-9d3df3b3bb2f)
