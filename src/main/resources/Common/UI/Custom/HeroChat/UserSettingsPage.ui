@@ -16,7 +16,7 @@ Group {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 700);
+    Anchor: (Width: 800);
 
     #Title {
       Group {
@@ -84,7 +84,7 @@ Group {
             PanelWidth: 270,
             EntryHeight: 29,
             SelectedEntryLabelStyle: (TextColor: #d3ecfb, RenderUppercase: true, RenderBold: true, VerticalAlignment: Center, FontSize: 13),
-              HorizontalPadding: 15
+            HorizontalPadding: 15
           );
           PanelTitleText: "Select:";
           MaxSelection: 0;
@@ -108,13 +108,24 @@ Group {
         }
 
         ColorPickerDropdownBox #ColorPicker {
-          Anchor: (Width: 285, Height: 44, Left: 8);
+          Anchor: (Width: 233, Height: 44, Left: 8);
           DisplayTextField: true;
           Style: ColorPickerDropdownBoxStyle(
             ...$C.@DefaultColorPickerDropdownBoxStyle,
             Overlay: (Default: "Assets/ColorPickerDropdownBoxOverlay.png")
           );
-          Color: #aaaaaaFF;
+          Color: #ffffffFF;
+        }
+
+        $C.@SecondaryButton #ResetBtn {
+          Anchor: (Width: 44, Height: 44, Left: 8);
+          TooltipText: "Reset";
+          TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+          Group {
+            Anchor: (Width: 28, Height: 28);
+            Background: "Assets/UndoIcon.png";
+          }
         }
       }
 

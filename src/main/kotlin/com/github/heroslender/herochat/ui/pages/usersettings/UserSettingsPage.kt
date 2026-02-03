@@ -1,5 +1,6 @@
 package com.github.heroslender.herochat.ui.pages.usersettings
 
+import com.github.heroslender.herochat.ChannelManager
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.data.UserSettings
@@ -27,16 +28,17 @@ import javax.annotation.Nonnull
 class UserSettingsPage(
     playerRef: PlayerRef,
     val settings: UserSettings,
+    val channelManager: ChannelManager,
 ) : Page<UserSettingsPage.UiState>(playerRef, UiState.CODEC) {
 
     override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
         cmd.append(LAYOUT)
 
-        val channels = HeroChat.instance.channelManager.channels.values
+        val channels = channelManager.channels.values
             .filter { if (it.permission != null) playerRef.hasPermission(it.permission) else true }
             .map { DropdownEntryInfo(LocalizableString.fromString(it.name), it.id) }
             .let {
-                val p = HeroChat.instance.channelManager.privateChannel
+                val p = channelManager.privateChannel
                 if (p.permission == null || playerRef.hasPermission(p.permission)) {
                     listOf(DropdownEntryInfo(LocalizableString.fromString(p.name), p.id), *it.toTypedArray())
                 } else it
@@ -44,13 +46,13 @@ class UserSettingsPage(
 
         cmd["#FocusedChannel #Dropdown.Entries"] = channels
         cmd["#FocusedChannel #Dropdown.Value"] =
-            settings.focusedChannelId ?: HeroChat.instance.channelManager.defaultChannel?.id ?: ""
+            settings.focusedChannelId ?: channelManager.defaultChannel?.id ?: ""
 
         if (playerRef.hasPermission("herochat.chat.mute-channels")) {
             cmd["#MutedChannels.Visible"] = true
 
-            val pCh = HeroChat.instance.channelManager.privateChannel
-            val chs = HeroChat.instance.channelManager.channels
+            val pCh = channelManager.privateChannel
+            val chs = channelManager.channels
             settings.disabledChannels.forEachIndexed { i, ch ->
                 val name = if (ch == pCh.id) {
                     pCh.name
@@ -62,7 +64,7 @@ class UserSettingsPage(
             }
 
             cmd["#MutedChannels #Dropdown.Entries"] = channels
-            cmd["#MutedChannels #Dropdown.Value"] = HeroChat.instance.channelManager.defaultChannel?.id ?: ""
+            cmd["#MutedChannels #Dropdown.Value"] = channelManager.defaultChannel?.id ?: ""
             cmd["#MutedChannels #Dropdown.SelectedValues"] =
                 settings.disabledChannels.map(LocalizableString::fromString).toTypedArray()
         }
@@ -81,6 +83,7 @@ class UserSettingsPage(
 
         evt.onValueChanged("#MutedChannels #Dropdown", "@MutedChannels" to "#MutedChannels #Dropdown.SelectedValues")
 
+        evt.onActivating("#MessageColor #ResetBtn", "Action" to "reset-color")
         evt.onActivating("#Cancel", "Action" to "cancel")
         evt.onActivating(
             "#Save",
@@ -102,7 +105,8 @@ class UserSettingsPage(
         if (data.action == "save") {
             val focusedChannel = data.focusedChannel
             HeroChat.instance.userService.updateSettings(playerRef.uuid) { settings ->
-                settings.focusedChannelId = focusedChannel
+                settings.focusedChannelId =
+                    if (focusedChannel == channelManager.defaultChannel?.id) null else focusedChannel
 
                 if (playerRef.hasPermission("herochat.chat.mute-channels")) {
                     settings.disabledChannels.clear()
@@ -110,8 +114,8 @@ class UserSettingsPage(
                 }
 
                 if (playerRef.hasPermission("herochat.chat.message-color")) {
-                    println(data.color)
-                    settings.messageColor = data.color?.substring(0, 7)
+                    val color = data.color?.substring(0, 7)
+                    settings.messageColor = if (color == "#ffffff") null else color
                 }
 
                 if (playerRef.hasPermission("herochat.admin.spy")) {
@@ -127,17 +131,23 @@ class UserSettingsPage(
             )
 
             closePage()
+            return
         } else if (data.action == "cancel") {
             closePage()
+            return
+        } else if (data.action == "reset-color") {
+            runUiCmdUpdate { cmd ->
+                cmd["#MessageColor #ColorPicker.Color"] = "#ffffffFF"
+            }
         }
 
         if (data.mutedChannels != null) {
-            println(data.mutedChannels?.joinToString(", "))
+//            println(data.mutedChannels?.joinToString(", "))
 
             runUiCmdEvtUpdate { cmd, evt ->
                 cmd.clear("#MutedChannelsList")
-                val pCh = HeroChat.instance.channelManager.privateChannel
-                val channels = HeroChat.instance.channelManager.channels
+                val pCh = channelManager.privateChannel
+                val channels = channelManager.channels
                 data.mutedChannels!!.forEachIndexed { i, ch ->
                     val name = if (ch == pCh.id) {
                         pCh.name
