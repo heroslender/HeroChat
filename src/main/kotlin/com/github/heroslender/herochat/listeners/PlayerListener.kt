@@ -22,38 +22,43 @@ class PlayerListener(
     init {
         registerEvent<PlayerChatEvent>(EventPriority.EARLY) { e ->
             e.isCancelled = true
+
             val executor = Universe.get().getWorld(e.sender.worldUuid ?: return@registerEvent)
-            val player = CompletableFuture.supplyAsync({
+            CompletableFuture.supplyAsync({
                 e.sender.reference?.store?.getComponent(
                     e.sender.reference ?: return@supplyAsync null,
                     Player.getComponentType()
                 )
-            }, executor).join() ?: return@registerEvent
-
-            val settings = userService.getSettings(e.sender.uuid)
-            if (settings.focusedChannelId == PrivateChannel.ID) {
-                val targetUuid = settings.focusedPrivateTarget
-                if (targetUuid == null) {
-                    player.sendMessage(MessagesConfig::privateChatNotActive)
-                    return@registerEvent
+            }, executor).thenAcceptAsync { player ->
+                if (player == null) {
+                    return@thenAcceptAsync
                 }
 
-                val target = Universe.get().getPlayer(targetUuid)
-                if (target == null) {
-                    player.sendMessage(MessagesConfig::privateChatPlayerNotFound)
-                    return@registerEvent
+                val settings = userService.getSettings(e.sender.uuid)
+                if (settings.focusedChannelId == PrivateChannel.ID) {
+                    val targetUuid = settings.focusedPrivateTarget
+                    if (targetUuid == null) {
+                        player.sendMessage(MessagesConfig::privateChatNotActive)
+                        return@thenAcceptAsync
+                    }
+
+                    val target = Universe.get().getPlayer(targetUuid)
+                    if (target == null) {
+                        player.sendMessage(MessagesConfig::privateChatPlayerNotFound)
+                        return@thenAcceptAsync
+                    }
+
+                    channelManager.privateChannel.sendMessage(player, e.content, target)
+                    return@thenAcceptAsync
                 }
 
-                channelManager.privateChannel.sendMessage(player, e.content, target)
-                return@registerEvent
-            }
+                val channel = channelManager.channels[settings.focusedChannelId] ?: channelManager.defaultChannel
 
-            val channel = channelManager.channels[settings.focusedChannelId] ?: channelManager.defaultChannel
-
-            if (channel != null) {
-                channel.sendMessage(player, e.content)
-            } else {
-                player.sendMessage(MessagesConfig::channelNotFound)
+                if (channel != null) {
+                    channel.sendMessage(player, e.content)
+                } else {
+                    player.sendMessage(MessagesConfig::channelNotFound)
+                }
             }
         }
 
