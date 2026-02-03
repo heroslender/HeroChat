@@ -79,7 +79,7 @@ $Sounds = "../../Sounds.ui";
     Style: (VerticalAlignment: Center, TextColor: #96a9be, RenderUppercase: false, FontSize: 18);
   }
 
-  Label #Name {
+  Label #Extra {
     Text: @ExtraText;
     Anchor: (Left: 8);
     Style: (VerticalAlignment: Center, TextColor: #647485, RenderUppercase: false, FontSize: 14);

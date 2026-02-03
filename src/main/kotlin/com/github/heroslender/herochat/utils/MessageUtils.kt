@@ -26,10 +26,14 @@ fun messageFromConfig(
     target: UUID,
     vararg placeholders: Pair<String, String>,
 ): Message {
-    val message = msgProp.get(HeroChat.instance.messages)
+    val message = messageStrFromConfig(msgProp)
     val placeholderComponents = if (placeholders.isNotEmpty())
         mapOf(*placeholders.map { (key, value) -> (key to ComponentConfig(value)) }.toTypedArray())
     else emptyMap()
 
     return ComponentParser.parse(target, message, placeholderComponents)
 }
+
+fun messageStrFromConfig(
+    msgProp: KProperty1<MessagesConfig, String>,
+) = msgProp.get(HeroChat.instance.messages)

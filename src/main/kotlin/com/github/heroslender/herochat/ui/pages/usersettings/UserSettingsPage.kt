@@ -8,6 +8,7 @@ import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
 import com.github.heroslender.herochat.utils.hasPermission
 import com.github.heroslender.herochat.utils.messageFromConfig
+import com.github.heroslender.herochat.utils.messageStrFromConfig
 import com.github.heroslender.herochat.utils.onActivating
 import com.github.heroslender.herochat.utils.onValueChanged
 import com.hypixel.hytale.codec.Codec
@@ -33,6 +34,13 @@ class UserSettingsPage(
 
     override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
         cmd.append(LAYOUT)
+
+        cmd["#FocusedChannel #Name.Text"] = messageStrFromConfig(MessagesConfig::menuFocusedChannel)
+        cmd["#MutedChannels #Name.Text"] = messageStrFromConfig(MessagesConfig::menuMutedChannels)
+        cmd["#MessageColor #Name.Text"] = messageStrFromConfig(MessagesConfig::menuMessageColor)
+        cmd["#SpyMode #Name.Text"] = messageStrFromConfig(MessagesConfig::menuSpyMode)
+        cmd["#Save.Text"] = messageStrFromConfig(MessagesConfig::menuSaveButton)
+        cmd["#Cancel.Text"] = messageStrFromConfig(MessagesConfig::menuCancelButton)
 
         val channels = channelManager.channels.values
             .filter { if (it.permission != null) playerRef.hasPermission(it.permission) else true }

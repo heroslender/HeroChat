@@ -39,7 +39,7 @@ Group {
           Anchor: (Right: 8);
           Padding: (Horizontal: 12, Vertical: 8);
 
-          Label {
+          Label #Name {
             Text: "Focused Channel";
             Style: (TextColor: #96a9be, FontSize: 18, VerticalAlignment: Center);
           }
@@ -66,7 +66,7 @@ Group {
           Anchor: (Right: 8);
           Padding: (Horizontal: 12, Vertical: 8);
 
-          Label {
+          Label #Name {
             Text: "Muted Channels";
             Style: (TextColor: #96a9be, FontSize: 18, VerticalAlignment: Center);
           }
@@ -101,7 +101,7 @@ Group {
           FlexWeight: 1;
           Padding: (Horizontal: 12, Vertical: 8);
 
-          Label {
+          Label #Name {
             Text: "Chat Color";
             Style: (TextColor: #96a9be, FontSize: 18, VerticalAlignment: Center);
           }

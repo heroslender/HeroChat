@@ -16,6 +16,12 @@ class MessagesConfig {
     var spyToggle: String = "{#CCCCCC}Chat spy has been {status}{#CCCCCC}."
     var menuSuccessNotificationTitle: String = "Settings Saved"
     var menuSuccessNotificationDescription: String = "Your settings were successfully saved!"
+    var menuFocusedChannel: String = "Focused Channel"
+    var menuMutedChannels: String = "Muted Channels"
+    var menuMessageColor: String = "Message Color"
+    var menuSpyMode: String = "Spy Mode"
+    var menuSaveButton: String = "Save"
+    var menuCancelButton: String = "Cancel"
 
     companion object {
         @JvmField
@@ -57,6 +63,46 @@ class MessagesConfig {
                 KeyedCodec("PrivateChatNotActive", Codec.STRING, false),
                 { config, value -> config.privateChatNotActive = value },
                 { config -> config.privateChatNotActive }
+            ).add()
+            .append(
+                KeyedCodec("MenuFocusedChannel", Codec.STRING, false),
+                { config, value -> config.menuFocusedChannel = value },
+                { config -> config.menuFocusedChannel }
+            ).add()
+            .append(
+                KeyedCodec("MenuMutedChannels", Codec.STRING, false),
+                { config, value -> config.menuMutedChannels = value },
+                { config -> config.menuMutedChannels }
+            ).add()
+            .append(
+                KeyedCodec("MenuMessageColor", Codec.STRING, false),
+                { config, value -> config.menuMessageColor = value },
+                { config -> config.menuMessageColor }
+            ).add()
+            .append(
+                KeyedCodec("MenuSpyMode", Codec.STRING, false),
+                { config, value -> config.menuSpyMode = value },
+                { config -> config.menuSpyMode }
+            ).add()
+            .append(
+                KeyedCodec("MenuSaveButton", Codec.STRING, false),
+                { config, value -> config.menuSaveButton = value },
+                { config -> config.menuSaveButton }
+            ).add()
+            .append(
+                KeyedCodec("MenuCancelButton", Codec.STRING, false),
+                { config, value -> config.menuCancelButton = value },
+                { config -> config.menuCancelButton }
+            ).add()
+            .append(
+                KeyedCodec("MenuSuccessNotificationTitle", Codec.STRING, false),
+                { config, value -> config.menuSuccessNotificationTitle = value },
+                { config -> config.menuSuccessNotificationTitle }
+            ).add()
+            .append(
+                KeyedCodec("MenuSuccessNotificationDescription", Codec.STRING, false),
+                { config, value -> config.menuSuccessNotificationDescription = value },
+                { config -> config.menuSuccessNotificationDescription }
             ).add()
             .build()
     }
