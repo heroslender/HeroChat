@@ -71,7 +71,7 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
             player.pageManager.openCustomPage(
                 ref,
                 store,
-                UserSettingsPage(playerRef, userSettings)
+                UserSettingsPage(playerRef, userSettings, HeroChat.instance.channelManager)
             )
 
         }, store.externalData.world)
