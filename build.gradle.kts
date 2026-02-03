@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.github.heroslender.herochat"
-version = "1.2.0"
+version = "v1.3.0"
 
 val javaVersion = 25
 
