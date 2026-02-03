@@ -15,5 +15,5 @@ object LuckPermsDependency {
     val User.prefix: String?
         get() = this.cachedData.metaData.prefix
     val User.suffix: String?
-        get() = this.cachedData.metaData.prefix
+        get() = this.cachedData.metaData.suffix
 }
