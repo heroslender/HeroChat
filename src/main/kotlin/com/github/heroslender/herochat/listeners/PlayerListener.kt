@@ -1,9 +1,7 @@
 package com.github.heroslender.herochat.listeners
 
-import com.github.heroslender.herochat.ChannelManager
-import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.chat.PrivateChannel
 import com.github.heroslender.herochat.config.MessagesConfig
+import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.registerEvent
 import com.github.heroslender.herochat.utils.sendMessage
@@ -17,7 +15,7 @@ import java.util.concurrent.CompletableFuture
 
 class PlayerListener(
     private val userService: UserService,
-    private val channelManager: ChannelManager,
+    private val channelService: ChannelService,
 ) {
     init {
         registerEvent<PlayerChatEvent>(EventPriority.EARLY) { e ->
@@ -35,30 +33,13 @@ class PlayerListener(
                 }
 
                 val settings = userService.getSettings(e.sender.uuid)
-                if (settings.focusedChannelId == PrivateChannel.ID) {
-                    val targetUuid = settings.focusedPrivateTarget
-                    if (targetUuid == null) {
-                        player.sendMessage(MessagesConfig::privateChatNotActive)
-                        return@thenAcceptAsync
-                    }
-
-                    val target = Universe.get().getPlayer(targetUuid)
-                    if (target == null) {
-                        player.sendMessage(MessagesConfig::privateChatPlayerNotFound)
-                        return@thenAcceptAsync
-                    }
-
-                    channelManager.privateChannel.sendMessage(player, e.content, target)
+                val channel = channelService.channels[settings.focusedChannelId] ?: channelService.defaultChannel
+                if (channel == null) {
+                    player.sendMessage(MessagesConfig::channelNotFound)
                     return@thenAcceptAsync
                 }
 
-                val channel = channelManager.channels[settings.focusedChannelId] ?: channelManager.defaultChannel
-
-                if (channel != null) {
-                    channel.sendMessage(player, e.content)
-                } else {
-                    player.sendMessage(MessagesConfig::channelNotFound)
-                }
+                channel.sendMessage(player, e.content)
             }
         }
 

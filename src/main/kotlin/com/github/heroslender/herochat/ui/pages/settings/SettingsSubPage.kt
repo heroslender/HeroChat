@@ -1,6 +1,6 @@
 package com.github.heroslender.herochat.ui.pages.settings
 
-import com.github.heroslender.herochat.ChannelManager
+import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.ui.SubPage
@@ -22,7 +22,7 @@ import kotlin.collections.iterator
 
 class SettingsSubPage(
     parent: ChatSettingsPage,
-    private val channelManager: ChannelManager,
+    private val channelService: ChannelService,
 ) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/SettingsSubPage.ui") {
 
     private val updatedData: UpdatedData = UpdatedData()
@@ -33,12 +33,12 @@ class SettingsSubPage(
         evt: UIEventBuilder,
         store: Store<EntityStore?>
     ) {
-        val channels = channelManager.channels.values.map {
+        val channels = channelService.channels.values.map {
             DropdownEntryInfo(LocalizableString.fromString(it.name), it.id)
         }
 
         cmd["#Dropdown.Entries"] = channels
-        cmd["#Dropdown.Value"] = channelManager.defaultChannel?.id ?: ""
+        cmd["#Dropdown.Value"] = channelService.defaultChannel?.id ?: ""
         evt.onValueChanged("#Dropdown", "@DefaultChannel" to "#Dropdown.Value")
 
         populateComponents(cmd, evt)
@@ -93,7 +93,7 @@ class SettingsSubPage(
             "save" -> {
                 var hasUpdatedData = false
                 if (updatedData.defaultChannel != null) {
-                    channelManager.updateDefaultChannel(updatedData.defaultChannel!!)
+                    channelService.updateDefaultChannel(updatedData.defaultChannel!!)
                     hasUpdatedData = true
                 }
                 if (updatedData.components != null) {

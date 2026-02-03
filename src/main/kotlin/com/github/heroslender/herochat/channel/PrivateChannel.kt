@@ -1,23 +1,40 @@
-package com.github.heroslender.herochat.chat
+package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.config.PrivateChannelConfig
+import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.CommandSender
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.Universe
 
-class PrivateChannel(config: PrivateChannelConfig) {
-    val id: String = ID
-    val name: String = config.name
-    val commands: Array<String> = config.commands
+class PrivateChannel(config: PrivateChannelConfig, private val userService: UserService) : Channel {
+    override val id: String = ID
+    override val name: String = config.name
+    override val commands: Array<String> = config.commands
     val format: String = config.senderFormat
     val receiverFormat: String = config.receiverFormat
-    val permission: String? = config.permission
+    override val permission: String? = config.permission
     val components: Map<String, ComponentConfig> = config.components
+
+    override fun sendMessage(sender: CommandSender, msg: String) {
+        val targetUuid = userService.getSettings(sender.uuid).focusedPrivateTarget
+        if (targetUuid == null) {
+            sender.sendMessage(MessagesConfig::privateChatNotActive)
+            return
+        }
+
+        val target = Universe.get().getPlayer(targetUuid)
+        if (target == null) {
+            sender.sendMessage(MessagesConfig::privateChatPlayerNotFound)
+            return
+        }
+
+        sendMessage(sender, msg, target)
+    }
 
     fun sendMessage(
         sender: CommandSender,

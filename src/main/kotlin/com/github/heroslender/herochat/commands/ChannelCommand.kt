@@ -1,7 +1,7 @@
 package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.chat.Channel
+import com.github.heroslender.herochat.channel.StandardChannel
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.CommandContext
@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractAsyncCommand
 import java.util.concurrent.CompletableFuture
 
-class ChannelCommand(val channel: Channel) :
+class ChannelCommand(val channel: StandardChannel) :
     AbstractAsyncCommand(channel.commands.first(), "Sends a chat message in a specific channel") {
     private val msgArg: OptionalArg<String> = withOptionalArg("msg", "message", ArgTypes.STRING)
 

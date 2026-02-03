@@ -1,6 +1,8 @@
 package com.github.heroslender.herochat.ui.pages.settings
 
-import com.github.heroslender.herochat.ChannelManager
+import com.github.heroslender.herochat.channel.PrivateChannel
+import com.github.heroslender.herochat.channel.StandardChannel
+import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
 import com.github.heroslender.herochat.ui.navigation.NavController
@@ -19,7 +21,7 @@ import javax.annotation.Nonnull
 
 class ChatSettingsPage(
     playerRef: PlayerRef,
-    val channelManager: ChannelManager,
+    val channelService: ChannelService,
 ) : Page<ChatSettingsPage.UiState>(playerRef, UiState.CODEC) {
     private val navController = NavController<UiState>(Destination.Settings, "#PageContent")
 
@@ -30,22 +32,11 @@ class ChatSettingsPage(
             location = Destination.Settings,
             onEnter = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnSelectedStyle },
             onLeave = { cmd -> cmd["#ShowSettingsBtn.Style"] = NavBtnStyle },
-            pageInitializer = { SettingsSubPage(this, channelManager) }
+            pageInitializer = { SettingsSubPage(this, channelService) }
         )
         evt.onActivating("#ShowSettingsBtn", "NavigateTo" to Destination.Settings)
 
-        cmd.append("#NavChannels", "HeroChat/Sidebar/SidebarButton.ui")
-        cmd["#NavChannels[0].Text"] = channelManager.privateChannel.name
-        evt.onActivating("#NavChannels[0]", "NavigateTo" to Destination.Channel(channelManager.privateChannel.id))
-        navController.addNavLocation(
-            location = Destination.Channel(channelManager.privateChannel.id),
-            onEnter = { cmd -> cmd["#NavChannels[0].Style"] = NavBtnSelectedStyle },
-            onLeave = { cmd -> cmd["#NavChannels[0].Style"] = NavBtnStyle },
-            pageInitializer = { PrivateChannelSubPage(this, channelManager.privateChannel) }
-        )
-
-        channelManager.channels.values.forEachIndexed { i, channel ->
-            val i = i + 1
+        channelService.channels.values.forEachIndexed { i, channel ->
             cmd.append("#NavChannels", "HeroChat/Sidebar/SidebarButton.ui")
             cmd["#NavChannels[$i].Text"] = channel.name
             evt.onActivating("#NavChannels[$i]", "NavigateTo" to Destination.Channel(channel.id))
@@ -54,7 +45,13 @@ class ChatSettingsPage(
                 location = Destination.Channel(channel.id),
                 onEnter = { cmd -> cmd["#NavChannels[$i].Style"] = NavBtnSelectedStyle },
                 onLeave = { cmd -> cmd["#NavChannels[$i].Style"] = NavBtnStyle },
-                pageInitializer = { ChannelSubPage(this, channel) }
+                pageInitializer = {
+                    when(channel) {
+                        is StandardChannel ->ChannelSubPage(this, channel)
+                        is PrivateChannel -> PrivateChannelSubPage(this, channel)
+                        else -> throw IllegalStateException("Unknown channel type: ${channel.javaClass.name}")
+                    }
+                }
             )
         }
 

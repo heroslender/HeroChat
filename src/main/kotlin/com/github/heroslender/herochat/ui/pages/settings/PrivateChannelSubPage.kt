@@ -2,7 +2,7 @@ package com.github.heroslender.herochat.ui.pages.settings
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.chat.PrivateChannel
+import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup

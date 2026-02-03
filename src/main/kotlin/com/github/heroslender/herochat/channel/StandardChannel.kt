@@ -1,4 +1,4 @@
-package com.github.heroslender.herochat.chat
+package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
@@ -14,19 +14,19 @@ import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.Universe
 
-class Channel(id: String, config: ChannelConfig) {
-    val id: String = id
-    val name: String = config.name
-    val commands: Array<String> = config.commands
+class StandardChannel(id: String, config: ChannelConfig): Channel {
+    override val id: String = id
+    override val name: String = config.name
+    override val commands: Array<String> = config.commands
     val format: String = config.format
-    val permission: String? = config.permission
+    override val permission: String? = config.permission
     val components: Map<String, ComponentConfig> = config.components
 
     val distance: Double? = config.distance
     val distanceSquared: Double? = distance?.let { square(it) }
     val crossWorld: Boolean = config.crossWorld ?: true
 
-    fun sendMessage(sender: CommandSender, msg: String) {
+    override fun sendMessage(sender: CommandSender, msg: String) {
         if (permission != null && !sender.hasPermission(permission)) {
             sender.sendMessage(MessagesConfig::channelNoPermission)
             return

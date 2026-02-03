@@ -1,7 +1,7 @@
 package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.chat.PrivateChannel
+import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.CommandContext

@@ -1,6 +1,6 @@
 package com.github.heroslender.herochat.ui.pages.usersettings
 
-import com.github.heroslender.herochat.ChannelManager
+import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.data.UserSettings
@@ -29,7 +29,7 @@ import javax.annotation.Nonnull
 class UserSettingsPage(
     playerRef: PlayerRef,
     val settings: UserSettings,
-    val channelManager: ChannelManager,
+    val channelService: ChannelService,
 ) : Page<UserSettingsPage.UiState>(playerRef, UiState.CODEC) {
 
     override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
@@ -42,37 +42,25 @@ class UserSettingsPage(
         cmd["#Save.Text"] = messageStrFromConfig(MessagesConfig::menuSaveButton)
         cmd["#Cancel.Text"] = messageStrFromConfig(MessagesConfig::menuCancelButton)
 
-        val channels = channelManager.channels.values
-            .filter { if (it.permission != null) playerRef.hasPermission(it.permission) else true }
+        val channels = channelService.channels.values
+            .filter { it.permission?.let { perm -> playerRef.hasPermission(perm) } ?: true }
             .map { DropdownEntryInfo(LocalizableString.fromString(it.name), it.id) }
-            .let {
-                val p = channelManager.privateChannel
-                if (p.permission == null || playerRef.hasPermission(p.permission)) {
-                    listOf(DropdownEntryInfo(LocalizableString.fromString(p.name), p.id), *it.toTypedArray())
-                } else it
-            }
 
         cmd["#FocusedChannel #Dropdown.Entries"] = channels
         cmd["#FocusedChannel #Dropdown.Value"] =
-            settings.focusedChannelId ?: channelManager.defaultChannel?.id ?: ""
+            settings.focusedChannelId ?: channelService.defaultChannel?.id ?: ""
 
         if (playerRef.hasPermission("herochat.chat.mute-channels")) {
             cmd["#MutedChannels.Visible"] = true
 
-            val pCh = channelManager.privateChannel
-            val chs = channelManager.channels
             settings.disabledChannels.forEachIndexed { i, ch ->
-                val name = if (ch == pCh.id) {
-                    pCh.name
-                } else {
-                    chs[ch]?.name ?: return@forEachIndexed
-                }
+                val name = channelService.channels[ch]?.name ?: return@forEachIndexed
                 cmd.append("#MutedChannelsList", "HeroChat/MutedChatBadge.ui")
                 cmd["#MutedChannelsList[$i] #Txt.Text"] = name
             }
 
             cmd["#MutedChannels #Dropdown.Entries"] = channels
-            cmd["#MutedChannels #Dropdown.Value"] = channelManager.defaultChannel?.id ?: ""
+            cmd["#MutedChannels #Dropdown.Value"] = channelService.defaultChannel?.id ?: ""
             cmd["#MutedChannels #Dropdown.SelectedValues"] =
                 settings.disabledChannels.map(LocalizableString::fromString).toTypedArray()
         }
@@ -114,7 +102,7 @@ class UserSettingsPage(
             val focusedChannel = data.focusedChannel
             HeroChat.instance.userService.updateSettings(playerRef.uuid) { settings ->
                 settings.focusedChannelId =
-                    if (focusedChannel == channelManager.defaultChannel?.id) null else focusedChannel
+                    if (focusedChannel == channelService.defaultChannel?.id) null else focusedChannel
 
                 if (playerRef.hasPermission("herochat.chat.mute-channels")) {
                     settings.disabledChannels.clear()
@@ -150,18 +138,11 @@ class UserSettingsPage(
         }
 
         if (data.mutedChannels != null) {
-//            println(data.mutedChannels?.joinToString(", "))
-
             runUiCmdEvtUpdate { cmd, evt ->
                 cmd.clear("#MutedChannelsList")
-                val pCh = channelManager.privateChannel
-                val channels = channelManager.channels
+                val channels = channelService.channels
                 data.mutedChannels!!.forEachIndexed { i, ch ->
-                    val name = if (ch == pCh.id) {
-                        pCh.name
-                    } else {
-                        channels[ch]?.name ?: return@forEachIndexed
-                    }
+                    val name = channels[ch]?.name ?: return@forEachIndexed
                     cmd.append("#MutedChannelsList", "HeroChat/MutedChatBadge.ui")
                     cmd["#MutedChannelsList[$i] #Txt.Text"] = name
                 }

@@ -1,6 +1,6 @@
 package com.github.heroslender.herochat
 
-import com.github.heroslender.herochat.chat.PrivateChannel
+import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.commands.ChatCommand
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ChatConfig
@@ -9,6 +9,7 @@ import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.github.heroslender.herochat.database.Database
 import com.github.heroslender.herochat.database.UserSettingsRepository
 import com.github.heroslender.herochat.listeners.PlayerListener
+import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.service.UserService
 import com.hypixel.hytale.common.plugin.PluginIdentifier
 import com.hypixel.hytale.common.semver.SemverRange
@@ -37,11 +38,11 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     val channelConfigs: Map<String, ChannelConfig>
         get() = _channelConfigs.mapValues { it.value.get() }
 
-    lateinit var channelManager: ChannelManager
-        private set
     lateinit var database: Database
         private set
     lateinit var userService: UserService
+        private set
+    lateinit var channelService: ChannelService
         private set
 
     var isLuckpermsEnabled: Boolean = false
@@ -67,14 +68,13 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         database = Database(dataDirectory.toFile())
         val repository = UserSettingsRepository(database)
         userService = UserService(repository)
-
-        channelManager = ChannelManager(this, config, channelConfigs, privateChannelConfig)
+        channelService = ChannelService(this, config, channelConfigs, privateChannelConfig)
     }
 
     override fun start() {
         userService.loadUserAsync(ConsoleSender.INSTANCE.uuid)
 
-        PlayerListener(userService, channelManager)
+        PlayerListener(userService, channelService)
 
         commandRegistry.registerCommand(ChatCommand())
     }
@@ -95,7 +95,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     fun saveChannelConfig(channelId: String) {
         val cfg = if (channelId == PrivateChannel.ID) _privateChannelConfig else _channelConfigs[channelId]
         cfg?.save()
-        channelManager.reloadChannel(channelId)
+        channelService.reloadChannel(channelId)
     }
 
     private fun setupChannelConfigs(): Map<String, Config<ChannelConfig>> {
