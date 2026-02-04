@@ -32,6 +32,12 @@ class StandardChannel(id: String, config: ChannelConfig) : Channel {
             return
         }
 
+        val settings = HeroChat.instance.userService.getSettings(sender.uuid)
+        if (settings.disabledChannels.contains(id)) {
+            sender.sendMessage(MessagesConfig::channelDisabled)
+            return
+        }
+
         val recipients: List<PlayerRef> = getRecipients(sender) ?: return
         if (recipients.isEmpty()) {
             sender.sendMessage(MessagesConfig::chatNoRecipients)
@@ -39,7 +45,6 @@ class StandardChannel(id: String, config: ChannelConfig) : Channel {
         }
 
         var finalMsg = msg
-        val settings = HeroChat.instance.userService.getSettings(sender.uuid)
         if (sender.hasPermission("herochat.chat.message-color")) {
             finalMsg = "{${settings.messageColor.orEmpty()}}$msg"
         }

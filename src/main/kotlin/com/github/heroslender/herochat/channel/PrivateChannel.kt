@@ -21,7 +21,13 @@ class PrivateChannel(config: PrivateChannelConfig, private val userService: User
     val components: Map<String, ComponentConfig> = config.components
 
     override fun sendMessage(sender: CommandSender, msg: String) {
-        val targetUuid = userService.getSettings(sender.uuid).focusedPrivateTarget
+        val settings = userService.getSettings(sender.uuid)
+        if (settings.disabledChannels.contains(id)) {
+            sender.sendMessage(MessagesConfig::channelDisabled)
+            return
+        }
+
+        val targetUuid = settings.focusedPrivateTarget
         if (targetUuid == null) {
             sender.sendMessage(MessagesConfig::privateChatNotActive)
             return
@@ -48,6 +54,12 @@ class PrivateChannel(config: PrivateChannelConfig, private val userService: User
 
         if (extra.uuid == sender.uuid) {
             sender.sendMessage(MessagesConfig::privateChatSelf)
+            return
+        }
+
+        val settings = userService.getSettings(sender.uuid)
+        if (settings.disabledChannels.contains(id)) {
+            sender.sendMessage(MessagesConfig::channelDisabled)
             return
         }
 
