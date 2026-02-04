@@ -8,6 +8,7 @@ class MessagesConfig {
     var channelNoPermission: String = "{#FF5555}You do not have permission to send messages in this channel."
     var channelNotFound: String = "{#FF5555}Channel not found."
     var channelJoined: String = "{#55FF55}You are now talking in {#FFFFFF}{channel}{#55FF55}."
+    var chatNoRecipients: String = "{#FF5555}No one hears you."
     var privateChatStarted: String = "{#55FF55}You are now in a private conversation with {#FFFFFF}{target}{#55FF55}."
     var privateChatPlayerNotFound: String = "{#FF5555}The player is not online."
     var privateChatSelf: String = "{#FF5555}You cannot start a private conversation with yourself."
@@ -43,6 +44,11 @@ class MessagesConfig {
                 KeyedCodec("ChannelJoined", Codec.STRING, false),
                 { config, value -> config.channelJoined = value },
                 { config -> config.channelJoined }
+            ).add()
+            .append(
+                KeyedCodec("ChatNoRecipients", Codec.STRING, false),
+                { config, value -> config.chatNoRecipients = value },
+                { config -> config.chatNoRecipients }
             ).add()
             .append(
                 KeyedCodec("PrivateChatStarted", Codec.STRING, false),
