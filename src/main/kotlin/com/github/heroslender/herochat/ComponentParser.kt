@@ -8,96 +8,203 @@ import com.hypixel.hytale.server.core.permissions.PermissionsModule
 import com.hypixel.hytale.server.core.universe.Universe
 import java.util.*
 
-object ComponentParser {
-    const val PLACEHOLDER_START = '{'
-    const val PLACEHOLDER_END = '}'
+class ComponentParser {
+    companion object {
+        const val PLACEHOLDER_START = '{'
+        const val PLACEHOLDER_END = '}'
+        private const val ESCAPE_CHAR = '\\'
+
+        fun parse(
+            sender: UUID,
+            message: String,
+            components: Map<String, ComponentConfig> = emptyMap(),
+        ): Message {
+            return ComponentParser().parse(sender, message, components)
+        }
+    }
+
+    val root = Message.empty()
+    private var topComp: Message? = null
+    private var child: Message? = null
+
+    fun newTopComp(): Message {
+        val message = Message.empty()
+        root.insert(message)
+        topComp = message
+        child = null
+        return message
+    }
+
+    fun getCurrentComp(): Message = child ?: topComp ?: root
+
+    fun newChild(): Message {
+        val message = Message.empty()
+        getCurrentComp().insert(message)
+        child = message
+        return message
+    }
 
     fun parse(
         sender: UUID,
         message: String,
         components: Map<String, ComponentConfig> = emptyMap(),
-        component: Message = Message.empty()
     ): Message {
         if (!message.contains(PLACEHOLDER_START)) {
-            return component.insert(message)
+            return getCurrentComp().insert(message)
         }
 
         var start = 0
-
-        var formattingComponent: Message? = null
-        fun getFormattingComponentOrInit(): Message {
-            if (formattingComponent == null) {
-                formattingComponent = Message.empty()
-            }
-            return formattingComponent!!
-        }
-
-        var formattingSuffixIndex = -1
-        do {
+        var formattingSuffixIndex = -2
+        while (start < message.length) {
             val prefixIndex: Int = message.indexOf(PLACEHOLDER_START, start)
-            if (prefixIndex == -1) {
-                break
+            if (prefixIndex == -1) break
+
+            if (isEscaped(message, prefixIndex, start)) {
+                val target = getCurrentComp()
+                if (prefixIndex > start) {
+                    target.insert(message.substring(start, prefixIndex - 1))
+                }
+                target.insert(PLACEHOLDER_START.toString())
+                start = prefixIndex + 1
+                continue
             }
 
-            val suffixIndex: Int = message.indexOf(PLACEHOLDER_END, prefixIndex)
-            if (suffixIndex == -1) {
-                break
-            }
+            val suffixIndex: Int = findMatchingEnd(message, prefixIndex)
+            if (suffixIndex == -1) break
 
-            val isFormattingChain = formattingComponent != null && prefixIndex == formattingSuffixIndex + 1
-            val placeholder = message.substring(prefixIndex + 1, suffixIndex).trim { it <= ' ' }
-            if (formattingComponent != null && !isFormattingChain && placeholder.isFormatting()) {
+            val placeholder = message.substring(prefixIndex + 1, suffixIndex)
+            if (placeholder.isColor()) {
                 if (start != prefixIndex) {
-                    formattingComponent.insert(message.substring(start, prefixIndex))
+                    getCurrentComp().insert(message.substring(start, prefixIndex))
                 }
-
-                component.insert(formattingComponent)
-                formattingComponent = null
-            } else if (start != prefixIndex) {
-                (formattingComponent ?: component).insert(message.substring(start, prefixIndex))
-            }
-
-            if (placeholder.startsWith('#')) {
-                getFormattingComponentOrInit().color(placeholder)
-            } else {
-                when (placeholder) {
-                    "bold" -> getFormattingComponentOrInit().bold(true)
-                    "italic" -> getFormattingComponentOrInit().italic(true)
-                    "monospaced" -> getFormattingComponentOrInit().monospace(true)
-                    else -> {
-                        val c = components[placeholder]
-                        val text = if (c == null) {
-                            parsePlaceholder(sender, placeholder)
-                        } else if (c.permission == null || PermissionsModule.get()
-                                .hasPermission(sender, c.permission!!)
-                        ) {
-                            c.text
-                        } else null
-
-                        if (text != null) {
-                            parse(sender, text, components, formattingComponent ?: component)
-                        }
+                val comp = newTopComp()
+                comp.color(placeholder)
+            } else if (placeholder.isFormatting()) {
+                val isFormattingChain = prefixIndex == formattingSuffixIndex + 1
+                val child = if (isFormattingChain) getCurrentComp() else {
+                    if (start != prefixIndex) {
+                        getCurrentComp().insert(message.substring(start, prefixIndex))
                     }
+                    newChild()
+                }
+
+                when (placeholder) {
+                    "bold" -> child.bold(true)
+                    "italic" -> child.italic(true)
+                    "monospaced" -> child.monospace(true)
+                }
+            } else {
+                val resolvedPlaceholder = resolveToString(sender, placeholder, components).trim()
+                val c = components[resolvedPlaceholder]
+                val text = if (c == null) {
+                    parsePlaceholder(sender, resolvedPlaceholder)
+                } else if (c.permission == null || PermissionsModule.get()
+                        .hasPermission(sender, c.permission!!)
+                ) {
+                    c.text
+                } else null
+
+                if (text != null) {
+                    if (start != prefixIndex) {
+                        getCurrentComp().insert(message.substring(start, prefixIndex))
+                    }
+                    parse(sender, text, components)
                 }
             }
-
 
             if (placeholder.isFormatting()) {
                 formattingSuffixIndex = suffixIndex
             }
 
             start = suffixIndex + 1
-        } while (start < message.length)
-
-        if (formattingComponent != null) {
-            if (start != message.length) formattingComponent.insert(message.substring(start, message.length))
-
-            component.insert(formattingComponent)
-        } else if (start != message.length) {
-            component.insert(message.substring(start, message.length))
         }
 
-        return component
+        if (start != message.length) {
+            getCurrentComp().insert(message.substring(start, message.length))
+        }
+
+        return root
+    }
+
+    // Resolve sub-placeholder, eg. {player_prefix_{target}}
+    fun resolveToString(sender: UUID, message: String, components: Map<String, ComponentConfig>): String {
+        if (!message.contains(PLACEHOLDER_START)) return message
+
+        val sb = StringBuilder()
+        var start = 0
+
+        while (start < message.length) {
+            val prefixIndex = message.indexOf(PLACEHOLDER_START, start)
+            if (prefixIndex == -1) {
+                sb.append(message.substring(start))
+                break
+            }
+
+            if (isEscaped(message, prefixIndex, start)) {
+                sb.append(message.substring(start, prefixIndex - 1))
+                sb.append(PLACEHOLDER_START)
+                start = prefixIndex + 1
+                continue
+            }
+
+            val suffixIndex = findMatchingEnd(message, prefixIndex)
+            if (suffixIndex == -1) {
+                sb.append(message.substring(start))
+                break
+            }
+
+            sb.append(message.substring(start, prefixIndex))
+
+            val placeholderRaw = message.substring(prefixIndex + 1, suffixIndex)
+            val placeholder = resolveToString(sender, placeholderRaw, components).trim()
+            if (!placeholder.isFormatting()) {
+                val c = components[placeholder]
+                val text = if (c == null) {
+                    parsePlaceholder(sender, placeholder)
+                } else if (c.permission == null || PermissionsModule.get().hasPermission(sender, c.permission!!)) {
+                    c.text
+                } else null
+
+                if (text != null) {
+                    sb.append(resolveToString(sender, text, components))
+                }
+            } else {
+                sb.append(PLACEHOLDER_START).append(placeholderRaw).append(PLACEHOLDER_END)
+            }
+
+            start = suffixIndex + 1
+        }
+        return sb.toString()
+    }
+
+    private fun findMatchingEnd(text: String, start: Int): Int {
+        var depth = 1
+        var i = start + 1
+        while (i < text.length) {
+            val char = text[i]
+            if (char == ESCAPE_CHAR && i + 1 < text.length) {
+                i += 2 // skip escape and the escaped char
+                continue
+            }
+            if (char == PLACEHOLDER_START) {
+                depth++
+            } else if (char == PLACEHOLDER_END) {
+                depth--
+                if (depth == 0) return i
+            }
+            i++
+        }
+        return -1
+    }
+
+    private fun isEscaped(text: String, index: Int, startLimit: Int): Boolean {
+        var count = 0
+        var i = index - 1
+        while (i >= startLimit && text[i] == ESCAPE_CHAR) {
+            count++
+            i--
+        }
+        return count % 2 != 0
     }
 
     fun parsePlaceholder(sender: UUID, placeholder: String): String? {
@@ -113,6 +220,8 @@ object ComponentParser {
     }
 
     fun String.isFormatting(): Boolean {
-        return startsWith('#') || this == "bold" || this == "italic" || this == "monospaced"
+        return isColor() || this == "bold" || this == "italic" || this == "monospaced"
     }
+
+    fun String.isColor(): Boolean = startsWith('#')
 }
