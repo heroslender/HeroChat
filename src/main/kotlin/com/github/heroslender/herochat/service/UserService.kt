@@ -1,55 +1,97 @@
 package com.github.heroslender.herochat.service
 
+import com.github.heroslender.herochat.data.ConsoleUser
+import com.github.heroslender.herochat.data.PlayerUser
+import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.data.UserSettings
 import com.github.heroslender.herochat.database.UserSettingsRepository
-import java.util.UUID
+import com.hypixel.hytale.logger.HytaleLogger
+import com.hypixel.hytale.server.core.universe.PlayerRef
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 
-class UserService(private val repository: UserSettingsRepository) {
-    private val cache = ConcurrentHashMap<UUID, UserSettings>()
+class UserService(
+    private val repository: UserSettingsRepository,
+    private val logger: HytaleLogger,
+) {
+    private val cache = ConcurrentHashMap<UUID, User>()
 
-    /**
-     * Gets settings from cache. If not present, loads synchronously (blocking).
-     * Ideally, call loadUserAsync on join.
-     */
-    fun getSettings(uuid: UUID): UserSettings {
-        return cache.computeIfAbsent(uuid) { repository.load(it) }
+    init {
+        loadUser(ConsoleUser())
     }
 
-    /**
-     * Loads user data from DB asynchronously and populates cache.
-     * Call this on PlayerJoinEvent.
-     */
-    fun loadUserAsync(uuid: UUID): CompletableFuture<UserSettings> {
-        return CompletableFuture.supplyAsync {
-            val settings = repository.load(uuid)
-            cache[uuid] = settings
-            settings
+    fun getUser(uuid: UUID): User? {
+        return cache[uuid]
+    }
+
+    fun getUser(playerRef: PlayerRef): User? {
+        return getUser(playerRef.uuid)
+    }
+
+    fun getUsers(): Collection<User> {
+        return cache.values
+    }
+
+    fun getUsersInWorld(worldUuid: UUID): Collection<User> {
+        return cache.values.filter { it is PlayerUser && it.player.worldUuid == worldUuid }
+    }
+
+    fun getUsersNearby(user: User, distanceSquared: Double): Collection<User>? {
+        val worldUuid = (user as? PlayerUser)?.player?.worldUuid ?: return null
+        return cache.values.filter {
+            it is PlayerUser
+                    && it.player.worldUuid == worldUuid
+                    && it.distanceSquared(user) <= distanceSquared
         }
     }
 
     /**
-     * Unload cache for player on leave (PlayerLeaveEvent).
+     * Called when a player joins.
+     * Initializes the ChatUser with settings and caches it.
      */
-    fun unloadUser(uuid: UUID) {
-        cache.remove(uuid)
+    fun onJoin(player: PlayerRef) {
+        logger.atFine().log("User joined ${player.username}, loading data...")
+        loadUser(PlayerUser(player, UserSettings(player.uuid), 0L))
+    }
+
+    fun loadUser(user: User) {
+        cache[user.uuid] = user
+
+        fetchUserSettingsAsync(user.uuid).thenAccept { userSettings ->
+            user.settings = userSettings
+            logger.atInfo().log("User loaded ${user.username}: $userSettings")
+        }
+    }
+
+    /**
+     * Called when a player disconnects.
+     * Removes the ChatUser from the cache.
+     */
+    fun onQuit(player: PlayerRef) {
+        logger.atInfo().log("User left ${player.username}, clearing data.")
+        cache.remove(player.uuid)
+    }
+
+    fun fetchUserSettingsAsync(uuid: UUID): CompletableFuture<UserSettings> {
+        return CompletableFuture.supplyAsync {
+            repository.load(uuid)
+        }
     }
 
     /**
      * Updates a user's settings and triggers an async save.
      */
-    fun updateSettings(uuid: UUID, modifier: (UserSettings) -> Unit) {
-        val settings = getSettings(uuid)
+    fun User.updateSettings(modifier: (UserSettings) -> Unit) {
         modifier(settings)
-        CompletableFuture.runAsync { repository.save(settings) }
-    }
-    
-    fun saveAll() {
-        cache.values.forEach { repository.save(it) }
+        CompletableFuture.runAsync { repository.save(settings.copy()) }
     }
 
-    fun getSpies(): List<UUID> {
-        return cache.values.filter { it.spyMode }.map { it.uuid }
+    fun getSpies(): List<User> {
+        return cache.values.filter { it.settings.spyMode }
+    }
+
+    fun unloadAll() {
+        cache.clear()
     }
 }

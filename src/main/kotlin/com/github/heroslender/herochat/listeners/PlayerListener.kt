@@ -6,12 +6,9 @@ import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.registerEvent
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.event.EventPriority
-import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent
-import com.hypixel.hytale.server.core.universe.Universe
-import java.util.concurrent.CompletableFuture
 
 class PlayerListener(
     private val userService: UserService,
@@ -21,34 +18,22 @@ class PlayerListener(
         registerEvent<PlayerChatEvent>(EventPriority.EARLY) { e ->
             e.isCancelled = true
 
-            val executor = Universe.get().getWorld(e.sender.worldUuid ?: return@registerEvent)
-            CompletableFuture.supplyAsync({
-                e.sender.reference?.store?.getComponent(
-                    e.sender.reference ?: return@supplyAsync null,
-                    Player.getComponentType()
-                )
-            }, executor).thenAcceptAsync { player ->
-                if (player == null) {
-                    return@thenAcceptAsync
-                }
-
-                val settings = userService.getSettings(e.sender.uuid)
-                val channel = channelService.channels[settings.focusedChannelId] ?: channelService.defaultChannel
-                if (channel == null) {
-                    player.sendMessage(MessagesConfig::channelNotFound)
-                    return@thenAcceptAsync
-                }
-
-                channel.sendMessage(player, e.content)
+            val sender = userService.getUser(e.sender) ?: return@registerEvent
+            val channel = channelService.channels[sender.settings.focusedChannelId] ?: channelService.defaultChannel
+            if (channel == null) {
+                sender.sendMessage(MessagesConfig::channelNotFound)
+                return@registerEvent
             }
+
+            channel.sendMessage(sender, e.content)
         }
 
         registerEvent<PlayerConnectEvent> { e ->
-            userService.loadUserAsync(e.playerRef.uuid)
+            userService.onJoin(e.playerRef)
         }
 
         registerEvent<PlayerDisconnectEvent> { e ->
-            userService.unloadUser(e.playerRef.uuid)
+            userService.onQuit(e.playerRef)
         }
     }
 }

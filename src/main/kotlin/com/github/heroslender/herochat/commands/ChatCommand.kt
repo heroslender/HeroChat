@@ -3,8 +3,11 @@ package com.github.heroslender.herochat.commands
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.MessagesConfig
+import com.github.heroslender.herochat.data.PlayerUser
+import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
 import com.github.heroslender.herochat.ui.pages.usersettings.UserSettingsPage
+import com.github.heroslender.herochat.utils.EmptyFuture
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.command.system.CommandContext
@@ -14,7 +17,8 @@ import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import java.util.concurrent.CompletableFuture
 
-class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization UI") {
+class ChatCommand(private val userService: UserService) :
+    AbstractAsyncCommand("chat", "Opens the chat customization UI") {
     private val arg1 = withOptionalArg("arg1", "argument 1", ArgTypes.STRING)
 
     init {
@@ -32,15 +36,18 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
         if (args.isNotEmpty() && args[0].equals("spy", true)) {
             if (!sender.hasPermission(Permissions.ADMIN_SPY)) {
                 sender.sendMessage(MessagesConfig::spyNoPermission)
-                return CompletableFuture.completedFuture(null)
+                return EmptyFuture
             }
 
             return CompletableFuture.runAsync {
-                HeroChat.instance.userService.updateSettings(sender.uuid) {
-                    it.spyMode = !it.spyMode
+                with(userService) {
+                    val user = getUser(sender.uuid) ?: return@runAsync
+                    user.updateSettings {
+                        it.spyMode = !it.spyMode
 
-                    val status = if (it.spyMode) "{#55FF55}enabled" else "{#FF5555}disabled"
-                    sender.sendMessage(MessagesConfig::spyToggle, "status" to status)
+                        val status = if (it.spyMode) "{#55FF55}enabled" else "{#FF5555}disabled"
+                        user.sendMessage(MessagesConfig::spyToggle, "status" to status)
+                    }
                 }
             }
         }
@@ -48,18 +55,18 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
         // Open page
         if (!ctx.isPlayer) {
             sender.sendMessage(Message.raw("You are not a player!"))
-            return CompletableFuture.completedFuture(null)
+            return EmptyFuture
         }
 
         val openUserSettings = !sender.hasPermission(Permissions.ADMIN_SETTINGS)
                 || (args.isNotEmpty() && args[0].equals("settings", true))
 
-        val ref = ctx.senderAsPlayerRef() ?: return CompletableFuture.completedFuture<Void>(null)
+        val ref = ctx.senderAsPlayerRef() ?: return EmptyFuture
         val store = ref.store
         return CompletableFuture.runAsync({
             val player = store.getComponent(ref, Player.getComponentType()) ?: return@runAsync
-            val playerRef = store.getComponent(ref, PlayerRef.getComponentType()) ?: return@runAsync
             if (!openUserSettings) {
+                val playerRef = store.getComponent(ref, PlayerRef.getComponentType()) ?: return@runAsync
                 player.pageManager.openCustomPage(
                     ref,
                     store,
@@ -67,12 +74,11 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
                 )
                 return@runAsync
             }
-
-            val userSettings = HeroChat.instance.userService.getSettings(sender.uuid)
+            val user = userService.getUser(sender.uuid) as? PlayerUser ?: return@runAsync
             player.pageManager.openCustomPage(
                 ref,
                 store,
-                UserSettingsPage(playerRef, userSettings, HeroChat.instance.channelService)
+                UserSettingsPage(user, HeroChat.instance.channelService)
             )
 
         }, store.externalData.world)

@@ -1,6 +1,6 @@
 package com.github.heroslender.herochat.channel
 
-import com.hypixel.hytale.server.core.command.system.CommandSender
+import com.github.heroslender.herochat.data.User
 
 interface Channel {
     val id: String
@@ -8,5 +8,5 @@ interface Channel {
     val commands: Array<String>
     val permission: String?
 
-    fun sendMessage(sender: CommandSender, msg: String)
+    fun sendMessage(sender: User, msg: String)
 }

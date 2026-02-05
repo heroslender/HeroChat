@@ -67,21 +67,19 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
         database = Database(dataDirectory.toFile())
         val repository = UserSettingsRepository(database)
-        userService = UserService(repository)
+        userService = UserService(repository, logger.getSubLogger("UserService"))
         channelService = ChannelService(this, config, channelConfigs, privateChannelConfig)
     }
 
     override fun start() {
-        userService.loadUserAsync(ConsoleSender.INSTANCE.uuid)
-
         PlayerListener(userService, channelService)
 
-        commandRegistry.registerCommand(ChatCommand())
+        commandRegistry.registerCommand(ChatCommand(userService))
     }
 
     override fun shutdown() {
         if (::userService.isInitialized) {
-            userService.saveAll()
+            userService.unloadAll()
         }
         if (::database.isInitialized) {
             database.close()

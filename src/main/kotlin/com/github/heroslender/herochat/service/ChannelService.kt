@@ -29,7 +29,7 @@ class ChannelService(
     private val commands: MutableMap<String, CommandRegistration> = mutableMapOf()
 
     init {
-        _channels.putAll(channelConfigs.mapValues { StandardChannel(it.key, it.value) })
+        _channels.putAll(channelConfigs.mapValues { StandardChannel(it.key, it.value, plugin.userService) })
         _channels[PrivateChannel.ID] = PrivateChannel(privateChannelConfig, plugin.userService)
 
         if (defaultChannel == null) {
@@ -45,7 +45,7 @@ class ChannelService(
         val channel = if (channelId == PrivateChannel.ID)
             PrivateChannel(plugin.privateChannelConfig, plugin.userService)
         else
-            StandardChannel(channelId, plugin.channelConfigs[channelId] ?: return)
+            StandardChannel(channelId, plugin.channelConfigs[channelId] ?: return, plugin.userService)
 
         _channels[channelId] = channel
         loadChannel(channel)
@@ -54,8 +54,8 @@ class ChannelService(
     fun loadChannel(channel: Channel) {
         if (channel.commands.isNotEmpty()) {
             val cmd = when (channel) {
-                is StandardChannel -> ChannelCommand(channel)
-                is PrivateChannel -> PrivateChannelCommand(channel)
+                is StandardChannel -> ChannelCommand(channel, plugin.userService)
+                is PrivateChannel -> PrivateChannelCommand(channel, plugin.userService)
                 else -> return
             }
             commands[channel.id] = plugin.commandRegistry.registerCommand(cmd)

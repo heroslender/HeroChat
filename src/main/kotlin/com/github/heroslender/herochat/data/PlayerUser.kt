@@ -1,0 +1,46 @@
+package com.github.heroslender.herochat.data
+
+import com.github.heroslender.herochat.utils.distanceSquared
+import com.github.heroslender.herochat.utils.hasPermission
+import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.universe.PlayerRef
+import java.util.*
+
+class PlayerUser(
+    val player: PlayerRef,
+    override var settings: UserSettings,
+    private val cooldown: Long,
+) : User {
+    override val uuid: UUID
+        get() = player.uuid
+    override val username: String
+        get() = player.username
+
+    // Rate Limiting State
+    private var lastMessageTime: Long = 0
+
+    override fun sendMessage(message: Message) {
+        player.sendMessage(message)
+    }
+
+    override fun hasPermission(permission: String): Boolean {
+        return player.hasPermission(permission)
+    }
+
+    override fun distanceSquared(other: User): Double {
+        if (other !is PlayerUser) return Double.MAX_VALUE
+
+        return player.transform.position.distanceSquared(other.player.transform.position)
+    }
+
+    override fun isCooldown(): Boolean {
+        val now = System.currentTimeMillis()
+
+        if (now - lastMessageTime >= cooldown) {
+            lastMessageTime = now
+            return false
+        }
+
+        return true
+    }
+}

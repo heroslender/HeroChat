@@ -4,6 +4,7 @@ import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
+import com.github.heroslender.herochat.data.User
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.command.system.CommandSender
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -11,6 +12,11 @@ import java.util.*
 import kotlin.reflect.KProperty1
 
 fun CommandSender.sendMessage(
+    msgProp: KProperty1<MessagesConfig, String>,
+    vararg placeholders: Pair<String, String>,
+): Unit = sendMessage(messageFromConfig(msgProp, uuid, *placeholders))
+
+fun User.sendMessage(
     msgProp: KProperty1<MessagesConfig, String>,
     vararg placeholders: Pair<String, String>,
 ): Unit = sendMessage(messageFromConfig(msgProp, uuid, *placeholders))

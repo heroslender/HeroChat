@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.permissions.PermissionsModule
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.Universe
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 
 inline fun <reified E> registerEvent(
@@ -27,3 +28,5 @@ fun Universe.sendMessage(uuid: UUID, message: Message) {
 
 fun PlayerRef.hasPermission(permission: String): Boolean = uuid.hasPermission(permission)
 fun UUID.hasPermission(permission: String): Boolean = PermissionsModule.get().hasPermission(this, permission)
+
+val EmptyFuture: CompletableFuture<Void> = CompletableFuture.completedFuture(null)

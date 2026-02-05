@@ -41,6 +41,7 @@ class UserSettingsRepository(private val database: Database) {
         } catch (e: SQLException) {
             e.printStackTrace()
         }
+
         return UserSettings(uuid)
     }
 

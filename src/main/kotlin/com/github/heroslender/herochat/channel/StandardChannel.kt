@@ -1,21 +1,21 @@
 package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.ComponentParser
-import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
+import com.github.heroslender.herochat.data.PlayerUser
+import com.github.heroslender.herochat.data.User
+import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.distanceSquared
 import com.github.heroslender.herochat.utils.sendMessage
 import com.github.heroslender.herochat.utils.square
 import com.hypixel.hytale.server.core.Message
-import com.hypixel.hytale.server.core.command.system.CommandSender
-import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.Universe
 
-class StandardChannel(id: String, config: ChannelConfig) : Channel {
+class StandardChannel(id: String, config: ChannelConfig, private val userService: UserService) : Channel {
     override val id: String = id
     override val name: String = config.name
     override val commands: Array<String> = config.commands
@@ -27,19 +27,19 @@ class StandardChannel(id: String, config: ChannelConfig) : Channel {
     val distanceSquared: Double? = distance?.let { square(it) }
     val crossWorld: Boolean = config.crossWorld ?: true
 
-    override fun sendMessage(sender: CommandSender, msg: String) {
+    override fun sendMessage(sender: User, msg: String) {
         if (permission != null && !sender.hasPermission(permission)) {
             sender.sendMessage(MessagesConfig::channelNoPermission)
             return
         }
 
-        val settings = HeroChat.instance.userService.getSettings(sender.uuid)
+        val settings = sender.settings
         if (settings.disabledChannels.contains(id)) {
             sender.sendMessage(MessagesConfig::channelDisabled)
             return
         }
 
-        val recipients: List<PlayerRef> = getRecipients(sender) ?: return
+        val recipients: List<User> = getRecipients(sender) ?: return
         if (recipients.isEmpty()) {
             sender.sendMessage(MessagesConfig::chatNoRecipients)
             return
@@ -57,7 +57,7 @@ class StandardChannel(id: String, config: ChannelConfig) : Channel {
             recipient.sendMessage(message)
         }
 
-        val spies = HeroChat.instance.userService.getSpies()
+        val spies = userService.getSpies()
         if (spies.isEmpty()) {
             return
         }
@@ -66,46 +66,33 @@ class StandardChannel(id: String, config: ChannelConfig) : Channel {
             .insert(Message.raw("[SPY] ").color("#FF5555").bold(true))
             .insert(message)
 
-        for (spyUuid in spies) {
-            if (recipients.none { it.uuid == spyUuid }) {
-                Universe.get().sendMessage(spyUuid, spyMessage)
+        for (spy in spies) {
+            if (recipients.none { it.uuid == spy.uuid }) {
+                spy.sendMessage(spyMessage)
             }
         }
     }
 
-    fun getRecipients(sender: CommandSender): List<PlayerRef>? {
-        val recipients = ArrayList<PlayerRef>()
+    fun getRecipients(sender: User): List<User>? {
+        val recipients = ArrayList<User>()
 
         if (crossWorld) {
-            recipients.addAll(Universe.get().players)
+            recipients.addAll(userService.getUsers())
         } else {
-            if (sender !is Player) {
+            if (sender !is PlayerUser) {
                 sender.sendMessage(Message.raw("You can't send messages in this channel! Not a global channel."))
                 return null
             }
 
-            val playersInWorld = sender.world?.playerRefs
-            if (playersInWorld != null) {
-                recipients.addAll(playersInWorld)
-            }
-
-            if (distanceSquared != null && recipients.isNotEmpty()) {
-                val playerRef = sender.reference?.store?.getComponent(
-                    sender.reference ?: return null,
-                    PlayerRef.getComponentType()
-                ) ?: return null
-                val position = playerRef.transform.position
-
-                recipients.removeIf {
-                    it.transform.position.distanceSquared(position) > distanceSquared
-                }
+            if (distanceSquared == null) {
+                recipients.addAll(userService.getUsersInWorld(sender.player.worldUuid ?: return null))
+            } else {
+                recipients.addAll(userService.getUsersNearby(sender, distanceSquared) ?: return null)
             }
         }
 
-        val userService = HeroChat.instance.userService
-        recipients.removeIf { playerRef ->
-            val settings = userService.getSettings(playerRef.uuid)
-            return@removeIf settings.disabledChannels.contains(this.id)
+        recipients.removeIf { user ->
+            return@removeIf user.settings.disabledChannels.contains(this.id)
         }
 
         return recipients

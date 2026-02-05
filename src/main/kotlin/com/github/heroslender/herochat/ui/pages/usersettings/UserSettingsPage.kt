@@ -1,17 +1,13 @@
 package com.github.heroslender.herochat.ui.pages.usersettings
 
-import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.MessagesConfig
-import com.github.heroslender.herochat.data.UserSettings
+import com.github.heroslender.herochat.data.PlayerUser
+import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
-import com.github.heroslender.herochat.utils.hasPermission
-import com.github.heroslender.herochat.utils.messageFromConfig
-import com.github.heroslender.herochat.utils.messageStrFromConfig
-import com.github.heroslender.herochat.utils.onActivating
-import com.github.heroslender.herochat.utils.onValueChanged
+import com.github.heroslender.herochat.utils.*
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
@@ -22,16 +18,15 @@ import com.hypixel.hytale.server.core.ui.DropdownEntryInfo
 import com.hypixel.hytale.server.core.ui.LocalizableString
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
-import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
 import javax.annotation.Nonnull
 
 class UserSettingsPage(
-    playerRef: PlayerRef,
-    val settings: UserSettings,
+    val user: PlayerUser,
     val channelService: ChannelService,
-) : Page<UserSettingsPage.UiState>(playerRef, UiState.CODEC) {
+) : Page<UserSettingsPage.UiState>(user.player, UiState.CODEC) {
+    private val settings = user.settings
 
     override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
         cmd.append(LAYOUT)
@@ -100,23 +95,25 @@ class UserSettingsPage(
         super.handleDataEvent(ref, store, data)
 
         if (data.action == "save") {
-            val focusedChannel = data.focusedChannel
-            HeroChat.instance.userService.updateSettings(playerRef.uuid) { settings ->
-                settings.focusedChannelId =
-                    if (focusedChannel == channelService.defaultChannel?.id) null else focusedChannel
+            with(HeroChat.instance.userService) {
+                user.updateSettings { settings ->
+                    val focusedChannel = data.focusedChannel
+                    settings.focusedChannelId =
+                        if (focusedChannel == channelService.defaultChannel?.id) null else focusedChannel
 
-                if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
-                    settings.disabledChannels.clear()
-                    settings.disabledChannels.addAll(data.mutedChannels ?: emptyArray())
-                }
+                    if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
+                        settings.disabledChannels.clear()
+                        settings.disabledChannels.addAll(data.mutedChannels ?: emptyArray())
+                    }
 
-                if (playerRef.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
-                    val color = data.color?.substring(0, 7)
-                    settings.messageColor = if (color == "#ffffff") null else color
-                }
+                    if (playerRef.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
+                        val color = data.color?.substring(0, 7)
+                        settings.messageColor = if (color == "#ffffff") null else color
+                    }
 
-                if (playerRef.hasPermission(Permissions.ADMIN_SPY)) {
-                    settings.spyMode = data.spyMode ?: false
+                    if (playerRef.hasPermission(Permissions.ADMIN_SPY)) {
+                        settings.spyMode = data.spyMode ?: false
+                    }
                 }
             }
 

@@ -1,8 +1,8 @@
 package com.github.heroslender.herochat.commands
 
-import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.config.MessagesConfig
+import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.CommandContext
 import com.hypixel.hytale.server.core.command.system.CommandUtil
@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractAsyncC
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import java.util.concurrent.CompletableFuture
 
-class PrivateChannelCommand(val channel: PrivateChannel) :
+class PrivateChannelCommand(val channel: PrivateChannel, private val userService: UserService) :
     AbstractAsyncCommand(channel.commands.first(), "Sends a chat message in a specific channel") {
     private val targetArg: RequiredArg<PlayerRef> = withRequiredArg("player", "Target player", ArgTypes.PLAYER_REF)
     private val msgArg: OptionalArg<String> = withOptionalArg("msg", "message", ArgTypes.STRING)
@@ -32,20 +32,21 @@ class PrivateChannelCommand(val channel: PrivateChannel) :
 
     override fun executeAsync(ctx: CommandContext): CompletableFuture<Void> {
         return CompletableFuture.runAsync {
-            val sender = ctx.sender()
-            val target = targetArg.get(ctx)
+            val sender = userService.getUser(ctx.sender().uuid) ?: return@runAsync
+            val target = userService.getUser(targetArg.get(ctx).uuid) ?: return@runAsync
             val rawArgs = CommandUtil.stripCommandName(ctx.inputString)
             val indexOf = rawArgs.indexOf(' ')
             if (indexOf >= 0) {
                 val msg = rawArgs.substring(indexOf + 1)
-                channel.sendMessage(sender, msg, target)
+                channel.sendMessage(sender, target, msg)
                 return@runAsync
             }
 
-            // [NEW] Update settings to focus on this player
-            HeroChat.instance.userService.updateSettings(sender.uuid) {
-                it.focusedChannelId = PrivateChannel.ID
-                it.focusedPrivateTarget = target.uuid
+            with(userService) {
+                sender.updateSettings {
+                    it.focusedChannelId = PrivateChannel.ID
+                    it.focusedPrivateTarget = target.uuid
+                }
             }
 
             sender.sendMessage(MessagesConfig::privateChatStarted, "target" to target.username)
