@@ -46,7 +46,7 @@ class StandardChannel(id: String, config: ChannelConfig) : Channel {
 
         var finalMsg = msg
         if (sender.hasPermission("herochat.chat.message-color")) {
-            finalMsg = "{${settings.messageColor.orEmpty()}}$msg"
+            finalMsg = "${settings.messageColor?.let { "{$it}" }.orEmpty()}$msg"
         }
 
         val comp = components + ("message" to ComponentConfig(finalMsg))

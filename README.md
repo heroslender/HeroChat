@@ -42,6 +42,8 @@ A simple and customizable chat plugin for Hytale servers.
 - `herochat.commands.chat` - Permission for player to use the `/chat` command
 - `herochat.chat.mute-channels` - Permission for player to mute channels
 - `herochat.chat.message-color` - Permission for player to change the default message color on chat
+- `herochat.chat.message.colors` - Permission for player to use colors on chat
+- `herochat.chat.message.formatting` - Permission for player to use formatting tags on chat
 - `herochat.admin.spy` - Permission to enable chat spy
 - `herochat.admin.settings` - Permission to open the admin settings menu
 

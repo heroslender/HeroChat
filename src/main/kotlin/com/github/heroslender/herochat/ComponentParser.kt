@@ -2,6 +2,7 @@ package com.github.heroslender.herochat
 
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.dependencies.PlaceholderAPIDependency
+import com.github.heroslender.herochat.utils.hasPermission
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.console.ConsoleSender
 import com.hypixel.hytale.server.core.permissions.PermissionsModule
@@ -48,6 +49,9 @@ class ComponentParser {
         sender: UUID,
         message: String,
         components: Map<String, ComponentConfig> = emptyMap(),
+        formatColors: Boolean = true,
+        formatStyle: Boolean = true,
+        formatPlaceholders: Boolean = true,
     ): Message {
         if (!message.contains(PLACEHOLDER_START)) {
             return getCurrentComp().insert(message)
@@ -72,19 +76,33 @@ class ComponentParser {
             val suffixIndex: Int = findMatchingEnd(message, prefixIndex)
             if (suffixIndex == -1) break
 
-            val placeholder = message.substring(prefixIndex + 1, suffixIndex)
-            if (placeholder.isColor()) {
+            fun appendPending() {
                 if (start != prefixIndex) {
                     getCurrentComp().insert(message.substring(start, prefixIndex))
                 }
+            }
+
+            val placeholder = message.substring(prefixIndex + 1, suffixIndex)
+            if (placeholder.isColor()) {
+                if (!formatColors) {
+                    getCurrentComp().insert(message.substring(start, suffixIndex + 1))
+                    start = suffixIndex + 1
+                    continue
+                }
+
+                appendPending()
                 val comp = newTopComp()
                 comp.color(placeholder)
             } else if (placeholder.isFormatting()) {
+                if (!formatStyle) {
+                    getCurrentComp().insert(message.substring(start, suffixIndex + 1))
+                    start = suffixIndex + 1
+                    continue
+                }
+
                 val isFormattingChain = prefixIndex == formattingSuffixIndex + 1
                 val child = if (isFormattingChain) getCurrentComp() else {
-                    if (start != prefixIndex) {
-                        getCurrentComp().insert(message.substring(start, prefixIndex))
-                    }
+                    appendPending()
                     newChild()
                 }
 
@@ -94,6 +112,13 @@ class ComponentParser {
                     "monospaced" -> child.monospace(true)
                 }
             } else {
+                if (!formatPlaceholders) {
+                    getCurrentComp().insert(message.substring(start, suffixIndex + 1))
+                    start = suffixIndex + 1
+                    continue
+                }
+                appendPending()
+
                 val resolvedPlaceholder = resolveToString(sender, placeholder, components).trim()
                 val c = components[resolvedPlaceholder]
                 val text = if (c == null) {
@@ -105,10 +130,18 @@ class ComponentParser {
                 } else null
 
                 if (text != null) {
-                    if (start != prefixIndex) {
-                        getCurrentComp().insert(message.substring(start, prefixIndex))
+                    if (placeholder == "message") {
+                        parse(
+                            sender = sender,
+                            message = text,
+                            components = components,
+                            formatColors = sender.hasPermission("herochat.chat.message.colors"),
+                            formatStyle = sender.hasPermission("herochat.chat.message.formatting"),
+                            formatPlaceholders = false
+                        )
+                    } else {
+                        parse(sender, text, components)
                     }
-                    parse(sender, text, components)
                 }
             }
 

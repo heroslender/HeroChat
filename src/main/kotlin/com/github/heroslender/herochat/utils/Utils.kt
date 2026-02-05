@@ -25,4 +25,5 @@ fun Universe.sendMessage(uuid: UUID, message: Message) {
     }
 }
 
-fun PlayerRef.hasPermission(permission: String): Boolean = PermissionsModule.get().hasPermission(uuid, permission)
+fun PlayerRef.hasPermission(permission: String): Boolean = uuid.hasPermission(permission)
+fun UUID.hasPermission(permission: String): Boolean = PermissionsModule.get().hasPermission(this, permission)
