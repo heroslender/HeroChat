@@ -15,6 +15,10 @@ class ComponentParser {
         const val PLACEHOLDER_END = '}'
         private const val ESCAPE_CHAR = '\\'
 
+        const val BOLD = "bold"
+        const val ITALIC = "italic"
+        const val MONOSPACED = "monospaced"
+
         fun parse(
             sender: UUID,
             message: String,
@@ -107,9 +111,9 @@ class ComponentParser {
                 }
 
                 when (placeholder) {
-                    "bold" -> child.bold(true)
-                    "italic" -> child.italic(true)
-                    "monospaced" -> child.monospace(true)
+                    BOLD -> child.bold(true)
+                    ITALIC -> child.italic(true)
+                    MONOSPACED -> child.monospace(true)
                 }
             } else {
                 if (!formatPlaceholders) {
@@ -253,7 +257,7 @@ class ComponentParser {
     }
 
     fun String.isFormatting(): Boolean {
-        return isColor() || this == "bold" || this == "italic" || this == "monospaced"
+        return isColor() || this == BOLD || this == ITALIC || this == MONOSPACED
     }
 
     fun String.isColor(): Boolean = startsWith('#')
