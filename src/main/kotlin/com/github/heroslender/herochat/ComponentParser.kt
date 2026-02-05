@@ -135,8 +135,8 @@ class ComponentParser {
                             sender = sender,
                             message = text,
                             components = components,
-                            formatColors = sender.hasPermission("herochat.chat.message.colors"),
-                            formatStyle = sender.hasPermission("herochat.chat.message.formatting"),
+                            formatColors = sender.hasPermission(Permissions.CHAT_COLOR),
+                            formatStyle = sender.hasPermission(Permissions.CHAT_FORMATTING),
                             formatPlaceholders = false
                         )
                     } else {

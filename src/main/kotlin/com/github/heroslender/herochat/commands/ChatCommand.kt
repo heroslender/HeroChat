@@ -1,6 +1,7 @@
 package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
 import com.github.heroslender.herochat.ui.pages.usersettings.UserSettingsPage
@@ -18,7 +19,7 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
 
     init {
         setAllowsExtraArguments(true)
-        requirePermission("herochat.commands.chat")
+        requirePermission(Permissions.COMMAND_CHAT)
     }
 
     override fun canGeneratePermission(): Boolean {
@@ -29,7 +30,7 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
         val args = ctx.inputString.split(" ").drop(1) // simple arg parsing
         val sender = ctx.sender()
         if (args.isNotEmpty() && args[0].equals("spy", true)) {
-            if (!sender.hasPermission("herochat.admin.spy")) {
+            if (!sender.hasPermission(Permissions.ADMIN_SPY)) {
                 sender.sendMessage(MessagesConfig::spyNoPermission)
                 return CompletableFuture.completedFuture(null)
             }
@@ -50,7 +51,7 @@ class ChatCommand : AbstractAsyncCommand("chat", "Opens the chat customization U
             return CompletableFuture.completedFuture(null)
         }
 
-        val openUserSettings = !sender.hasPermission("herochat.admin.settings")
+        val openUserSettings = !sender.hasPermission(Permissions.ADMIN_SETTINGS)
                 || (args.isNotEmpty() && args[0].equals("settings", true))
 
         val ref = ctx.senderAsPlayerRef() ?: return CompletableFuture.completedFuture<Void>(null)

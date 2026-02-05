@@ -2,6 +2,7 @@ package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -45,7 +46,7 @@ class StandardChannel(id: String, config: ChannelConfig) : Channel {
         }
 
         var finalMsg = msg
-        if (sender.hasPermission("herochat.chat.message-color")) {
+        if (sender.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
             finalMsg = "${settings.messageColor?.let { "{$it}" }.orEmpty()}$msg"
         }
 

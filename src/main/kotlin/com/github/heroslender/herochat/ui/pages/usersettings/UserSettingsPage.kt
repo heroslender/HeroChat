@@ -2,6 +2,7 @@ package com.github.heroslender.herochat.ui.pages.usersettings
 
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.data.UserSettings
 import com.github.heroslender.herochat.ui.Page
@@ -50,7 +51,7 @@ class UserSettingsPage(
         cmd["#FocusedChannel #Dropdown.Value"] =
             settings.focusedChannelId ?: channelService.defaultChannel?.id ?: ""
 
-        if (playerRef.hasPermission("herochat.chat.mute-channels")) {
+        if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
             cmd["#MutedChannels.Visible"] = true
 
             settings.disabledChannels.forEachIndexed { i, ch ->
@@ -65,14 +66,14 @@ class UserSettingsPage(
                 settings.disabledChannels.map(LocalizableString::fromString).toTypedArray()
         }
 
-        if (playerRef.hasPermission("herochat.chat.message-color")) {
+        if (playerRef.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
             cmd["#MessageColor.Visible"] = true
             if (settings.messageColor != null && settings.messageColor!!.isValidColor()) {
                 cmd["#MessageColor #ColorPicker.Color"] = settings.messageColor!!
             }
         }
 
-        if (playerRef.hasPermission("herochat.admin.spy")) {
+        if (playerRef.hasPermission(Permissions.ADMIN_SPY)) {
             cmd["#SpyMode.Visible"] = true
             cmd["#SpyMode #CheckBox.Value"] = settings.spyMode
         }
@@ -104,17 +105,17 @@ class UserSettingsPage(
                 settings.focusedChannelId =
                     if (focusedChannel == channelService.defaultChannel?.id) null else focusedChannel
 
-                if (playerRef.hasPermission("herochat.chat.mute-channels")) {
+                if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
                     settings.disabledChannels.clear()
                     settings.disabledChannels.addAll(data.mutedChannels ?: emptyArray())
                 }
 
-                if (playerRef.hasPermission("herochat.chat.message-color")) {
+                if (playerRef.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
                     val color = data.color?.substring(0, 7)
                     settings.messageColor = if (color == "#ffffff") null else color
                 }
 
-                if (playerRef.hasPermission("herochat.admin.spy")) {
+                if (playerRef.hasPermission(Permissions.ADMIN_SPY)) {
                     settings.spyMode = data.spyMode ?: false
                 }
             }
