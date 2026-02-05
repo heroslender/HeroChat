@@ -22,6 +22,7 @@ class StandardChannel(id: String, config: ChannelConfig, private val userService
     val format: String = config.format
     override val permission: String? = config.permission
     val components: Map<String, ComponentConfig> = config.components
+    val cooldowns: Map<String, Long> = config.cooldowns
 
     val distance: Double? = config.distance
     val distanceSquared: Double? = distance?.let { square(it) }
@@ -36,6 +37,11 @@ class StandardChannel(id: String, config: ChannelConfig, private val userService
         val settings = sender.settings
         if (settings.disabledChannels.contains(id)) {
             sender.sendMessage(MessagesConfig::channelDisabled)
+            return
+        }
+
+        if (sender.isCooldown()) {
+            sender.sendMessage(MessagesConfig::chatCooldown)
             return
         }
 
@@ -96,5 +102,34 @@ class StandardChannel(id: String, config: ChannelConfig, private val userService
         }
 
         return recipients
+    }
+
+    fun User.isCooldown(): Boolean {
+        val now = System.currentTimeMillis()
+        val cooldown = getCooldown(this)
+
+        if (now - lastMessageTime >= cooldown) {
+            lastMessageTime = now
+            return false
+        }
+
+        return true
+    }
+
+    fun getCooldown(user: User): Long {
+        if (user.hasPermission(Permissions.BYPASS_COOLDOWN)) {
+            return 0
+        }
+
+        var cooldown: Long? = null
+        for ((perm, dur) in cooldowns) {
+            if (user.hasPermission(perm)) {
+                if (cooldown == null || cooldown < dur) {
+                    cooldown = dur
+                }
+            }
+        }
+
+        return cooldown ?: 0
     }
 }

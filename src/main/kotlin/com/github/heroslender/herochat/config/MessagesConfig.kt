@@ -10,6 +10,7 @@ class MessagesConfig {
     var channelJoined: String = "{#55FF55}You are now talking in {#FFFFFF}{channel}{#55FF55}."
     var channelDisabled: String = "{#FF5555}You have disabled this channel. Enable it again to be able to talk here."
     var chatNoRecipients: String = "{#FF5555}No one hears you."
+    var chatCooldown: String = "{#FF5555}Please wait before sending another message."
     var privateChatStarted: String = "{#55FF55}You are now in a private conversation with {#FFFFFF}{target}{#55FF55}."
     var privateChatPlayerNotFound: String = "{#FF5555}The player is not online."
     var privateChatSelf: String = "{#FF5555}You cannot start a private conversation with yourself."
@@ -57,6 +58,11 @@ class MessagesConfig {
                 { config -> config.chatNoRecipients }
             ).add()
             .append(
+                KeyedCodec("ChatCooldown", Codec.STRING, false),
+                { config, value -> config.chatCooldown = value },
+                { config -> config.chatCooldown }
+            ).add()
+            .append(
                 KeyedCodec("PrivateChatStarted", Codec.STRING, false),
                 { config, value -> config.privateChatStarted = value },
                 { config -> config.privateChatStarted }
@@ -75,6 +81,16 @@ class MessagesConfig {
                 KeyedCodec("PrivateChatNotActive", Codec.STRING, false),
                 { config, value -> config.privateChatNotActive = value },
                 { config -> config.privateChatNotActive }
+            ).add()
+            .append(
+                KeyedCodec("SpyNoPermission", Codec.STRING, false),
+                { config, value -> config.spyNoPermission = value },
+                { config -> config.spyNoPermission }
+            ).add()
+            .append(
+                KeyedCodec("SpyToggle", Codec.STRING, false),
+                { config, value -> config.spyToggle = value },
+                { config -> config.spyToggle }
             ).add()
             .append(
                 KeyedCodec("MenuFocusedChannel", Codec.STRING, false),

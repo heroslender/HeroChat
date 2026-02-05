@@ -7,12 +7,11 @@ interface User {
     val uuid: UUID
     val username: String
     var settings: UserSettings
+    var lastMessageTime: Long
 
     fun sendMessage(message: Message)
 
     fun hasPermission(permission: String): Boolean
 
     fun distanceSquared(other: User):  Double
-
-    fun isCooldown(): Boolean
 }

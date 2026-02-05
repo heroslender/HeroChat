@@ -13,6 +13,7 @@ class ChannelConfig {
     var distance: Double? = null
     var crossWorld: Boolean? = null
     var components: MutableMap<String, ComponentConfig> = mutableMapOf()
+    var cooldowns: MutableMap<String, Long> = mutableMapOf()
 
     companion object {
         @JvmField
@@ -54,6 +55,11 @@ class ChannelConfig {
                 KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
                 { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
                 { config -> config.components }
+            ).add()
+            .append(
+                KeyedCodec("Cooldowns", MapCodec(Codec.LONG) { mutableMapOf<String, Long>() }),
+                { config, value -> config.cooldowns = value?.let { HashMap(it) } ?: mutableMapOf() },
+                { config -> config.cooldowns }
             ).add()
             .build()
     }

@@ -9,15 +9,12 @@ import java.util.*
 class PlayerUser(
     val player: PlayerRef,
     override var settings: UserSettings,
-    private val cooldown: Long,
 ) : User {
     override val uuid: UUID
         get() = player.uuid
     override val username: String
         get() = player.username
-
-    // Rate Limiting State
-    private var lastMessageTime: Long = 0
+    override var lastMessageTime: Long = 0
 
     override fun sendMessage(message: Message) {
         player.sendMessage(message)
@@ -31,16 +28,5 @@ class PlayerUser(
         if (other !is PlayerUser) return Double.MAX_VALUE
 
         return player.transform.position.distanceSquared(other.player.transform.position)
-    }
-
-    override fun isCooldown(): Boolean {
-        val now = System.currentTimeMillis()
-
-        if (now - lastMessageTime >= cooldown) {
-            lastMessageTime = now
-            return false
-        }
-
-        return true
     }
 }

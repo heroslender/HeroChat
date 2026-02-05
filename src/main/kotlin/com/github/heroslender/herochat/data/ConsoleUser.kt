@@ -12,6 +12,9 @@ class ConsoleUser(
         get() = console.uuid
     override val username: String
         get() = console.displayName
+    override var lastMessageTime: Long
+        get() = 0
+        set(_) {}
 
     override fun sendMessage(message: Message) {
         console.sendMessage(message)
@@ -23,9 +26,5 @@ class ConsoleUser(
 
     override fun distanceSquared(other: User): Double {
         return Double.MAX_VALUE
-    }
-
-    override fun isCooldown(): Boolean {
-        return false
     }
 }

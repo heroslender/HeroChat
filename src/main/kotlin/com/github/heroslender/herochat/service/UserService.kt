@@ -52,7 +52,7 @@ class UserService(
      */
     fun onJoin(player: PlayerRef) {
         logger.atFine().log("User joined ${player.username}, loading data...")
-        loadUser(PlayerUser(player, UserSettings(player.uuid), 0L))
+        loadUser(PlayerUser(player, UserSettings(player.uuid)))
     }
 
     fun loadUser(user: User) {

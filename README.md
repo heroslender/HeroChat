@@ -82,7 +82,12 @@ specific channel. A channel ID is its file name.
   "SenderFormat": "Message to {target_username}{#555555}{bold}> {#aaa}{message}",
   "ReceiverFormat": "Message from {player_username}{#555555}{bold}> {#AAAAAA}{message}",
   "Permission": "chat.tell", // Optional
-  "Components": {}
+  "Components": {},
+  "Cooldowns": {
+    "chat.member": 1000, // Cooldown in miliseconds
+    "chat.vip": 300,
+    "chat.admin": 0
+  }
 }
 ```
 
@@ -99,7 +104,12 @@ specific channel. A channel ID is its file name.
   "Permission": "chat.local", // Optional
   "Distance": 60, // Optional
   "CrossWorld": false, // Optional
-  "Components": {}
+  "Components": {},
+  "Cooldowns": {
+    "chat.member": 2000,
+    "chat.vip": 500,
+    "chat.admin": 0
+  }
 }
 ```
 
@@ -110,10 +120,15 @@ specific channel. A channel ID is its file name.
   "ChannelNoPermission": "{#FF5555}You do not have permission to send messages in this channel.",
   "ChannelNotFound": "{#FF5555}Channel not found.",
   "ChannelJoined": "{#55FF55}You are now talking in {#FFFFFF}{channel}{#55FF55}.",
+  "ChannelDisabled": "{#FF5555}You have disabled this channel. Enable it again to be able to talk here.",
+  "ChatNoRecipients": "{#FF5555}No one hears you.",
+  "ChatCooldown": "{#FF5555}Please wait before sending another message.",
   "PrivateChatStarted": "{#55FF55}You are now in a private conversation with {#FFFFFF}{player}{#55FF55}.",
   "PrivateChatPlayerNotFound": "{#FF5555}Player not found.",
   "PrivateChatSelf": "{#FF5555}You cannot start a private conversation with yourself.",
   "PrivateChatNotActive": "{#FF5555}You are not in a private conversation.",
+  "SpyNoPermission": "{#FF5555}You do not have permission to use chat spy.",
+  "SpyToggle": "{#CCCCCC}Chat spy has been {status}{#CCCCCC}.",
   "MenuFocusedChannel": "Focused Channel",
   "MenuMutedChannels": "Muted Channels",
   "MenuMessageColor": "Message Color",
