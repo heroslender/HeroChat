@@ -2,16 +2,20 @@ package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.ComponentParser
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.github.heroslender.herochat.data.User
+import com.github.heroslender.herochat.event.PreChatEvent
+import com.github.heroslender.herochat.event.PrivateChannelChatEvent
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.sendMessage
-import com.hypixel.hytale.server.core.universe.Universe
+import com.hypixel.hytale.server.core.HytaleServer
 
-class PrivateChannel(config: PrivateChannelConfig, private val userService: UserService) : Channel {
+class PrivateChannel(
+    config: PrivateChannelConfig,
+    private val userService: UserService
+) : Channel {
     override val id: String = ID
     override val name: String = config.name
     override val commands: Array<String> = config.commands
@@ -23,19 +27,9 @@ class PrivateChannel(config: PrivateChannelConfig, private val userService: User
 
     override fun sendMessage(sender: User, msg: String) {
         val settings = sender.settings
-        if (settings.disabledChannels.contains(id)) {
-            sender.sendMessage(MessagesConfig::channelDisabled)
-            return
-        }
-
         val targetUuid = settings.focusedPrivateTarget
         if (targetUuid == null) {
             sender.sendMessage(MessagesConfig::privateChatNotActive)
-            return
-        }
-
-        if (sender.isCooldown()) {
-            sender.sendMessage(MessagesConfig::chatCooldown)
             return
         }
 
@@ -63,66 +57,55 @@ class PrivateChannel(config: PrivateChannelConfig, private val userService: User
             return
         }
 
-        val settings = sender.settings
-        if (settings.disabledChannels.contains(id)) {
-            sender.sendMessage(MessagesConfig::channelDisabled)
+        HytaleServer.get()
+            .eventBus
+            .dispatchForAsync(PreChatEvent::class.java)
+            .dispatch(
+                PreChatEvent(
+                    sender = sender,
+                    channel = this,
+                    message = msg
+                )
+            ).whenComplete { event, throwable -> onPreChatEvent(event, target, throwable) }
+    }
+
+    fun onPreChatEvent(event: PreChatEvent, target: User, throwable: Throwable?) {
+        if (throwable != null) {
+            throwable.printStackTrace()
             return
         }
 
+        HytaleServer.get()
+            .eventBus
+            .dispatchForAsync(PrivateChannelChatEvent::class.java)
+            .dispatch(
+                PrivateChannelChatEvent(
+                    sender = event.sender,
+                    channel = this,
+                    target = target,
+                    message = event.message
+                )
+            ).whenComplete(::onChatEvent)
+    }
+
+    fun onChatEvent(event: PrivateChannelChatEvent, throwable: Throwable?) {
+        if (throwable != null) {
+            throwable.printStackTrace()
+            return
+        }
+
+        val sender = event.sender
+        val target = event.target
+
         val comp = HeroChat.instance.config.components +
                 components +
-                ("message" to ComponentConfig(msg)) +
+                ("message" to ComponentConfig(event.message)) +
                 ("target_username" to ComponentConfig(target.username))
         val message = ComponentParser.parse(sender.uuid, format, comp)
         val receivedMessage = ComponentParser.parse(sender.uuid, receiverFormat, comp)
 
         sender.sendMessage(message)
         target.sendMessage(receivedMessage)
-
-        val spies = HeroChat.instance.userService.getSpies()
-        if (spies.isEmpty()) {
-            return
-        }
-
-        // Spy format: [SPY] Sender -> Target: Message
-        val spyText =
-            "{#FF5555}[SPY] {#AAAAAA}${sender.username} {#555555}-> {#AAAAAA}${target.username}{#555555}: {#FFFFFF}$msg"
-        val spyMsg = ComponentParser.parse(sender.uuid, spyText)
-
-        for (spy in spies) {
-            if (spy.uuid != sender.uuid && spy.uuid != target.uuid) {
-                spy.sendMessage(spyMsg)
-            }
-        }
-    }
-
-    fun User.isCooldown(): Boolean {
-        val now = System.currentTimeMillis()
-        val cooldown = getCooldown(this)
-
-        if (now - lastMessageTime >= cooldown) {
-            lastMessageTime = now
-            return false
-        }
-
-        return true
-    }
-
-    fun getCooldown(user: User): Long {
-        if (user.hasPermission(Permissions.BYPASS_COOLDOWN)) {
-            return 0
-        }
-
-        var cooldown: Long? = null
-        for ((perm, dur) in cooldowns) {
-            if (user.hasPermission(perm)) {
-                if (cooldown == null || cooldown < dur) {
-                    cooldown = dur
-                }
-            }
-        }
-
-        return cooldown ?: 0
     }
 
     companion object {

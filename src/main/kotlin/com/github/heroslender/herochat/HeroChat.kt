@@ -8,12 +8,12 @@ import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.github.heroslender.herochat.database.Database
 import com.github.heroslender.herochat.database.UserSettingsRepository
+import com.github.heroslender.herochat.listeners.ChatListener
 import com.github.heroslender.herochat.listeners.PlayerListener
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.service.UserService
 import com.hypixel.hytale.common.plugin.PluginIdentifier
 import com.hypixel.hytale.common.semver.SemverRange
-import com.hypixel.hytale.server.core.console.ConsoleSender
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
 import com.hypixel.hytale.server.core.plugin.PluginManager
@@ -68,11 +68,12 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         database = Database(dataDirectory.toFile())
         val repository = UserSettingsRepository(database)
         userService = UserService(repository, logger.getSubLogger("UserService"))
-        channelService = ChannelService(this, config, channelConfigs, privateChannelConfig)
+        channelService = ChannelService(this, config)
     }
 
     override fun start() {
         PlayerListener(userService, channelService)
+        ChatListener(userService)
 
         commandRegistry.registerCommand(ChatCommand(userService))
     }

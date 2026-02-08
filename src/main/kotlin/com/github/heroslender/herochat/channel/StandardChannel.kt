@@ -1,21 +1,24 @@
 package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.ComponentParser
-import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.data.PlayerUser
 import com.github.heroslender.herochat.data.User
+import com.github.heroslender.herochat.event.ChannelChatEvent
+import com.github.heroslender.herochat.event.PreChatEvent
 import com.github.heroslender.herochat.service.UserService
-import com.github.heroslender.herochat.utils.distanceSquared
 import com.github.heroslender.herochat.utils.sendMessage
 import com.github.heroslender.herochat.utils.square
+import com.hypixel.hytale.server.core.HytaleServer
 import com.hypixel.hytale.server.core.Message
-import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.core.universe.Universe
 
-class StandardChannel(id: String, config: ChannelConfig, private val userService: UserService) : Channel {
+class StandardChannel(
+    id: String,
+    config: ChannelConfig,
+    private val userService: UserService
+) : Channel {
     override val id: String = id
     override val name: String = config.name
     override val commands: Array<String> = config.commands
@@ -34,52 +37,66 @@ class StandardChannel(id: String, config: ChannelConfig, private val userService
             return
         }
 
-        val settings = sender.settings
-        if (settings.disabledChannels.contains(id)) {
-            sender.sendMessage(MessagesConfig::channelDisabled)
+        HytaleServer.get()
+            .eventBus
+            .dispatchForAsync(PreChatEvent::class.java)
+            .dispatch(
+                PreChatEvent(
+                    sender = sender,
+                    channel = this,
+                    message = msg
+                )
+            ).whenComplete(::onPreChatEvent)
+    }
+
+    fun onPreChatEvent(event: PreChatEvent, throwable: Throwable?) {
+        if (throwable != null) {
+            throwable.printStackTrace()
             return
         }
 
-        if (sender.isCooldown()) {
-            sender.sendMessage(MessagesConfig::chatCooldown)
+        if (event.isCancelled) {
             return
         }
 
-        val recipients: List<User> = getRecipients(sender) ?: return
-        if (recipients.isEmpty()) {
-            sender.sendMessage(MessagesConfig::chatNoRecipients)
+        val recipients: MutableList<User> = getRecipients(event.sender) ?: return
+
+        HytaleServer.get()
+            .eventBus
+            .dispatchForAsync(ChannelChatEvent::class.java)
+            .dispatch(
+                ChannelChatEvent(
+                    sender = event.sender,
+                    channel = this,
+                    message = event.message,
+                    recipients = recipients
+                )
+            ).whenComplete(::onChatEvent)
+    }
+
+    fun onChatEvent(event: ChannelChatEvent, throwable: Throwable?) {
+        if (throwable != null) {
+            throwable.printStackTrace()
             return
         }
 
-        var finalMsg = msg
-        if (sender.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
-            finalMsg = "${settings.messageColor?.let { "{$it}" }.orEmpty()}$msg"
+        if (event.isCancelled) {
+            return
         }
 
-        val comp = components + ("message" to ComponentConfig(finalMsg))
-        val message = ComponentParser.parse(sender.uuid, format, comp)
+        val comp = components + ("message" to ComponentConfig(event.message))
+        val message = ComponentParser.parse(event.sender.uuid, format, comp)
 
-        for (recipient in recipients) {
+        for (recipient in event.recipients) {
             recipient.sendMessage(message)
         }
 
-        val spies = userService.getSpies()
-        if (spies.isEmpty()) {
-            return
-        }
-
-        val spyMessage = Message.empty()
-            .insert(Message.raw("[SPY] ").color("#FF5555").bold(true))
-            .insert(message)
-
-        for (spy in spies) {
-            if (recipients.none { it.uuid == spy.uuid }) {
-                spy.sendMessage(spyMessage)
-            }
+        if (event.recipients.isEmpty() || event.recipients.singleOrNull()?.uuid == event.sender.uuid) {
+            event.sender.sendMessage(MessagesConfig::chatNoRecipients)
         }
     }
 
-    fun getRecipients(sender: User): List<User>? {
+    fun getRecipients(sender: User): MutableList<User>? {
         val recipients = ArrayList<User>()
 
         if (crossWorld) {
@@ -102,34 +119,5 @@ class StandardChannel(id: String, config: ChannelConfig, private val userService
         }
 
         return recipients
-    }
-
-    fun User.isCooldown(): Boolean {
-        val now = System.currentTimeMillis()
-        val cooldown = getCooldown(this)
-
-        if (now - lastMessageTime >= cooldown) {
-            lastMessageTime = now
-            return false
-        }
-
-        return true
-    }
-
-    fun getCooldown(user: User): Long {
-        if (user.hasPermission(Permissions.BYPASS_COOLDOWN)) {
-            return 0
-        }
-
-        var cooldown: Long? = null
-        for ((perm, dur) in cooldowns) {
-            if (user.hasPermission(perm)) {
-                if (cooldown == null || cooldown < dur) {
-                    cooldown = dur
-                }
-            }
-        }
-
-        return cooldown ?: 0
     }
 }
