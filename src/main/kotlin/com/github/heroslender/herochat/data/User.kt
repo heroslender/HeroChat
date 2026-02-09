@@ -7,6 +7,8 @@ interface User {
     val uuid: UUID
     val username: String
     var settings: UserSettings
+
+    var lastMessage: String
     var lastMessageTime: Long
 
     fun sendMessage(message: Message)

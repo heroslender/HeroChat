@@ -14,6 +14,8 @@ class PlayerUser(
         get() = player.uuid
     override val username: String
         get() = player.username
+
+    override var lastMessage: String = ""
     override var lastMessageTime: Long = 0
 
     override fun sendMessage(message: Message) {

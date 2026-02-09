@@ -20,7 +20,7 @@ class ChatListener(
     private val userService: UserService,
 ) {
     init {
-        // Check for disabled channels and chat cooldown
+        // Check for disabled channels, chat cooldown and spam
         registerEvent<PreChatEvent>(EventPriority.EARLY) { e ->
             val settings = e.sender.settings
             if (settings.disabledChannels.contains(e.channel.id)) {
@@ -34,6 +34,14 @@ class ChatListener(
                 e.isCancelled = true
                 return@registerEvent
             }
+
+            val lastMsg = e.sender.lastMessage
+            if (!e.sender.hasPermission(Permissions.BYPASS_SPAM) && lastMsg.equals(e.message, ignoreCase = true)) {
+                e.sender.sendMessage(MessagesConfig::chatSpamWarning)
+                e.isCancelled = true
+                return@registerEvent
+            }
+            e.sender.lastMessage = e.message
         }
 
         // Append player default color to message

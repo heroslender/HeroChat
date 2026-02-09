@@ -7,6 +7,7 @@ object Permissions {
     const val CHAT_COLOR = "herochat.chat.message.colors"
     const val CHAT_FORMATTING = "herochat.chat.message.formatting"
     const val BYPASS_COOLDOWN = "herochat.cooldown.bypass"
+    const val BYPASS_SPAM = "herochat.spam.bypass"
     const val ADMIN_SPY = "herochat.admin.spy"
     const val ADMIN_SETTINGS = "herochat.admin.settings"
 }

@@ -12,9 +12,9 @@ class ConsoleUser(
         get() = console.uuid
     override val username: String
         get() = console.displayName
-    override var lastMessageTime: Long
-        get() = 0
-        set(_) {}
+
+    override var lastMessage: String = ""
+    override var lastMessageTime: Long = 0
 
     override fun sendMessage(message: Message) {
         console.sendMessage(message)

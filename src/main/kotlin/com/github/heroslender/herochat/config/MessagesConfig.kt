@@ -11,6 +11,7 @@ class MessagesConfig {
     var channelDisabled: String = "{#FF5555}You have disabled this channel. Enable it again to be able to talk here."
     var chatNoRecipients: String = "{#FF5555}No one hears you."
     var chatCooldown: String = "{#FF5555}Please wait before sending another message."
+    var chatSpamWarning: String = "{#FF5555}Please do not spam."
     var privateChatStarted: String = "{#55FF55}You are now in a private conversation with {#FFFFFF}{target}{#55FF55}."
     var privateChatPlayerNotFound: String = "{#FF5555}The player is not online."
     var privateChatSelf: String = "{#FF5555}You cannot start a private conversation with yourself."
@@ -61,6 +62,11 @@ class MessagesConfig {
                 KeyedCodec("ChatCooldown", Codec.STRING, false),
                 { config, value -> config.chatCooldown = value },
                 { config -> config.chatCooldown }
+            ).add()
+            .append(
+                KeyedCodec("ChatSpamWarning", Codec.STRING, false),
+                { config, value -> config.chatSpamWarning = value },
+                { config -> config.chatSpamWarning }
             ).add()
             .append(
                 KeyedCodec("PrivateChatStarted", Codec.STRING, false),

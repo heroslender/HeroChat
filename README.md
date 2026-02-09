@@ -44,6 +44,8 @@ A simple and customizable chat plugin for Hytale servers.
 - `herochat.chat.message-color` - Permission for player to change the default message color on chat
 - `herochat.chat.message.colors` - Permission for player to use colors on chat
 - `herochat.chat.message.formatting` - Permission for player to use formatting tags on chat
+- `herochat.cooldown.bypass` - Permission to bypass the cooldown checks
+- `herochat.spam.bypass` - Permission to bypass the spam checks
 - `herochat.admin.spy` - Permission to enable chat spy
 - `herochat.admin.settings` - Permission to open the admin settings menu
 
@@ -105,11 +107,7 @@ specific channel. A channel ID is its file name.
   "Distance": 60, // Optional
   "CrossWorld": false, // Optional
   "Components": {},
-  "Cooldowns": {
-    "chat.member": 2000,
-    "chat.vip": 500,
-    "chat.admin": 0
-  }
+  "Cooldowns": {}
 }
 ```
 
@@ -122,6 +120,7 @@ specific channel. A channel ID is its file name.
   "ChannelJoined": "{#55FF55}You are now talking in {#FFFFFF}{channel}{#55FF55}.",
   "ChannelDisabled": "{#FF5555}You have disabled this channel. Enable it again to be able to talk here.",
   "ChatNoRecipients": "{#FF5555}No one hears you.",
+  "ChatSpamWarning": "{#FF5555}Please do not spam.",
   "ChatCooldown": "{#FF5555}Please wait before sending another message.",
   "PrivateChatStarted": "{#55FF55}You are now in a private conversation with {#FFFFFF}{player}{#55FF55}.",
   "PrivateChatPlayerNotFound": "{#FF5555}Player not found.",
