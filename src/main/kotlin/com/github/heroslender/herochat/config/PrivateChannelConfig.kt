@@ -14,8 +14,9 @@ class PrivateChannelConfig {
     var senderFormat: String = "Message to {target_username}{#555555}{bold}> {#AAAAAA}{message}"
     var receiverFormat: String = "Message from {player_username}{#555555}{bold}> {#AAAAAA}{message}"
     var permission: String? = null
-    var components: MutableMap<String, ComponentConfig> = mutableMapOf()
+    var capslockFilter: CapslockFilterConfig = CapslockFilterConfig()
     var cooldowns: MutableMap<String, Long> = mutableMapOf()
+    var components: MutableMap<String, ComponentConfig> = mutableMapOf()
 
     companion object {
         @JvmField
@@ -28,15 +29,16 @@ class PrivateChannelConfig {
             .appendString(PrivateChannelConfig::senderFormat)
             .appendString(PrivateChannelConfig::receiverFormat)
             .appendStringOpt(PrivateChannelConfig::permission)
-            .append(
-                KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
-                { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
-                { config -> config.components }
-            ).add()
+            .append(PrivateChannelConfig::capslockFilter, CapslockFilterConfig.CODEC) { CapslockFilterConfig() }
             .append(
                 KeyedCodec("Cooldowns", MapCodec(Codec.LONG) { mutableMapOf<String, Long>() }),
                 { config, value -> config.cooldowns = value?.let { HashMap(it) } ?: mutableMapOf() },
                 { config -> config.cooldowns }
+            ).add()
+            .append(
+                KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
+                { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
+                { config -> config.components }
             ).add()
             .build()
     }

@@ -20,7 +20,7 @@ class ChatListener(
     private val userService: UserService,
 ) {
     init {
-        // Check for disabled channels, chat cooldown and spam
+        // Check for disabled channels, chat cooldown, capslock spam and spam
         registerEvent<PreChatEvent>(EventPriority.EARLY) { e ->
             val settings = e.sender.settings
             if (settings.disabledChannels.contains(e.channel.id)) {
@@ -33,6 +33,21 @@ class ChatListener(
                 e.sender.sendMessage(MessagesConfig::chatCooldown)
                 e.isCancelled = true
                 return@registerEvent
+            }
+
+            val capslockFilter = e.channel.capslockFilter
+            if (capslockFilter.enabled && !e.sender.hasPermission(Permissions.BYPASS_CAPSLOCK)) {
+                val message = e.message
+                if (message.length >= capslockFilter.minLength) {
+                    val capsCount = message.count { it.isUpperCase() }
+                    val percentage = (capsCount.toDouble() / message.length) * 100
+
+                    if (percentage > capslockFilter.percentage) {
+                        e.sender.sendMessage(MessagesConfig::chatCapslockWarning)
+                        e.isCancelled = true
+                        return@registerEvent
+                    }
+                }
             }
 
             val lastMsg = e.sender.lastMessage

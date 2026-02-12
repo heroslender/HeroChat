@@ -7,6 +7,7 @@ interface Channel {
     val name: String
     val commands: Array<String>
     val permission: String?
+    val capslockFilter: CapslockFilter
 
     fun sendMessage(sender: User, msg: String)
 }

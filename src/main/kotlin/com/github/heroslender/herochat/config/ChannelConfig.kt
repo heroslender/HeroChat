@@ -15,8 +15,9 @@ class ChannelConfig {
     var permission: String? = null
     var distance: Double? = null
     var crossWorld: Boolean? = null
-    var components: MutableMap<String, ComponentConfig> = mutableMapOf()
+    var capslockFilter: CapslockFilterConfig = CapslockFilterConfig()
     var cooldowns: MutableMap<String, Long> = mutableMapOf()
+    var components: MutableMap<String, ComponentConfig> = mutableMapOf()
 
     companion object {
         @JvmField
@@ -30,15 +31,16 @@ class ChannelConfig {
             .appendStringOpt(ChannelConfig::permission)
             .append(ChannelConfig::distance, Codec.DOUBLE)
             .append(ChannelConfig::crossWorld, Codec.BOOLEAN)
-            .append(
-                KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
-                { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
-                { config -> config.components }
-            ).add()
+            .append(ChannelConfig::capslockFilter, CapslockFilterConfig.CODEC) { CapslockFilterConfig() }
             .append(
                 KeyedCodec("Cooldowns", MapCodec(Codec.LONG) { mutableMapOf<String, Long>() }),
                 { config, value -> config.cooldowns = value?.let { HashMap(it) } ?: mutableMapOf() },
                 { config -> config.cooldowns }
+            ).add()
+            .append(
+                KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
+                { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
+                { config -> config.components }
             ).add()
             .build()
     }

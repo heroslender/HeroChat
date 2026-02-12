@@ -24,8 +24,9 @@ class StandardChannel(
     override val commands: Array<String> = config.commands
     val format: String = config.format
     override val permission: String? = config.permission
-    val components: Map<String, ComponentConfig> = config.components
+    override val capslockFilter: CapslockFilter = CapslockFilter(config.capslockFilter)
     val cooldowns: Map<String, Long> = config.cooldowns
+    val components: Map<String, ComponentConfig> = config.components
 
     val distance: Double? = config.distance
     val distanceSquared: Double? = distance?.let { square(it) }

@@ -11,6 +11,7 @@ class MessagesConfig {
     var chatNoRecipients: String = "{#FF5555}No one hears you."
     var chatCooldown: String = "{#FF5555}Please wait before sending another message."
     var chatSpamWarning: String = "{#FF5555}Please do not spam."
+    var chatCapslockWarning: String = "{#FF5555}Please do not abuse capslock!"
     var privateChatStarted: String = "{#55FF55}You are now in a private conversation with {#FFFFFF}{target}{#55FF55}."
     var privateChatPlayerNotFound: String = "{#FF5555}The player is not online."
     var privateChatSelf: String = "{#FF5555}You cannot start a private conversation with yourself."
@@ -39,6 +40,7 @@ class MessagesConfig {
             .appendString(MessagesConfig::chatNoRecipients)
             .appendString(MessagesConfig::chatCooldown)
             .appendString(MessagesConfig::chatSpamWarning)
+            .appendString(MessagesConfig::chatCapslockWarning)
             .appendString(MessagesConfig::privateChatStarted)
             .appendString(MessagesConfig::privateChatPlayerNotFound)
             .appendString(MessagesConfig::privateChatSelf)

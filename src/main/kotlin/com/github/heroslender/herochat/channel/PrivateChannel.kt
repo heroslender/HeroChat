@@ -22,8 +22,9 @@ class PrivateChannel(
     val format: String = config.senderFormat
     val receiverFormat: String = config.receiverFormat
     override val permission: String? = config.permission
-    val components: Map<String, ComponentConfig> = config.components
+    override val capslockFilter: CapslockFilter = CapslockFilter(config.capslockFilter)
     val cooldowns: Map<String, Long> = config.cooldowns
+    val components: Map<String, ComponentConfig> = config.components
 
     override fun sendMessage(sender: User, msg: String) {
         val settings = sender.settings
