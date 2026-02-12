@@ -4,6 +4,8 @@ import com.github.heroslender.herochat.utils.distanceSquared
 import com.github.heroslender.herochat.utils.hasPermission
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import it.unimi.dsi.fastutil.objects.Object2LongMap
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import java.util.*
 
 class PlayerUser(
@@ -16,7 +18,7 @@ class PlayerUser(
         get() = player.username
 
     override var lastMessage: String = ""
-    override var lastMessageTime: Long = 0
+    override val cooldowns: Object2LongMap<String> = Object2LongOpenHashMap()
 
     override fun sendMessage(message: Message) {
         player.sendMessage(message)

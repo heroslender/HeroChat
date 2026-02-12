@@ -110,9 +110,13 @@ class ChatListener(
     fun isCooldown(user: User, channel: Channel): Boolean {
         val now = System.currentTimeMillis()
         val cooldown = channel.getCooldown(user)
+        if (cooldown <= 0) {
+            return false
+        }
 
-        if (now - user.lastMessageTime >= cooldown) {
-            user.lastMessageTime = now
+        val lastMessageTime = user.cooldowns.getOrDefault(channel.id, 0L)
+        if (now - lastMessageTime >= cooldown) {
+            user.cooldowns[channel.id] = now
             return false
         }
 

@@ -1,6 +1,7 @@
 package com.github.heroslender.herochat.data
 
 import com.hypixel.hytale.server.core.Message
+import it.unimi.dsi.fastutil.objects.Object2LongMap
 import java.util.UUID
 
 interface User {
@@ -9,7 +10,7 @@ interface User {
     var settings: UserSettings
 
     var lastMessage: String
-    var lastMessageTime: Long
+    val cooldowns: Object2LongMap<String>
 
     fun sendMessage(message: Message)
 

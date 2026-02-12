@@ -2,6 +2,8 @@ package com.github.heroslender.herochat.data
 
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.console.ConsoleSender
+import it.unimi.dsi.fastutil.objects.Object2LongMap
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import java.util.*
 
 class ConsoleUser(
@@ -14,7 +16,7 @@ class ConsoleUser(
         get() = console.displayName
 
     override var lastMessage: String = ""
-    override var lastMessageTime: Long = 0
+    override val cooldowns: Object2LongMap<String> = Object2LongOpenHashMap()
 
     override fun sendMessage(message: Message) {
         console.sendMessage(message)
