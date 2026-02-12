@@ -20,107 +20,120 @@ class ChatListener(
     private val userService: UserService,
 ) {
     init {
-        // Check for disabled channels, chat cooldown, capslock spam and spam
-        registerEvent<PreChatEvent>(EventPriority.EARLY) { e ->
-            val settings = e.sender.settings
-            if (settings.disabledChannels.contains(e.channel.id)) {
-                e.sender.sendMessage(MessagesConfig::channelDisabled)
-                e.isCancelled = true
-                return@registerEvent
-            }
-
-            if (isCooldown(e.sender, e.channel)) {
-                e.sender.sendMessage(MessagesConfig::chatCooldown)
-                e.isCancelled = true
-                return@registerEvent
-            }
-
-            val capslockFilter = e.channel.capslockFilter
-            if (capslockFilter.enabled && !e.sender.hasPermission(Permissions.BYPASS_CAPSLOCK)) {
-                val message = e.message
-                if (message.length >= capslockFilter.minLength) {
-                    val capsCount = message.count { it.isUpperCase() }
-                    val percentage = (capsCount.toDouble() / message.length) * 100
-
-                    if (percentage > capslockFilter.percentage) {
-                        e.sender.sendMessage(MessagesConfig::chatCapslockWarning)
-                        e.isCancelled = true
-                        return@registerEvent
-                    }
-                }
-            }
-
-            val lastMsg = e.sender.lastMessage
-            if (!e.sender.hasPermission(Permissions.BYPASS_SPAM) && lastMsg.equals(e.message, ignoreCase = true)) {
-                e.sender.sendMessage(MessagesConfig::chatSpamWarning)
-                e.isCancelled = true
-                return@registerEvent
-            }
-            e.sender.lastMessage = e.message
-        }
+        registerEvent<PreChatEvent>(EventPriority.EARLY, ::checkChannelDisabled)
+        registerEvent<PreChatEvent>(handler = ::checkCooldown)
+        registerEvent<PreChatEvent>(handler = ::checkCapslockFilter)
+        registerEvent<PreChatEvent>(handler = ::checkSpam)
 
         // Append player default color to message
-        registerEvent<ChannelChatEvent> { e ->
-            val settings = e.sender.settings
-            if (e.sender.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR) && settings.messageColor != null) {
-                e.message = "{${settings.messageColor}}${e.message}"
-            }
+        registerEvent<ChannelChatEvent>(handler = ::handleDefaultUserColor)
+
+        // Chat spy
+        registerEvent<ChannelChatEvent>(EventPriority.LAST, ::handleChatSpy)
+        registerEvent<PrivateChannelChatEvent>(EventPriority.LAST, ::handleChatSpy)
+    }
+
+    fun handleDefaultUserColor(e: ChannelChatEvent) {
+        val settings = e.sender.settings
+        if (settings.messageColor != null
+            && e.sender.hasPermission(Permissions.CHAT_COLOR)
+            && e.sender.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)
+        ) {
+            e.message = "{${settings.messageColor}}${e.message}"
+        }
+    }
+
+    fun handleChatSpy(e: PrivateChannelChatEvent) {
+        val spies = userService.getSpies()
+        if (spies.isEmpty()) {
+            return
         }
 
-        // Spy chat
-        registerEvent<ChannelChatEvent>(EventPriority.LAST) { e ->
-            val spies = userService.getSpies()
-            if (spies.isEmpty()) {
-                return@registerEvent
-            }
+        // Spy format: [SPY] Sender -> Target: Message
+        val spyText =
+            "{#FF5555}[SPY] {#AAAAAA}${e.sender.username} {#555555}-> {#AAAAAA}${e.target.username}{#555555}: {#FFFFFF}${e.message}"
+        val spyMsg = ComponentParser.parse(e.sender.uuid, spyText)
 
-            val spyMessage = Message.empty()
-                .insert(Message.raw("[SPY][${e.channel.name}]").color("#FF5555").bold(true))
-                .insert(e.sender.username)
-                .insert(" -> ")
-                .insert(e.message)
-
-            for (spy in spies) {
-                if (e.recipients.none { it.uuid == spy.uuid }) {
-                    spy.sendMessage(spyMessage)
-                }
-            }
-        }
-
-        // Spy private chat
-        registerEvent<PrivateChannelChatEvent>(EventPriority.LAST) { e ->
-            val spies = userService.getSpies()
-            if (spies.isEmpty()) {
-                return@registerEvent
-            }
-
-            // Spy format: [SPY] Sender -> Target: Message
-            val spyText =
-                "{#FF5555}[SPY] {#AAAAAA}${e.sender.username} {#555555}-> {#AAAAAA}${e.target.username}{#555555}: {#FFFFFF}${e.message}"
-            val spyMsg = ComponentParser.parse(e.sender.uuid, spyText)
-
-            for (spy in spies) {
-                if (spy.uuid != e.sender.uuid && spy.uuid != e.target.uuid) {
-                    spy.sendMessage(spyMsg)
-                }
+        for (spy in spies) {
+            if (spy.uuid != e.sender.uuid && spy.uuid != e.target.uuid) {
+                spy.sendMessage(spyMsg)
             }
         }
     }
 
-    fun isCooldown(user: User, channel: Channel): Boolean {
+    fun handleChatSpy(e: ChannelChatEvent) {
+        val spies = userService.getSpies()
+        if (spies.isEmpty()) {
+            return
+        }
+
+        val spyMessage = Message.empty()
+            .insert(Message.raw("[SPY][${e.channel.name}]").color("#FF5555").bold(true))
+            .insert(e.sender.username)
+            .insert(" -> ")
+            .insert(e.message)
+
+        for (spy in spies) {
+            if (e.recipients.none { it.uuid == spy.uuid }) {
+                spy.sendMessage(spyMessage)
+            }
+        }
+    }
+
+    fun checkSpam(e: PreChatEvent) {
+        val lastMsg = e.sender.lastMessage
+        if (!e.sender.hasPermission(Permissions.BYPASS_SPAM) && lastMsg.equals(e.message, ignoreCase = true)) {
+            e.sender.sendMessage(MessagesConfig::chatSpamWarning)
+            e.isCancelled = true
+            return
+        }
+        e.sender.lastMessage = e.message
+    }
+
+    fun checkCapslockFilter(e: PreChatEvent) {
+        val capslockFilter = e.channel.capslockFilter
+        if (!capslockFilter.enabled || e.sender.hasPermission(Permissions.BYPASS_CAPSLOCK)) {
+            return
+        }
+
+        val message = e.message
+        if (message.length < capslockFilter.minLength) {
+            return
+        }
+
+        val capsCount = message.count { it.isUpperCase() }
+        val percentage = (capsCount.toDouble() / message.length) * 100
+        if (percentage > capslockFilter.percentage) {
+            e.sender.sendMessage(MessagesConfig::chatCapslockWarning)
+            e.isCancelled = true
+        }
+    }
+
+    fun checkChannelDisabled(e: PreChatEvent) {
+        val settings = e.sender.settings
+        if (settings.disabledChannels.contains(e.channel.id)) {
+            e.sender.sendMessage(MessagesConfig::channelDisabled)
+            e.isCancelled = true
+        }
+    }
+
+    fun checkCooldown(e: PreChatEvent) {
+        val user = e.sender
+        val channel = e.channel
         val now = System.currentTimeMillis()
         val cooldown = channel.getCooldown(user)
         if (cooldown <= 0) {
-            return false
+            return
         }
 
         val lastMessageTime = user.cooldowns.getOrDefault(channel.id, 0L)
         if (now - lastMessageTime >= cooldown) {
             user.cooldowns[channel.id] = now
-            return false
+            return
         }
 
-        return true
+        e.sender.sendMessage(MessagesConfig::chatCooldown)
+        e.isCancelled = true
     }
 
     fun Channel.getCooldown(user: User): Long {
