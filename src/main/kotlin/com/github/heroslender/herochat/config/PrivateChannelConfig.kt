@@ -1,5 +1,8 @@
 package com.github.heroslender.herochat.config
 
+import com.github.heroslender.herochat.utils.append
+import com.github.heroslender.herochat.utils.appendString
+import com.github.heroslender.herochat.utils.appendStringOpt
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
@@ -20,31 +23,11 @@ class PrivateChannelConfig {
             PrivateChannelConfig::class.java,
             ::PrivateChannelConfig
         )
-            .append(
-                KeyedCodec("Name", Codec.STRING),
-                { config, value -> config.name = value },
-                { config -> config.name }
-            ).add()
-            .append(
-                KeyedCodec("Commands", Codec.STRING_ARRAY, false),
-                { config, value -> config.commands = value ?: emptyArray() },
-                { config -> config.commands }
-            ).add()
-            .append(
-                KeyedCodec("SenderFormat", Codec.STRING),
-                { config, value -> config.senderFormat = value },
-                { config -> config.senderFormat }
-            ).add()
-            .append(
-                KeyedCodec("ReceiverFormat", Codec.STRING),
-                { config, value -> config.receiverFormat = value },
-                { config -> config.receiverFormat }
-            ).add()
-            .append(
-                KeyedCodec("Permission", Codec.STRING, false),
-                { config, value -> config.permission = value },
-                { config -> config.permission }
-            ).add()
+            .appendString(PrivateChannelConfig::name)
+            .append(PrivateChannelConfig::commands, Codec.STRING_ARRAY) { emptyArray<String>() }
+            .appendString(PrivateChannelConfig::senderFormat)
+            .appendString(PrivateChannelConfig::receiverFormat)
+            .appendStringOpt(PrivateChannelConfig::permission)
             .append(
                 KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
                 { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },

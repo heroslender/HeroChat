@@ -1,7 +1,6 @@
 package com.github.heroslender.herochat.config
 
-import com.hypixel.hytale.codec.Codec
-import com.hypixel.hytale.codec.KeyedCodec
+import com.github.heroslender.herochat.utils.appendString
 import com.hypixel.hytale.codec.builder.BuilderCodec
 
 class MessagesConfig {
@@ -33,111 +32,27 @@ class MessagesConfig {
             MessagesConfig::class.java,
             ::MessagesConfig
         )
-            .append(
-                KeyedCodec("ChannelNoPermission", Codec.STRING, false),
-                { config, value -> config.channelNoPermission = value },
-                { config -> config.channelNoPermission }
-            ).add()
-            .append(
-                KeyedCodec("ChannelNotFound", Codec.STRING, false),
-                { config, value -> config.channelNotFound = value },
-                { config -> config.channelNotFound }
-            ).add()
-            .append(
-                KeyedCodec("ChannelJoined", Codec.STRING, false),
-                { config, value -> config.channelJoined = value },
-                { config -> config.channelJoined }
-            ).add()
-            .append(
-                KeyedCodec("ChannelDisabled", Codec.STRING, false),
-                { config, value -> config.channelDisabled = value },
-                { config -> config.channelDisabled }
-            ).add()
-            .append(
-                KeyedCodec("ChatNoRecipients", Codec.STRING, false),
-                { config, value -> config.chatNoRecipients = value },
-                { config -> config.chatNoRecipients }
-            ).add()
-            .append(
-                KeyedCodec("ChatCooldown", Codec.STRING, false),
-                { config, value -> config.chatCooldown = value },
-                { config -> config.chatCooldown }
-            ).add()
-            .append(
-                KeyedCodec("ChatSpamWarning", Codec.STRING, false),
-                { config, value -> config.chatSpamWarning = value },
-                { config -> config.chatSpamWarning }
-            ).add()
-            .append(
-                KeyedCodec("PrivateChatStarted", Codec.STRING, false),
-                { config, value -> config.privateChatStarted = value },
-                { config -> config.privateChatStarted }
-            ).add()
-            .append(
-                KeyedCodec("PrivateChatPlayerNotFound", Codec.STRING, false),
-                { config, value -> config.privateChatPlayerNotFound = value },
-                { config -> config.privateChatPlayerNotFound }
-            ).add()
-            .append(
-                KeyedCodec("PrivateChatSelf", Codec.STRING, false),
-                { config, value -> config.privateChatSelf = value },
-                { config -> config.privateChatSelf }
-            ).add()
-            .append(
-                KeyedCodec("PrivateChatNotActive", Codec.STRING, false),
-                { config, value -> config.privateChatNotActive = value },
-                { config -> config.privateChatNotActive }
-            ).add()
-            .append(
-                KeyedCodec("SpyNoPermission", Codec.STRING, false),
-                { config, value -> config.spyNoPermission = value },
-                { config -> config.spyNoPermission }
-            ).add()
-            .append(
-                KeyedCodec("SpyToggle", Codec.STRING, false),
-                { config, value -> config.spyToggle = value },
-                { config -> config.spyToggle }
-            ).add()
-            .append(
-                KeyedCodec("MenuFocusedChannel", Codec.STRING, false),
-                { config, value -> config.menuFocusedChannel = value },
-                { config -> config.menuFocusedChannel }
-            ).add()
-            .append(
-                KeyedCodec("MenuMutedChannels", Codec.STRING, false),
-                { config, value -> config.menuMutedChannels = value },
-                { config -> config.menuMutedChannels }
-            ).add()
-            .append(
-                KeyedCodec("MenuMessageColor", Codec.STRING, false),
-                { config, value -> config.menuMessageColor = value },
-                { config -> config.menuMessageColor }
-            ).add()
-            .append(
-                KeyedCodec("MenuSpyMode", Codec.STRING, false),
-                { config, value -> config.menuSpyMode = value },
-                { config -> config.menuSpyMode }
-            ).add()
-            .append(
-                KeyedCodec("MenuSaveButton", Codec.STRING, false),
-                { config, value -> config.menuSaveButton = value },
-                { config -> config.menuSaveButton }
-            ).add()
-            .append(
-                KeyedCodec("MenuCancelButton", Codec.STRING, false),
-                { config, value -> config.menuCancelButton = value },
-                { config -> config.menuCancelButton }
-            ).add()
-            .append(
-                KeyedCodec("MenuSuccessNotificationTitle", Codec.STRING, false),
-                { config, value -> config.menuSuccessNotificationTitle = value },
-                { config -> config.menuSuccessNotificationTitle }
-            ).add()
-            .append(
-                KeyedCodec("MenuSuccessNotificationDescription", Codec.STRING, false),
-                { config, value -> config.menuSuccessNotificationDescription = value },
-                { config -> config.menuSuccessNotificationDescription }
-            ).add()
+            .appendString(MessagesConfig::channelNoPermission)
+            .appendString(MessagesConfig::channelNotFound)
+            .appendString(MessagesConfig::channelJoined)
+            .appendString(MessagesConfig::channelDisabled)
+            .appendString(MessagesConfig::chatNoRecipients)
+            .appendString(MessagesConfig::chatCooldown)
+            .appendString(MessagesConfig::chatSpamWarning)
+            .appendString(MessagesConfig::privateChatStarted)
+            .appendString(MessagesConfig::privateChatPlayerNotFound)
+            .appendString(MessagesConfig::privateChatSelf)
+            .appendString(MessagesConfig::privateChatNotActive)
+            .appendString(MessagesConfig::spyNoPermission)
+            .appendString(MessagesConfig::spyToggle)
+            .appendString(MessagesConfig::menuFocusedChannel)
+            .appendString(MessagesConfig::menuMutedChannels)
+            .appendString(MessagesConfig::menuMessageColor)
+            .appendString(MessagesConfig::menuSpyMode)
+            .appendString(MessagesConfig::menuSaveButton)
+            .appendString(MessagesConfig::menuCancelButton)
+            .appendString(MessagesConfig::menuSuccessNotificationTitle)
+            .appendString(MessagesConfig::menuSuccessNotificationDescription)
             .build()
     }
 }

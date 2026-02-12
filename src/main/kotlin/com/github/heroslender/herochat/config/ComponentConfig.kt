@@ -1,7 +1,7 @@
 package com.github.heroslender.herochat.config
 
-import com.hypixel.hytale.codec.Codec
-import com.hypixel.hytale.codec.KeyedCodec
+import com.github.heroslender.herochat.utils.appendString
+import com.github.heroslender.herochat.utils.appendStringOpt
 import com.hypixel.hytale.codec.builder.BuilderCodec
 
 class ComponentConfig(
@@ -14,16 +14,8 @@ class ComponentConfig(
             ComponentConfig::class.java,
             ::ComponentConfig
         )
-            .append(
-                KeyedCodec("Text", Codec.STRING),
-                { config, value -> config.text = value },
-                { config -> config.text }
-            ).add()
-            .append(
-                KeyedCodec("Permission", Codec.STRING, false),
-                { config, value -> config.permission = value },
-                { config -> config.permission }
-            ).add()
+            .appendString(ComponentConfig::text)
+            .appendStringOpt(ComponentConfig::permission)
             .build()
     }
 }

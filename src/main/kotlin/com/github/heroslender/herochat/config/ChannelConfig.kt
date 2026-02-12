@@ -1,5 +1,8 @@
 package com.github.heroslender.herochat.config
 
+import com.github.heroslender.herochat.utils.append
+import com.github.heroslender.herochat.utils.appendString
+import com.github.heroslender.herochat.utils.appendStringOpt
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
@@ -21,36 +24,12 @@ class ChannelConfig {
             ChannelConfig::class.java,
             ::ChannelConfig
         )
-            .append(
-                KeyedCodec("Name", Codec.STRING),
-                { config, value -> config.name = value },
-                { config -> config.name }
-            ).add()
-            .append(
-                KeyedCodec("Commands", Codec.STRING_ARRAY, false),
-                { config, value -> config.commands = value ?: emptyArray() },
-                { config -> config.commands }
-            ).add()
-            .append(
-                KeyedCodec("Format", Codec.STRING),
-                { config, value -> config.format = value },
-                { config -> config.format }
-            ).add()
-            .append(
-                KeyedCodec("Permission", Codec.STRING, false),
-                { config, value -> config.permission = value },
-                { config -> config.permission }
-            ).add()
-            .append(
-                KeyedCodec("Distance", Codec.DOUBLE, false),
-                { config, value -> config.distance = value },
-                { config -> config.distance }
-            ).add()
-            .append(
-                KeyedCodec("CrossWorld", Codec.BOOLEAN, false),
-                { config, value -> config.crossWorld = value },
-                { config -> config.crossWorld }
-            ).add()
+            .appendString(ChannelConfig::name)
+            .append(ChannelConfig::commands, Codec.STRING_ARRAY) { emptyArray<String>() }
+            .appendString(ChannelConfig::format)
+            .appendStringOpt(ChannelConfig::permission)
+            .append(ChannelConfig::distance, Codec.DOUBLE)
+            .append(ChannelConfig::crossWorld, Codec.BOOLEAN)
             .append(
                 KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
                 { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },
