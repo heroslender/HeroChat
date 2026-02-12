@@ -44,8 +44,9 @@ A simple and customizable chat plugin for Hytale servers.
 - `herochat.chat.message-color` - Permission for player to change the default message color on chat
 - `herochat.chat.message.colors` - Permission for player to use colors on chat
 - `herochat.chat.message.formatting` - Permission for player to use formatting tags on chat
-- `herochat.cooldown.bypass` - Permission to bypass the cooldown checks
-- `herochat.spam.bypass` - Permission to bypass the spam checks
+- `herochat.bypass.cooldown` - Permission to bypass the cooldown checks
+- `herochat.bypass.spam` - Permission to bypass the spam checks
+- `herochat.bypass.capslock` - Permission to bypass the capslock spam checks
 - `herochat.admin.spy` - Permission to enable chat spy
 - `herochat.admin.settings` - Permission to open the admin settings menu
 
@@ -84,12 +85,17 @@ specific channel. A channel ID is its file name.
   "SenderFormat": "Message to {target_username}{#555555}{bold}> {#aaa}{message}",
   "ReceiverFormat": "Message from {player_username}{#555555}{bold}> {#AAAAAA}{message}",
   "Permission": "chat.tell", // Optional
-  "Components": {},
+  "CapslockFilter": {
+    "enabled": true,
+    "percentage": 50,
+    "minLength": 5
+  },
   "Cooldowns": {
     "chat.member": 1000, // Cooldown in miliseconds
     "chat.vip": 300,
     "chat.admin": 0
-  }
+  },
+  "Components": {}
 }
 ```
 
@@ -106,8 +112,9 @@ specific channel. A channel ID is its file name.
   "Permission": "chat.local", // Optional
   "Distance": 60, // Optional
   "CrossWorld": false, // Optional
-  "Components": {},
-  "Cooldowns": {}
+  "CapslockFilter": {}, // Optional - defaults to disabled
+  "Cooldowns": {},
+  "Components": {}
 }
 ```
 
@@ -122,6 +129,7 @@ specific channel. A channel ID is its file name.
   "ChatNoRecipients": "{#FF5555}No one hears you.",
   "ChatSpamWarning": "{#FF5555}Please do not spam.",
   "ChatCooldown": "{#FF5555}Please wait before sending another message.",
+  "ChatCapslockWarning": "{#FF5555}Please do not abuse capslock.",
   "PrivateChatStarted": "{#55FF55}You are now in a private conversation with {#FFFFFF}{player}{#55FF55}.",
   "PrivateChatPlayerNotFound": "{#FF5555}Player not found.",
   "PrivateChatSelf": "{#FF5555}You cannot start a private conversation with yourself.",
