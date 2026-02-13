@@ -22,10 +22,24 @@ dependencies {
 
     compileOnly("at.helpch:placeholderapi-hytale:1.0.4")
 
+    testImplementation("com.hypixel.hytale:Server:2026.01.28-87d03be09")
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.10.0")
+    testImplementation("net.bytebuddy:byte-buddy:1.17.8") // TEMP: Needed for java25
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+
+        jvmArgs("-XX:+EnableDynamicAgentLoading")
+
+        // Needed for mocking hytale stuff
+        systemProperty("java.util.logging.manager", "com.hypixel.hytale.logger.backend.HytaleLogManager")
+    }
+
     shadowJar {
         archiveClassifier.set("")
 

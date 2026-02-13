@@ -9,7 +9,7 @@ object PlaceholderAPIDependency {
     val IsPlaceholderApiEnabled: Boolean
         get() = HeroChat.instance.isPlaceholderApiEnabled
 
-
+    @JvmStatic
     fun parsePlaceholder(playerRef: PlayerRef?, placeholder: String): String? {
         if (playerRef == null) {
             return null

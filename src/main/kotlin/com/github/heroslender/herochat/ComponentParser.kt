@@ -5,7 +5,6 @@ import com.github.heroslender.herochat.dependencies.PlaceholderAPIDependency
 import com.github.heroslender.herochat.utils.hasPermission
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.console.ConsoleSender
-import com.hypixel.hytale.server.core.permissions.PermissionsModule
 import com.hypixel.hytale.server.core.universe.Universe
 import java.util.*
 
@@ -127,9 +126,7 @@ class ComponentParser {
                 val c = components[resolvedPlaceholder]
                 val text = if (c == null) {
                     parsePlaceholder(sender, resolvedPlaceholder)
-                } else if (c.permission == null || PermissionsModule.get()
-                        .hasPermission(sender, c.permission!!)
-                ) {
+                } else if (c.permission == null || sender.hasPermission(c.permission!!)) {
                     c.text
                 } else null
 
@@ -198,7 +195,7 @@ class ComponentParser {
                 val c = components[placeholder]
                 val text = if (c == null) {
                     parsePlaceholder(sender, placeholder)
-                } else if (c.permission == null || PermissionsModule.get().hasPermission(sender, c.permission!!)) {
+                } else if (c.permission == null || sender.hasPermission(c.permission!!)) {
                     c.text
                 } else null
 
