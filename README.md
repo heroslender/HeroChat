@@ -60,6 +60,7 @@ specific channel. A channel ID is its file name.
 ```json
 {
   "DefaultChat": "global",
+  "enableMinecraftColors": false, // Enable &a, &4, etc colors as in minecraft
   "Components": {
     "prefix": {
       "Text": "{#00ffff}{bold}[HeroChatt]"

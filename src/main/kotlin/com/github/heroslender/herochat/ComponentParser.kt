@@ -8,7 +8,9 @@ import com.hypixel.hytale.server.core.console.ConsoleSender
 import com.hypixel.hytale.server.core.universe.Universe
 import java.util.*
 
-class ComponentParser {
+class ComponentParser(
+    val parseMcColors: Boolean = HeroChat.instance.config.enableMinecraftColors
+) {
     companion object {
         const val PLACEHOLDER_START = '{'
         const val PLACEHOLDER_END = '}'
@@ -56,6 +58,7 @@ class ComponentParser {
         formatStyle: Boolean = true,
         formatPlaceholders: Boolean = true,
     ): Message {
+        val message = if (parseMcColors) McColorParser.parse(message) else message
         if (!message.contains(PLACEHOLDER_START)) {
             return getCurrentComp().insert(message)
         }
