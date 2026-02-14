@@ -20,7 +20,7 @@ class ComponentParserTest {
 
     @BeforeEach
     fun setup() {
-        parser = ComponentParser()
+        parser = ComponentParser(false)
     }
 
     @Test
@@ -112,7 +112,7 @@ class ComponentParserTest {
 
             whenever(perms.hasPermission(senderId, "some.permission")).thenReturn(false)
 
-            parser = ComponentParser()
+            parser = ComponentParser(false)
             msg = parser.parse(senderId, text, components)
             assert(msg.children.size == 1) { "Unexpected number of children: ${msg.children.size}" }
         }
