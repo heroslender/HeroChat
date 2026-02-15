@@ -161,6 +161,8 @@ Default placeholders available:
 ### Formatting placeholders
 
 - `{#ffffff}` - Hex color
+- `{#ffffff-#aaffaa}` - Gradient text color
+- `{rainbow}` - Raibow text color
 - `{bold}`
 - `{italic}`
 - `{monospaced}`

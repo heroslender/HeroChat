@@ -48,7 +48,9 @@ class ComponentParserTest {
         val msg = parser.parse(senderId, text)
 
         assert(msg.children.isNotEmpty()) { "Unexpected number of children: ${msg.children.size}" }
-        assert(msg.children[1].formattedMessage.bold == MaybeBool.True) { "Unexpected bold format: ${msg.children[1].formattedMessage.bold}" }
+        assert(msg.children[0].rawText == "Normal ") { "Unexpected rawText" }
+        assert(msg.children[0].children[0].formattedMessage.bold == MaybeBool.True) { "Unexpected bold format: ${msg.children[1].formattedMessage.bold}" }
+        assert(msg.children[0].children[0].rawText == "Bold") { "Unexpected rawText" }
     }
 
     @Test
@@ -77,8 +79,7 @@ class ComponentParserTest {
         val text = "Escaped \\{b}"
         val msg = parser.parse(senderId, text)
         assert(msg.children.isNotEmpty()) { "Unexpected number of children: ${msg.children.size}" }
-        assert(msg.children[1].rawText.equals("{")) { "Unexpected text: ${msg.children[1].formattedMessage.bold}" }
-        assert(msg.children[2].rawText.equals("b}")) { "Unexpected text: ${msg.children[1].formattedMessage.bold}" }
+        assert(msg.children[0].rawText.equals("Escaped {b}")) { "Unexpected text: ${msg.children[1].rawText}" }
     }
 
     @Test
@@ -91,7 +92,7 @@ class ComponentParserTest {
         val msg = parser.parse(senderId, text, components)
 
         assert(msg.children.isNotEmpty()) { "Unexpected number of children: ${msg.children.size}" }
-        assert(msg.children[1].rawText.equals("here")) { "Unexpected text: ${msg.children[1].formattedMessage.bold}" }
+        assert(msg.children[0].rawText.equals("Click here")) { "Unexpected rawText" }
     }
 
     @Test
@@ -108,13 +109,14 @@ class ComponentParserTest {
 
             var msg = parser.parse(senderId, text, components)
             assert(msg.children.isNotEmpty()) { "Unexpected number of children: ${msg.children.size}" }
-            assert(msg.children[1].rawText.equals("here")) { "Unexpected text: ${msg.children[1].formattedMessage.bold}" }
+            assert(msg.children[0].rawText.equals("Click here")) { "Unexpected rawText" }
 
             whenever(perms.hasPermission(senderId, "some.permission")).thenReturn(false)
 
             parser = ComponentParser(false)
             msg = parser.parse(senderId, text, components)
-            assert(msg.children.size == 1) { "Unexpected number of children: ${msg.children.size}" }
+            assert(msg.children.isNotEmpty()) { "Unexpected number of children: ${msg.children.size}" }
+            assert(msg.children[0].rawText.equals("Click ")) { "Unexpected rawText" }
         }
     }
 
@@ -128,11 +130,19 @@ class ComponentParserTest {
         val papiMockedStatic = mockStatic(PlaceholderAPIDependency::class.java)
         papiMockedStatic.`when`<String?> { PlaceholderAPIDependency.parsePlaceholder(player, "player_name") }
             .thenReturn(null)
-        val text = "Hello {unknown_placeholder}"
-        val msg = parser.parse(senderId, text)
+        val text = "Hello {player_name}"
+        var msg = parser.parse(senderId, text)
 
         assert(msg.children.size == 1) { "Unexpected number of children: ${msg.children.size}" }
-        assert(msg.children.first().rawText.equals("Hello ")) { "Unexpected rawText: ${msg.children.first().rawText}" }
+        assert(msg.children.first().rawText.equals("Hello ")) { "Unexpected rawText" }
+
+        papiMockedStatic.`when`<String?> { PlaceholderAPIDependency.parsePlaceholder(player, "player_name") }
+            .thenReturn("Player")
+        parser = ComponentParser(false)
+        msg = parser.parse(senderId, text)
+
+        assert(msg.children.size == 1) { "Unexpected number of children: ${msg.children.size}" }
+        assert(msg.children.first().rawText.equals("Hello Player")) { "Unexpected rawText" }
 
         universeMockedStatic.close()
         papiMockedStatic.close()

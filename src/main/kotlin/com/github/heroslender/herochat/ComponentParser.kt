@@ -16,6 +16,8 @@ class ComponentParser(
         const val PLACEHOLDER_END = '}'
         private const val ESCAPE_CHAR = '\\'
 
+        const val RAINBOW = "rainbow"
+        const val RESET = "reset"
         const val BOLD = "bold"
         const val ITALIC = "italic"
         const val MONOSPACED = "monospaced"
@@ -50,31 +52,27 @@ class ComponentParser(
         return message
     }
 
-    fun parse(
+    fun parsePlaceholders(
         sender: UUID,
         message: String,
-        components: Map<String, ComponentConfig> = emptyMap(),
+        components: Map<String, ComponentConfig>,
         formatColors: Boolean = true,
         formatStyle: Boolean = true,
         formatPlaceholders: Boolean = true,
-    ): Message {
-        val message = if (parseMcColors) McColorParser.parse(message) else message
+        buffer: StringBuilder = StringBuilder(message.length)
+    ): StringBuilder {
+        val message = if (parseMcColors && (formatColors || formatStyle)) McColorParser.parse(message) else message
         if (!message.contains(PLACEHOLDER_START)) {
-            return getCurrentComp().insert(message)
+            return buffer.append(message)
         }
 
         var start = 0
-        var formattingSuffixIndex = -2
         while (start < message.length) {
             val prefixIndex: Int = message.indexOf(PLACEHOLDER_START, start)
             if (prefixIndex == -1) break
 
             if (isEscaped(message, prefixIndex, start)) {
-                val target = getCurrentComp()
-                if (prefixIndex > start) {
-                    target.insert(message.substring(start, prefixIndex - 1))
-                }
-                target.insert(PLACEHOLDER_START.toString())
+                buffer.append(message, start, prefixIndex + 1)
                 start = prefixIndex + 1
                 continue
             }
@@ -82,48 +80,24 @@ class ComponentParser(
             val suffixIndex: Int = findMatchingEnd(message, prefixIndex)
             if (suffixIndex == -1) break
 
-            fun appendPending() {
-                if (start != prefixIndex) {
-                    getCurrentComp().insert(message.substring(start, prefixIndex))
-                }
-            }
-
             val placeholder = message.substring(prefixIndex + 1, suffixIndex)
-            if (placeholder.isColor()) {
-                if (!formatColors) {
-                    getCurrentComp().insert(message.substring(start, suffixIndex + 1))
-                    start = suffixIndex + 1
-                    continue
+            if (placeholder.isColor() || placeholder.isFormatting()) {
+                if (!formatColors && !formatStyle) {
+                    buffer.append('\\')
                 }
-
-                appendPending()
-                val comp = newTopComp()
-                comp.color(placeholder)
-            } else if (placeholder.isFormatting()) {
-                if (!formatStyle) {
-                    getCurrentComp().insert(message.substring(start, suffixIndex + 1))
-                    start = suffixIndex + 1
-                    continue
-                }
-
-                val isFormattingChain = prefixIndex == formattingSuffixIndex + 1
-                val child = if (isFormattingChain) getCurrentComp() else {
-                    appendPending()
-                    newChild()
-                }
-
-                when (placeholder) {
-                    BOLD -> child.bold(true)
-                    ITALIC -> child.italic(true)
-                    MONOSPACED -> child.monospace(true)
-                }
+                buffer.append(message, start, suffixIndex + 1)
+                start = suffixIndex + 1
+                continue
             } else {
                 if (!formatPlaceholders) {
-                    getCurrentComp().insert(message.substring(start, suffixIndex + 1))
+                    buffer.append(message, start, suffixIndex + 1)
                     start = suffixIndex + 1
                     continue
                 }
-                appendPending()
+
+                if (start != prefixIndex) {
+                    buffer.append(message, start, prefixIndex)
+                }
 
                 val resolvedPlaceholder = resolveToString(sender, placeholder, components).trim()
                 val c = components[resolvedPlaceholder]
@@ -135,32 +109,201 @@ class ComponentParser(
 
                 if (text != null) {
                     if (placeholder == "message") {
-                        parse(
+                        parsePlaceholders(
                             sender = sender,
                             message = text,
                             components = components,
                             formatColors = sender.hasPermission(Permissions.CHAT_COLOR),
                             formatStyle = sender.hasPermission(Permissions.CHAT_FORMATTING),
-                            formatPlaceholders = false
+                            formatPlaceholders = false,
+                            buffer = buffer
                         )
                     } else {
-                        parse(sender, text, components)
+                        parsePlaceholders(sender, text, components, buffer = buffer)
                     }
                 }
-            }
-
-            if (placeholder.isFormatting()) {
-                formattingSuffixIndex = suffixIndex
             }
 
             start = suffixIndex + 1
         }
 
         if (start != message.length) {
-            getCurrentComp().insert(message.substring(start, message.length))
+            buffer.append(message, start, message.length)
+        }
+
+        return buffer
+    }
+
+    fun parse(
+        sender: UUID,
+        message: String,
+        components: Map<String, ComponentConfig> = emptyMap(),
+    ): Message {
+        val message = parsePlaceholders(sender, message, components).toString()
+        if (!message.contains(PLACEHOLDER_START)) {
+            return getCurrentComp().insert(message)
+        }
+
+        var start = 0
+
+        var color: String? = null
+        var gradient: Gradient? = null
+        var boldIndex = -1
+        var italicIndex = -1
+        var monospacedIndex = -1
+        val buffer = StringBuilder()
+
+        while (start < message.length) {
+            val prefixIndex: Int = message.indexOf(PLACEHOLDER_START, start)
+            if (prefixIndex == -1) break
+
+            if (isEscaped(message, prefixIndex, start)) {
+                buffer.append(message, start, prefixIndex - 1).append(PLACEHOLDER_START)
+                start = prefixIndex + 1
+                continue
+            }
+
+            val suffixIndex: Int = findMatchingEnd(message, prefixIndex)
+            if (suffixIndex == -1) break
+
+            fun flush() {
+                buffer.append(message, start, prefixIndex)
+                if (gradient != null) {
+                    flush(buffer, gradient!!, boldIndex, italicIndex, monospacedIndex)
+                } else {
+                    flush(buffer, color, boldIndex, italicIndex, monospacedIndex)
+                }
+
+                start = suffixIndex + 1
+                color = null
+                gradient = null
+                boldIndex = -1
+                italicIndex = -1
+                monospacedIndex = -1
+                buffer.clear()
+            }
+
+            val placeholder = message.substring(prefixIndex + 1, suffixIndex)
+            val splitIndex = placeholder.indexOf('-')
+            if (placeholder == RAINBOW) {
+                flush()
+
+                gradient = Gradient.Rainbow
+                continue
+            } else if (placeholder.length == 15 && placeholder.startsWith("#") && splitIndex != -1) {
+                flush()
+
+                val color1 = placeholder.substring(0, splitIndex)
+                val color2 = placeholder.substring(splitIndex + 1)
+                gradient = Gradient.Linear(color1, color2)
+                continue
+            } else if (placeholder.isColor()) {
+                flush()
+
+                color = placeholder
+                continue
+            } else if (placeholder.isFormatting()) {
+                when (placeholder) {
+                    BOLD -> boldIndex = prefixIndex - start
+                    ITALIC -> italicIndex = prefixIndex - start
+                    MONOSPACED -> monospacedIndex = prefixIndex - start
+                }
+            } else {
+                buffer.append(message, start, suffixIndex + 1)
+                start = suffixIndex + 1
+                continue
+            }
+
+            buffer.append(message, start, prefixIndex)
+            start = suffixIndex + 1
+        }
+
+        if (start != message.length) {
+            buffer.append(message, start, message.length)
+            if (gradient != null) {
+                flush(buffer, gradient!!, boldIndex, italicIndex, monospacedIndex)
+            } else {
+                flush(buffer, color, boldIndex, italicIndex, monospacedIndex)
+            }
         }
 
         return root
+    }
+
+    fun flush(buffer: StringBuilder, color: String?, boldIndex: Int, italicIndex: Int, monospacedIndex: Int) {
+        if (buffer.isEmpty()) {
+            return
+        }
+
+        var comp = newTopComp()
+        if (color != null) {
+            comp.color(color)
+        }
+
+        if (boldIndex == -1 && italicIndex == -1 && monospacedIndex == -1) {
+            comp.formattedMessage.rawText = buffer.toString()
+            return
+        }
+
+        if (boldIndex == 0) {
+            comp.bold(true)
+        }
+
+        if (italicIndex == 0) {
+            comp.italic(true)
+        }
+
+        if (monospacedIndex == 0) {
+            comp.monospace(true)
+        }
+
+        var start = 0
+        for (i in 1 until buffer.length) {
+            if (i == boldIndex || i == italicIndex || i == monospacedIndex) {
+                comp.formattedMessage.rawText = buffer.substring(start, i)
+                start = i
+                comp = newChild()
+            }
+
+            if (i == boldIndex) {
+                comp.bold(true)
+            }
+            if (i == italicIndex) {
+                comp.italic(true)
+            }
+            if (i == monospacedIndex) {
+                comp.monospace(true)
+            }
+        }
+
+        comp.formattedMessage.rawText = buffer.substring(start)
+    }
+
+    fun flush(
+        buffer: StringBuilder,
+        gradient: Gradient,
+        boldIndex: Int,
+        italicIndex: Int,
+        monospacedIndex: Int
+    ) {
+        if (buffer.isEmpty()) {
+            return
+        }
+
+        val bold = boldIndex == 0
+        val italic = italicIndex == 0
+        val monospaced = monospacedIndex == 0
+
+        var comp: Message
+        val length = buffer.length
+        for (i in 0 until length) {
+            comp = newTopComp()
+            comp.color(gradient.getColorAt(i, length))
+            if (bold) comp.bold(true)
+            if (italic) comp.italic(true)
+            if (monospaced) comp.monospace(true)
+            comp.formattedMessage.rawText = buffer[i].toString()
+        }
     }
 
     // Resolve sub-placeholder, eg. {player_prefix_{target}}
@@ -257,7 +400,7 @@ class ComponentParser(
     }
 
     fun String.isFormatting(): Boolean {
-        return isColor() || this == BOLD || this == ITALIC || this == MONOSPACED
+        return isColor() || this == BOLD || this == ITALIC || this == MONOSPACED || this == RESET || this == RAINBOW
     }
 
     fun String.isColor(): Boolean = startsWith('#')

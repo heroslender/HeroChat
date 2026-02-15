@@ -2,6 +2,7 @@ package com.github.heroslender.herochat
 
 import com.github.heroslender.herochat.ComponentParser.Companion.BOLD
 import com.github.heroslender.herochat.ComponentParser.Companion.ITALIC
+import com.github.heroslender.herochat.ComponentParser.Companion.RESET
 
 object McColorParser {
     private const val COLOR_CHAR = '&'
@@ -30,7 +31,7 @@ object McColorParser {
 //        register('n', "{underlined}")
 //        register('m', "{strikethrough}")
 //        register('k', "{obfuscated}")
-//        register('r', "{reset}")
+        register('r', "{$RESET}")
     }
 
     private fun register(char: Char, replacement: String) {
