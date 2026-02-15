@@ -49,14 +49,9 @@ class UserSettingsPage(
         if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
             cmd["#MutedChannels.Visible"] = true
 
-            settings.disabledChannels.forEachIndexed { i, ch ->
-                val name = channelService.channels[ch]?.name ?: return@forEachIndexed
-                cmd.append("#MutedChannelsList", "HeroChat/MutedChatBadge.ui")
-                cmd["#MutedChannelsList[$i] #Txt.Text"] = name
-            }
+            populateMutedChannels(settings.disabledChannels.toTypedArray(), cmd, evt)
 
             cmd["#MutedChannels #Dropdown.Entries"] = channels
-            cmd["#MutedChannels #Dropdown.Value"] = channelService.defaultChannel?.id ?: ""
             cmd["#MutedChannels #Dropdown.SelectedValues"] =
                 settings.disabledChannels.map(LocalizableString::fromString).toTypedArray()
         }
@@ -94,62 +89,91 @@ class UserSettingsPage(
     ) {
         super.handleDataEvent(ref, store, data)
 
-        if (data.action == "save") {
-            with(HeroChat.instance.userService) {
-                user.updateSettings { settings ->
-                    val focusedChannel = data.focusedChannel
-                    settings.focusedChannelId =
-                        if (focusedChannel == channelService.defaultChannel?.id) null else focusedChannel
+        println("handleDataEvent: $data")
 
-                    if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
-                        settings.disabledChannels.clear()
-                        settings.disabledChannels.addAll(data.mutedChannels ?: emptyArray())
-                    }
+        when {
+            data.action == "save" -> {
+                with(HeroChat.instance.userService) {
+                    user.updateSettings { settings ->
+                        val focusedChannel = data.focusedChannel
+                        settings.focusedChannelId =
+                            if (focusedChannel == channelService.defaultChannel?.id) null else focusedChannel
 
-                    if (playerRef.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
-                        val color = data.color?.substring(0, 7)
-                        settings.messageColor = if (color == "#ffffff") null else color
-                    }
+                        if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
+                            settings.disabledChannels.clear()
+                            settings.disabledChannels.addAll(data.mutedChannels ?: emptyArray())
+                        }
 
-                    if (playerRef.hasPermission(Permissions.ADMIN_SPY)) {
-                        settings.spyMode = data.spyMode ?: false
+                        if (playerRef.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)) {
+                            val color = data.color?.substring(0, 7)
+                            settings.messageColor = if (color == "#ffffff") null else color
+                        }
+
+                        if (playerRef.hasPermission(Permissions.ADMIN_SPY)) {
+                            settings.spyMode = data.spyMode ?: false
+                        }
                     }
                 }
+
+                NotificationUtil.sendNotification(
+                    playerRef.packetHandler,
+                    messageFromConfig(MessagesConfig::menuSuccessNotificationTitle, playerRef),
+                    messageFromConfig(MessagesConfig::menuSuccessNotificationDescription, playerRef),
+                    NotificationStyle.Success
+                )
+
+                closePage()
+                return
             }
-
-            NotificationUtil.sendNotification(
-                playerRef.packetHandler,
-                messageFromConfig(MessagesConfig::menuSuccessNotificationTitle, playerRef),
-                messageFromConfig(MessagesConfig::menuSuccessNotificationDescription, playerRef),
-                NotificationStyle.Success
-            )
-
-            closePage()
-            return
-        } else if (data.action == "cancel") {
-            closePage()
-            return
-        } else if (data.action == "reset-color") {
-            runUiCmdUpdate { cmd ->
-                cmd["#MessageColor #ColorPicker.Color"] = "#ffffffFF"
+            data.action == "cancel" -> {
+                closePage()
+                return
             }
-        }
+            data.action == "reset-color" -> {
+                runUiCmdUpdate { cmd ->
+                    cmd["#MessageColor #ColorPicker.Color"] = "#ffffffFF"
+                }
+            }
+            data.action == "remove-muted-channel" -> {
+                println("remove-muted-channel ch: ${data.channel} muted: ${data.mutedChannels.contentToString()}")
+                val ch = data.channel ?: return
+                val muted = data.mutedChannels ?: return
 
-        if (data.mutedChannels != null) {
-            runUiCmdEvtUpdate { cmd, evt ->
-                cmd.clear("#MutedChannelsList")
-                val channels = channelService.channels
-                data.mutedChannels!!.forEachIndexed { i, ch ->
-                    val name = channels[ch]?.name ?: return@forEachIndexed
-                    cmd.append("#MutedChannelsList", "HeroChat/MutedChatBadge.ui")
-                    cmd["#MutedChannelsList[$i] #Txt.Text"] = name
+                runUiCmdEvtUpdate { cmd, evt ->
+                    val newList = muted.filter { it != ch }.toTypedArray()
+                    cmd["#MutedChannels #Dropdown.SelectedValues"] = newList.map(LocalizableString::fromString).toTypedArray()
+
+                    cmd.clear("#MutedChannelsList")
+                    populateMutedChannels(newList, cmd, evt)
+                }
+            }
+            data.mutedChannels != null -> {
+                runUiCmdEvtUpdate { cmd, evt ->
+                    cmd.clear("#MutedChannelsList")
+                    populateMutedChannels(data.mutedChannels!!, cmd, evt)
                 }
             }
         }
     }
 
+    fun populateMutedChannels(mutedChannels: Array<String>, cmd: UICommandBuilder, evt: UIEventBuilder) {
+        mutedChannels.forEachIndexed { i, ch ->
+            val name = channelService.channels[ch]?.name ?: return@forEachIndexed
+            cmd.append("#MutedChannelsList", "HeroChat/MutedChatBadge.ui")
+            cmd["#MutedChannelsList[$i] #Txt.Text"] = name
+            evt.onActivating(
+                "#MutedChannelsList[$i] #DeleteBtn",
+                "Action" to "remove-muted-channel",
+                "Channel" to ch,
+                "@MutedChannels" to "#MutedChannels #Dropdown.SelectedValues",
+            )
+        }
+    }
+
     class UiState : ActionEventData {
         override var action: String? = null
+
+        var channel: String? = null
 
         // Settings page props
         var mutedChannels: Array<String>? = null
@@ -164,6 +188,11 @@ class UserSettingsPage(
                     KeyedCodec("Action", Codec.STRING),
                     { e, v -> e.action = v },
                     { e -> e.action }).add()
+                .appendStringOpt(UiState::channel)
+//                .append(
+//                    KeyedCodec("@Channel", Codec.STRING),
+//                    { e, v -> e.channel = v },
+//                    { e -> e.channel }).add()
                 // Settings page props
                 .append(
                     KeyedCodec("@MutedChannels", Codec.STRING_ARRAY),
