@@ -11,6 +11,8 @@
 
 A simple and customizable chat plugin for Hytale servers.
 
+<img width="568" height="195" alt="image" src="https://github.com/user-attachments/assets/f94d213b-50a5-4b9e-b016-b7417e44405e" />
+
 <!-- TOC -->
   * [HeroChat](#herochat)
     * [Commands](#commands)
