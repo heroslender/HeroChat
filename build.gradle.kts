@@ -49,6 +49,9 @@ tasks {
 
         mergeServiceFiles()
 
+        relocate("org.slf4j", "com.github.heroslender.libs.slf4j")
+        relocate("com.zaxxer.hikari", "com.github.heroslender.libs.hikari")
+
         manifest {
             attributes(
                 "Multi-Release" to "true"
