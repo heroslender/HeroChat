@@ -5,10 +5,9 @@ import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.data.User
 import com.hypixel.hytale.server.core.Message
-import java.text.DecimalFormat
 
 class ComponentParser(
-    val parseMcColors: Boolean = HeroChat.Companion.instance.config.enableMinecraftColors
+    val parseMcColors: Boolean = HeroChat.instance.config.enableMinecraftColors
 ) {
     companion object {
         const val PLACEHOLDER_START = '{'
@@ -26,11 +25,185 @@ class ComponentParser(
             message: String,
             components: Map<String, ComponentConfig> = emptyMap(),
         ): Message {
-            val start = System.nanoTime()
-            return ComponentParser().parse(sender, message, components).also {
-                println("Parsed in ${DecimalFormat("###.##").format((System.nanoTime() - start) / 1000000F)}ms")
-            }
+            return ComponentParser().parse(sender, message, components)
         }
+
+        fun validateFormat(
+            user: User,
+            message: String,
+            basePermission: String,
+            remove: Boolean = false,
+        ): String = validateFormat(
+            message = message,
+            formatColors = user.hasPermission("$basePermission.colors"),
+            formatRainbow = user.hasPermission("$basePermission.$RAINBOW"),
+            formatGradient = user.hasPermission("$basePermission.gradient"),
+            formatBold = user.hasPermission("$basePermission.$BOLD"),
+            formatItalic = user.hasPermission("$basePermission.$ITALIC"),
+            formatMonospaced = user.hasPermission("$basePermission.$MONOSPACED"),
+            remove = remove,
+        )
+
+        fun validateFormat(
+            message: String,
+            formatColors: Boolean = true,
+            formatRainbow: Boolean = true,
+            formatGradient: Boolean = true,
+            formatBold: Boolean = true,
+            formatItalic: Boolean = true,
+            formatMonospaced: Boolean = true,
+            remove: Boolean = false,
+        ): String {
+            val parseMcColors: Boolean = HeroChat.instance.config.enableMinecraftColors
+            val message = if (parseMcColors) McColorParser.parse(message) else message
+            if (!message.contains(PLACEHOLDER_START)) {
+                return message
+            }
+
+            val buffer = StringBuilder(message.length)
+            var start = 0
+            while (start < message.length) {
+                val prefixIndex: Int = message.indexOf(PLACEHOLDER_START, start)
+                if (prefixIndex == -1) break
+
+                if (isEscaped(message, prefixIndex, start)) {
+                    buffer.append(message, start, prefixIndex + 1)
+                    start = prefixIndex + 1
+                    continue
+                }
+
+                val suffixIndex: Int = findMatchingEnd(message, prefixIndex)
+                if (suffixIndex == -1) break
+
+                fun remove() {
+                    if (remove) {
+                        buffer.append(message, start, prefixIndex)
+                        start = suffixIndex + 1
+                    } else {
+                        buffer.append(ESCAPE_CHAR)
+                        buffer.append(message, start, suffixIndex + 1)
+                        start = suffixIndex + 1
+                    }
+                }
+
+                val placeholder = message.substring(prefixIndex + 1, suffixIndex)
+                if (placeholder == BOLD && !formatBold) {
+                    remove()
+                    continue
+                } else if (placeholder == ITALIC && !formatItalic) {
+                    remove()
+                    continue
+                } else if (placeholder == MONOSPACED && !formatMonospaced) {
+                    remove()
+                    continue
+                } else if (placeholder == RAINBOW && !formatRainbow) {
+                    remove()
+                    continue
+                } else if (placeholder.isColor() && !formatColors) {
+                    remove()
+                    continue
+                } else if (placeholder.isGradient() && !formatGradient) {
+                    remove()
+                    continue
+                } else if (!placeholder.isStyle()) {
+                    // It's a placeholder, ignore it
+                    buffer.append(ESCAPE_CHAR)
+                }
+
+                buffer.append(message, start, suffixIndex + 1)
+                start = suffixIndex + 1
+            }
+
+            if (start != message.length) {
+                buffer.append(message, start, message.length)
+            }
+
+            return buffer.toString()
+        }
+
+        fun stripStyle(
+            message: String,
+            parseMcColors: Boolean = HeroChat.instance.config.enableMinecraftColors
+        ): String {
+            val message = if (parseMcColors) McColorParser.parse(message) else message
+            if (!message.contains(PLACEHOLDER_START)) {
+                return message
+            }
+
+            val buffer = StringBuilder(message.length)
+            var start = 0
+            while (start < message.length) {
+                val prefixIndex: Int = message.indexOf(PLACEHOLDER_START, start)
+                if (prefixIndex == -1) break
+
+                if (isEscaped(message, prefixIndex, start)) {
+                    buffer.append(message, start, prefixIndex + 1)
+                    start = prefixIndex + 1
+                    continue
+                }
+
+                val suffixIndex: Int = findMatchingEnd(message, prefixIndex)
+                if (suffixIndex == -1) break
+
+                val placeholder = message.substring(prefixIndex + 1, suffixIndex)
+                if (placeholder.isStyle()) {
+                    buffer.append(message, start, prefixIndex)
+                    start = suffixIndex + 1
+                    continue
+                }
+
+                buffer.append(message, start, suffixIndex + 1)
+                start = suffixIndex + 1
+            }
+
+            if (start != message.length) {
+                buffer.append(message, start, message.length)
+            }
+
+            return buffer.toString()
+        }
+
+        private fun isEscaped(text: String, index: Int, startLimit: Int): Boolean {
+            var count = 0
+            var i = index - 1
+            while (i >= startLimit && text[i] == ESCAPE_CHAR) {
+                count++
+                i--
+            }
+            return count % 2 != 0
+        }
+
+        private fun findMatchingEnd(text: String, start: Int): Int {
+            var depth = 1
+            var i = start + 1
+            while (i < text.length) {
+                val char = text[i]
+                if (char == ESCAPE_CHAR && i + 1 < text.length) {
+                    i += 2 // skip escape and the escaped char
+                    continue
+                }
+                if (char == PLACEHOLDER_START) {
+                    depth++
+                } else if (char == PLACEHOLDER_END) {
+                    depth--
+                    if (depth == 0) return i
+                }
+                i++
+            }
+            return -1
+        }
+
+        fun String.isStyle(): Boolean = isFormatting() || isColor() || isRainbow() || isGradient()
+
+        fun String.isFormatting(): Boolean {
+            return this == BOLD || this == ITALIC || this == MONOSPACED || this == RESET
+        }
+
+        fun String.isColor(): Boolean = (length == 7 || length == 4) && startsWith('#')
+
+        fun String.isRainbow(): Boolean = this == RAINBOW
+
+        fun String.isGradient(): Boolean = length == 15 && startsWith("#") && indexOf('-') != -1
     }
 
     val root = Message.empty()
@@ -83,9 +256,11 @@ class ComponentParser(
             if (suffixIndex == -1) break
 
             val placeholder = message.substring(prefixIndex + 1, suffixIndex)
-            if (placeholder.isColor() || placeholder.isFormatting()) {
-                if (!formatColors && !formatStyle) {
-                    buffer.append('\\')
+            if (placeholder.isStyle()) {
+                if ((!formatColors && (placeholder.isColor() || placeholder.isRainbow() || placeholder.isGradient()))
+                    || !formatStyle && placeholder.isFormatting()
+                ) {
+                    buffer.append(ESCAPE_CHAR)
                 }
                 buffer.append(message, start, suffixIndex + 1)
                 start = suffixIndex + 1
@@ -186,30 +361,30 @@ class ComponentParser(
             }
 
             val placeholder = message.substring(prefixIndex + 1, suffixIndex)
-            val splitIndex = placeholder.indexOf('-')
-            if (placeholder == RAINBOW) {
+            if (placeholder.isFormatting()) {
+                when (placeholder) {
+                    BOLD -> boldIndex = prefixIndex - start
+                    ITALIC -> italicIndex = prefixIndex - start
+                    MONOSPACED -> monospacedIndex = prefixIndex - start
+                }
+            } else if (placeholder.isRainbow()) {
                 flush()
 
                 gradient = Gradient.Rainbow
-                continue
-            } else if (placeholder.length == 15 && placeholder.startsWith("#") && splitIndex != -1) {
-                flush()
-
-                val color1 = placeholder.substring(0, splitIndex)
-                val color2 = placeholder.substring(splitIndex + 1)
-                gradient = Gradient.Linear(color1, color2)
                 continue
             } else if (placeholder.isColor()) {
                 flush()
 
                 color = placeholder
                 continue
-            } else if (placeholder.isFormatting()) {
-                when (placeholder) {
-                    BOLD -> boldIndex = prefixIndex - start
-                    ITALIC -> italicIndex = prefixIndex - start
-                    MONOSPACED -> monospacedIndex = prefixIndex - start
-                }
+            } else if (placeholder.isGradient()) {
+                flush()
+
+                val splitIndex = placeholder.indexOf('-')
+                val color1 = placeholder.substring(0, splitIndex)
+                val color2 = placeholder.substring(splitIndex + 1)
+                gradient = Gradient.Linear(color1, color2)
+                continue
             } else {
                 buffer.append(message, start, suffixIndex + 1)
                 start = suffixIndex + 1
@@ -339,7 +514,7 @@ class ComponentParser(
 
             val placeholderRaw = message.substring(prefixIndex + 1, suffixIndex)
             val placeholder = resolveToString(sender, placeholderRaw, components).trim()
-            if (!placeholder.isFormatting()) {
+            if (!placeholder.isStyle()) {
                 val c = components[placeholder]
                 val text = if (c == null) {
                     parsePlaceholder(sender, placeholder)
@@ -359,42 +534,6 @@ class ComponentParser(
         return sb.toString()
     }
 
-    private fun findMatchingEnd(text: String, start: Int): Int {
-        var depth = 1
-        var i = start + 1
-        while (i < text.length) {
-            val char = text[i]
-            if (char == ESCAPE_CHAR && i + 1 < text.length) {
-                i += 2 // skip escape and the escaped char
-                continue
-            }
-            if (char == PLACEHOLDER_START) {
-                depth++
-            } else if (char == PLACEHOLDER_END) {
-                depth--
-                if (depth == 0) return i
-            }
-            i++
-        }
-        return -1
-    }
-
-    private fun isEscaped(text: String, index: Int, startLimit: Int): Boolean {
-        var count = 0
-        var i = index - 1
-        while (i >= startLimit && text[i] == ESCAPE_CHAR) {
-            count++
-            i--
-        }
-        return count % 2 != 0
-    }
-
     fun parsePlaceholder(sender: User, placeholder: String): String? =
         PlaceholderManager.parsePlaceholder(sender, placeholder)
-
-    fun String.isFormatting(): Boolean {
-        return isColor() || this == BOLD || this == ITALIC || this == MONOSPACED || this == RESET || this == RAINBOW
-    }
-
-    fun String.isColor(): Boolean = startsWith('#')
 }

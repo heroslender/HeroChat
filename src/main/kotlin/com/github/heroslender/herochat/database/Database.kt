@@ -38,7 +38,11 @@ class Database(dataFolder: File) {
                     );
                 """.trimIndent())
 
-                stmt.execute("ALTER TABLE user_settings ADD COLUMN nickname VARCHAR(32);")
+                try {
+                    stmt.execute("ALTER TABLE user_settings ADD COLUMN nickname TEXT DEFAULT NULL;")
+                } catch (_: SQLException) {
+                    // Column already exists
+                }
             }
         } catch (e: SQLException) {
             e.printStackTrace()

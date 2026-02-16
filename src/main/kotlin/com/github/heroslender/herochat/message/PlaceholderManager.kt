@@ -25,7 +25,7 @@ object PlaceholderManager {
 
     fun parseSelfPlaceholders(user: User, placeholder: String): String? = when (placeholder) {
         "player_username" -> user.username
-        "player_nickname" -> user.settings.nickname
+        "player_nickname" -> user.settings.nickname ?: user.username
         else -> null
     }
 }

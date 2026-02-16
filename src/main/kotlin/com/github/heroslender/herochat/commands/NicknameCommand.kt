@@ -3,6 +3,7 @@ package com.github.heroslender.herochat.commands
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.MessagesConfig
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.AbstractCommand
@@ -27,15 +28,29 @@ class NicknameCommand(userService: UserService) : AbstractCommandCollection("nic
             return CompletableFuture.runAsync {
                 val sender = userService.getUser(ctx.sender().uuid) ?: return@runAsync
 
-                val nickname = nicknameArg.get(ctx)
-                if (nickname.length > HeroChat.instance.config.nicknameMaxLength) {
+                var nickname = nicknameArg.get(ctx)
+                val striped = ComponentParser.stripStyle(nickname)
+                if (striped.length > HeroChat.instance.config.nicknameMaxLength) {
                     sender.sendMessage(MessagesConfig::nicknameTooLong)
                     return@runAsync
                 }
 
+                if (striped.contains(' ')) {
+                    sender.sendMessage(MessagesConfig::nicknameContainsSpaces)
+                    return@runAsync
+                }
+
+                nickname = ComponentParser.validateFormat(
+                    user = sender,
+                    message = nickname,
+                    basePermission = Permissions.NICKNAME_BASE_PERMISSION,
+                    remove = true
+                )
+
                 with(userService) {
                     sender.updateSettings { settings ->
                         settings.nickname = nickname
+
                     }
                 }
                 sender.sendMessage(MessagesConfig::nicknameSet, "nickname" to nickname)

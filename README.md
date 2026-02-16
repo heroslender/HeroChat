@@ -15,6 +15,7 @@ A simple and customizable chat plugin for Hytale servers.
 
 <!-- TOC -->
   * [HeroChat](#herochat)
+    * [Features](#features)
     * [Commands](#commands)
     * [Permissions](#permissions)
     * [Config](#config)
@@ -29,6 +30,29 @@ A simple and customizable chat plugin for Hytale servers.
     * [Screenshots](#screenshots)
 <!-- TOC -->
 
+### Features
+
+- [x] Infinite configurable channels
+- [x] Proximity channels
+- [x] Private chat with other players
+- [x] Focus on a specific channel or private chat
+- [x] Mute a channel as a player to avoid unwanted chat spam
+- [x] Colors, gradients & formatting with bold, italic and monospaced
+- [x] Customizable player nicknames with permissions to limit usage of colors and style
+- [x] Support for Minecraft color codes(e.g. `&a`, `&l`, etc.)
+- [x] Chat spy, see all messages on all channels from the server
+- [x] Custom UI for players to easily manage their chat settings
+- [x] Custom UI for server admins to customize the plugin with ease
+- [x] Permissions to let the players use colors & style on chat messages
+- [x] Custom components to allow for reusable placeholders and better organization
+- [x] Multiple spam checks including repeated messages & capslock spam
+- [x] Chat cooldown configurable per channel
+- [x] Support for PlaceholderAPI everywhere in the plugin
+- [ ] Player mention system
+- [ ] Discord integration & sync
+- [ ] URL filter to prevent ads on chat
+- [ ] Chat logging to see a player/server history of chat messages
+
 ### Commands
 
 - `/chat` - Opens the chat customization menu;
@@ -36,12 +60,23 @@ A simple and customizable chat plugin for Hytale servers.
 - `/chat spy` - Toggle chat spy;
 - `/tell <player>` - Change the default chat to this private channel;
 - `/tell <player> <message>` - Sends a private message;
+- `/nickname set <nickname>` - Sends a private message;
+- `/nickname clear` - Sends a private message;
 - `/<channel-id>` - Change the default chat to this channel;
 - `/<channel-id> <message>` - Sends a message in a specific channel
 
 ### Permissions
 
 - `herochat.commands.chat` - Permission for player to use the `/chat` command
+- `herochat.commands.nickname` - Permission for player to use the `/nickname` command
+- `herochat.commands.nickname.set` - Permission for player to use the `/nickname set` command
+- `herochat.commands.nickname.clear` - Permission for player to use the `/nickname clear` command
+- `herochat.nickname.style.colors` - Permission to use colors on the nickname
+- `herochat.nickname.style.rainbow` - Permission to use rainbow on the nickname
+- `herochat.nickname.style.gradient` - Permission to use gradient on the nickname
+- `herochat.nickname.style.bold` - Permission to use bold on the nickname
+- `herochat.nickname.style.italic` - Permission to use italic on the nickname
+- `herochat.nickname.style.monospaced` - Permission to use monospaced on the nickname
 - `herochat.chat.mute-channels` - Permission for player to mute channels
 - `herochat.chat.message-color` - Permission for player to change the default message color on chat
 - `herochat.chat.message.colors` - Permission for player to use colors on chat

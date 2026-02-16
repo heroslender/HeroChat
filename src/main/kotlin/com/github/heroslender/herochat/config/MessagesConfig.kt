@@ -20,6 +20,7 @@ class MessagesConfig {
     var spyToggle: String = "{#CCCCCC}Chat spy has been {status}{#CCCCCC}."
     var nicknameNoPermission: String = "{#FF5555}You do not have permission to change your nickname."
     var nicknameTooLong: String = "{#FF5555}Nickname is too long."
+    var nicknameContainsSpaces: String = "{#FF5555}Your nickname can not contain spaces."
     var nicknameSet: String = "{#55FF55}Your nickname has been set to {#FFFFFF}{nickname}{#55FF55}."
     var nicknameReset: String = "{#55FF55}Your nickname has been reset."
     var menuSuccessNotificationTitle: String = "Settings Saved"
@@ -53,6 +54,7 @@ class MessagesConfig {
             .appendString(MessagesConfig::spyToggle)
             .appendString(MessagesConfig::nicknameNoPermission)
             .appendString(MessagesConfig::nicknameTooLong)
+            .appendString(MessagesConfig::nicknameContainsSpaces)
             .appendString(MessagesConfig::nicknameSet)
             .appendString(MessagesConfig::nicknameReset)
             .appendString(MessagesConfig::menuFocusedChannel)
