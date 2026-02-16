@@ -10,6 +10,7 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec
 class ChatConfig {
     var defaultChat: String = "global"
     var enableMinecraftColors: Boolean = true
+    var nicknameMaxLength: Int = 16
     var components: MutableMap<String, ComponentConfig> = mutableMapOf()
 
     companion object {
@@ -21,6 +22,7 @@ class ChatConfig {
         )
             .appendString(ChatConfig::defaultChat)
             .append(ChatConfig::enableMinecraftColors, Codec.BOOLEAN)
+            .append(ChatConfig::nicknameMaxLength, Codec.INTEGER)
             .append(
                 KeyedCodec("Components", MapCodec(ComponentConfig.CODEC) { mutableMapOf<String, ComponentConfig>() }),
                 { config, value -> config.components = value?.let { HashMap(it) } ?: mutableMapOf() },

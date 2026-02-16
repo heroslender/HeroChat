@@ -19,6 +19,7 @@ class UserSettingsRepository(private val database: Database) {
                         val messageColor = rs.getString("message_color")
                         val disabledChannelsStr = rs.getString("disabled_channels")
                         val spyMode = rs.getBoolean("spy_mode")
+                        val nickname = rs.getString("nickname")
 
                         val focusedTarget = if (focusedTargetStr != null) UUID.fromString(focusedTargetStr) else null
                         val disabledChannels = if (disabledChannelsStr != null && disabledChannelsStr.isNotEmpty()) {
@@ -33,7 +34,8 @@ class UserSettingsRepository(private val database: Database) {
                             focusedTarget,
                             messageColor,
                             disabledChannels,
-                            spyMode
+                            spyMode,
+                            nickname
                         )
                     }
                 }
@@ -47,9 +49,9 @@ class UserSettingsRepository(private val database: Database) {
 
     fun save(settings: UserSettings) {
         val query = """
-            MERGE INTO user_settings (uuid, focused_channel, focused_target, message_color, disabled_channels, spy_mode) 
+            MERGE INTO user_settings (uuid, focused_channel, focused_target, message_color, disabled_channels, spy_mode, nickname) 
             KEY (uuid) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         try {
@@ -61,6 +63,7 @@ class UserSettingsRepository(private val database: Database) {
                     stmt.setString(4, settings.messageColor)
                     stmt.setString(5, settings.disabledChannels.joinToString(","))
                     stmt.setBoolean(6, settings.spyMode)
+                    stmt.setString(7, settings.nickname)
                     stmt.executeUpdate()
                 }
             }

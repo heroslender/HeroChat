@@ -1,6 +1,5 @@
 package com.github.heroslender.herochat.commands
 
-import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.StandardChannel
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.service.UserService

@@ -18,6 +18,10 @@ class MessagesConfig {
     var privateChatNotActive: String = "{#FF5555}You are not in a private conversation."
     var spyNoPermission: String = "{#FF5555}You do not have permission to use chat spy."
     var spyToggle: String = "{#CCCCCC}Chat spy has been {status}{#CCCCCC}."
+    var nicknameNoPermission: String = "{#FF5555}You do not have permission to change your nickname."
+    var nicknameTooLong: String = "{#FF5555}Nickname is too long."
+    var nicknameSet: String = "{#55FF55}Your nickname has been set to {#FFFFFF}{nickname}{#55FF55}."
+    var nicknameReset: String = "{#55FF55}Your nickname has been reset."
     var menuSuccessNotificationTitle: String = "Settings Saved"
     var menuSuccessNotificationDescription: String = "Your settings were successfully saved!"
     var menuFocusedChannel: String = "Focused Channel"
@@ -47,6 +51,10 @@ class MessagesConfig {
             .appendString(MessagesConfig::privateChatNotActive)
             .appendString(MessagesConfig::spyNoPermission)
             .appendString(MessagesConfig::spyToggle)
+            .appendString(MessagesConfig::nicknameNoPermission)
+            .appendString(MessagesConfig::nicknameTooLong)
+            .appendString(MessagesConfig::nicknameSet)
+            .appendString(MessagesConfig::nicknameReset)
             .appendString(MessagesConfig::menuFocusedChannel)
             .appendString(MessagesConfig::menuMutedChannels)
             .appendString(MessagesConfig::menuMessageColor)

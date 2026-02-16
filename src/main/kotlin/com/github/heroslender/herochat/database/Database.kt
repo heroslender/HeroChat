@@ -37,6 +37,8 @@ class Database(dataFolder: File) {
                         spy_mode BOOLEAN DEFAULT FALSE
                     );
                 """.trimIndent())
+
+                stmt.execute("ALTER TABLE user_settings ADD COLUMN nickname VARCHAR(32);")
             }
         } catch (e: SQLException) {
             e.printStackTrace()

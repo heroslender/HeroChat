@@ -2,6 +2,7 @@ package com.github.heroslender.herochat
 
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.commands.ChatCommand
+import com.github.heroslender.herochat.commands.NicknameCommand
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ChatConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -76,6 +77,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         ChatListener(userService)
 
         commandRegistry.registerCommand(ChatCommand(userService))
+        commandRegistry.registerCommand(NicknameCommand(userService))
     }
 
     override fun shutdown() {

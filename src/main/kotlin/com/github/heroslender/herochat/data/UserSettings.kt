@@ -8,5 +8,6 @@ data class UserSettings(
     var focusedPrivateTarget: UUID? = null,
     var messageColor: String? = null,
     val disabledChannels: MutableSet<String> = mutableSetOf(),
-    var spyMode: Boolean = false
+    var spyMode: Boolean = false,
+    var nickname: String? = null
 )
