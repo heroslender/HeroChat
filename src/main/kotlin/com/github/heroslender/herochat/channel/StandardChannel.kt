@@ -1,6 +1,5 @@
 package com.github.heroslender.herochat.channel
 
-import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -8,7 +7,9 @@ import com.github.heroslender.herochat.data.PlayerUser
 import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.event.ChannelChatEvent
 import com.github.heroslender.herochat.event.PreChatEvent
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.service.UserService
+import com.github.heroslender.herochat.utils.runInWorld
 import com.github.heroslender.herochat.utils.sendMessage
 import com.github.heroslender.herochat.utils.square
 import com.hypixel.hytale.server.core.HytaleServer
@@ -86,14 +87,18 @@ class StandardChannel(
         }
 
         val comp = components + ("message" to ComponentConfig(event.message))
-        val message = ComponentParser.parse(event.sender, format, comp)
 
-        for (recipient in event.recipients) {
-            recipient.sendMessage(message)
-        }
+        // Some placeholders require the world thread to work
+        event.sender.runInWorld {
+            val message = ComponentParser.parse(event.sender, format, comp)
 
-        if (event.recipients.isEmpty() || event.recipients.singleOrNull()?.uuid == event.sender.uuid) {
-            event.sender.sendMessage(MessagesConfig::chatNoRecipients)
+            for (recipient in event.recipients) {
+                recipient.sendMessage(message)
+            }
+
+            if (event.recipients.isEmpty() || event.recipients.singleOrNull()?.uuid == event.sender.uuid) {
+                event.sender.sendMessage(MessagesConfig::chatNoRecipients)
+            }
         }
     }
 

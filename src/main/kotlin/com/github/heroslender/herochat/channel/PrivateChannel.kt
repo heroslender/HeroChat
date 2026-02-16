@@ -1,6 +1,5 @@
 package com.github.heroslender.herochat.channel
 
-import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -8,7 +7,9 @@ import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.event.PreChatEvent
 import com.github.heroslender.herochat.event.PrivateChannelChatEvent
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.service.UserService
+import com.github.heroslender.herochat.utils.runInWorld
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.HytaleServer
 
@@ -97,16 +98,19 @@ class PrivateChannel(
 
         val sender = event.sender
         val target = event.target
-
         val comp = HeroChat.instance.config.components +
                 components +
                 ("message" to ComponentConfig(event.message)) +
                 ("target_username" to ComponentConfig(target.username))
-        val message = ComponentParser.parse(sender, format, comp)
-        val receivedMessage = ComponentParser.parse(sender, receiverFormat, comp)
 
-        sender.sendMessage(message)
-        target.sendMessage(receivedMessage)
+        // Some placeholders require the world thread to work
+        sender.runInWorld {
+            val message = ComponentParser.parse(sender, format, comp)
+            val receivedMessage = ComponentParser.parse(sender, receiverFormat, comp)
+
+            sender.sendMessage(message)
+            target.sendMessage(receivedMessage)
+        }
     }
 
     companion object {

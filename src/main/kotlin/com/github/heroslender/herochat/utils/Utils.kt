@@ -1,6 +1,8 @@
 package com.github.heroslender.herochat.utils
 
 import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.data.PlayerUser
+import com.github.heroslender.herochat.data.User
 import com.hypixel.hytale.event.EventPriority
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.console.ConsoleSender
@@ -30,3 +32,18 @@ fun PlayerRef.hasPermission(permission: String): Boolean = uuid.hasPermission(pe
 fun UUID.hasPermission(permission: String): Boolean = PermissionsModule.get().hasPermission(this, permission)
 
 val EmptyFuture: CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+
+fun User.runInWorld(block: () -> Unit) {
+    if (this !is PlayerUser) {
+        block()
+        return
+    }
+
+    val world = player.reference?.store?.externalData?.world
+    if (world == null || world.isInThread) {
+        block()
+        return
+    }
+
+    CompletableFuture.runAsync(block, world)
+}
