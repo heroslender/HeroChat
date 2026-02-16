@@ -1,6 +1,6 @@
 package com.github.heroslender.herochat.channel
 
-import com.github.heroslender.herochat.ComponentParser
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -102,8 +102,8 @@ class PrivateChannel(
                 components +
                 ("message" to ComponentConfig(event.message)) +
                 ("target_username" to ComponentConfig(target.username))
-        val message = ComponentParser.parse(sender.uuid, format, comp)
-        val receivedMessage = ComponentParser.parse(sender.uuid, receiverFormat, comp)
+        val message = ComponentParser.parse(sender, format, comp)
+        val receivedMessage = ComponentParser.parse(sender, receiverFormat, comp)
 
         sender.sendMessage(message)
         target.sendMessage(receivedMessage)

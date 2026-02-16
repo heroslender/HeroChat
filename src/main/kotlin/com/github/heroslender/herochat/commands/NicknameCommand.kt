@@ -12,22 +12,20 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractComman
 import java.util.concurrent.CompletableFuture
 
 class NicknameCommand(userService: UserService) : AbstractCommandCollection("nickname", "Change your nickname") {
+
     init {
+        requirePermission(Permissions.COMMAND_NICKNAME)
+
         addSubCommand(NicknameSetCommand(userService))
         addSubCommand(NicknameClearCommand(userService))
     }
 
     class NicknameSetCommand(private val userService: UserService) : AbstractCommand("set", "Set your nickname") {
-        val nicknameArg = withOptionalArg("nickname", "Your new nickname", ArgTypes.STRING)
+        val nicknameArg = withRequiredArg("nickname", "Your new nickname", ArgTypes.STRING)
 
         override fun execute(ctx: CommandContext): CompletableFuture<Void> {
             return CompletableFuture.runAsync {
                 val sender = userService.getUser(ctx.sender().uuid) ?: return@runAsync
-
-                if (!sender.hasPermission(Permissions.COMMAND_NICKNAME)) {
-                    sender.sendMessage(MessagesConfig::nicknameNoPermission)
-                    return@runAsync
-                }
 
                 val nickname = nicknameArg.get(ctx)
                 if (nickname.length > HeroChat.instance.config.nicknameMaxLength) {
@@ -51,11 +49,6 @@ class NicknameCommand(userService: UserService) : AbstractCommandCollection("nic
         override fun execute(ctx: CommandContext): CompletableFuture<Void> {
             return CompletableFuture.runAsync {
                 val sender = userService.getUser(ctx.sender().uuid) ?: return@runAsync
-
-                if (!sender.hasPermission(Permissions.COMMAND_NICKNAME)) {
-                    sender.sendMessage(MessagesConfig::nicknameNoPermission)
-                    return@runAsync
-                }
 
                 with(userService) {
                     sender.updateSettings { settings ->

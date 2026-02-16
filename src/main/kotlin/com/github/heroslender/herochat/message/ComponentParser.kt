@@ -1,15 +1,14 @@
-package com.github.heroslender.herochat
+package com.github.heroslender.herochat.message
 
+import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ComponentConfig
-import com.github.heroslender.herochat.dependencies.PlaceholderAPIDependency
-import com.github.heroslender.herochat.utils.hasPermission
+import com.github.heroslender.herochat.data.User
 import com.hypixel.hytale.server.core.Message
-import com.hypixel.hytale.server.core.console.ConsoleSender
-import com.hypixel.hytale.server.core.universe.Universe
-import java.util.*
+import java.text.DecimalFormat
 
 class ComponentParser(
-    val parseMcColors: Boolean = HeroChat.instance.config.enableMinecraftColors
+    val parseMcColors: Boolean = HeroChat.Companion.instance.config.enableMinecraftColors
 ) {
     companion object {
         const val PLACEHOLDER_START = '{'
@@ -23,11 +22,14 @@ class ComponentParser(
         const val MONOSPACED = "monospaced"
 
         fun parse(
-            sender: UUID,
+            sender: User,
             message: String,
             components: Map<String, ComponentConfig> = emptyMap(),
         ): Message {
-            return ComponentParser().parse(sender, message, components)
+            val start = System.nanoTime()
+            return ComponentParser().parse(sender, message, components).also {
+                println("Parsed in ${DecimalFormat("###.##").format((System.nanoTime() - start) / 1000000F)}ms")
+            }
         }
     }
 
@@ -53,7 +55,7 @@ class ComponentParser(
     }
 
     fun parsePlaceholders(
-        sender: UUID,
+        sender: User,
         message: String,
         components: Map<String, ComponentConfig>,
         formatColors: Boolean = true,
@@ -135,7 +137,7 @@ class ComponentParser(
     }
 
     fun parse(
-        sender: UUID,
+        sender: User,
         message: String,
         components: Map<String, ComponentConfig> = emptyMap(),
     ): Message {
@@ -307,7 +309,7 @@ class ComponentParser(
     }
 
     // Resolve sub-placeholder, eg. {player_prefix_{target}}
-    fun resolveToString(sender: UUID, message: String, components: Map<String, ComponentConfig>): String {
+    fun resolveToString(sender: User, message: String, components: Map<String, ComponentConfig>): String {
         if (!message.contains(PLACEHOLDER_START)) return message
 
         val sb = StringBuilder()
@@ -387,17 +389,8 @@ class ComponentParser(
         return count % 2 != 0
     }
 
-    fun parsePlaceholder(sender: UUID, placeholder: String): String? {
-        if (sender == ConsoleSender.INSTANCE.uuid) {
-            if (placeholder.equals("player_username", ignoreCase = true)) {
-                return ConsoleSender.INSTANCE.displayName
-            }
-
-            return null
-        }
-
-        return PlaceholderAPIDependency.parsePlaceholder(Universe.get().getPlayer(sender), placeholder)
-    }
+    fun parsePlaceholder(sender: User, placeholder: String): String? =
+        PlaceholderManager.parsePlaceholder(sender, placeholder)
 
     fun String.isFormatting(): Boolean {
         return isColor() || this == BOLD || this == ITALIC || this == MONOSPACED || this == RESET || this == RAINBOW

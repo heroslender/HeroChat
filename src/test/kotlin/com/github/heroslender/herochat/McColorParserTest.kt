@@ -1,5 +1,6 @@
 package com.github.heroslender.herochat
 
+import com.github.heroslender.herochat.message.McColorParser
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

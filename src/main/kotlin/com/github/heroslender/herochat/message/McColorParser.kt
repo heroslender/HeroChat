@@ -1,8 +1,8 @@
-package com.github.heroslender.herochat
+package com.github.heroslender.herochat.message
 
-import com.github.heroslender.herochat.ComponentParser.Companion.BOLD
-import com.github.heroslender.herochat.ComponentParser.Companion.ITALIC
-import com.github.heroslender.herochat.ComponentParser.Companion.RESET
+import com.github.heroslender.herochat.message.ComponentParser.Companion.BOLD
+import com.github.heroslender.herochat.message.ComponentParser.Companion.ITALIC
+import com.github.heroslender.herochat.message.ComponentParser.Companion.RESET
 
 object McColorParser {
     private const val COLOR_CHAR = '&'

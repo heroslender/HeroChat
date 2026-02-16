@@ -32,16 +32,16 @@ class ChatCommand(private val userService: UserService) :
 
     override fun executeAsync(ctx: CommandContext): CompletableFuture<Void> {
         val args = ctx.inputString.split(" ").drop(1) // simple arg parsing
-        val sender = ctx.sender()
+        val user = userService.getUser(ctx.sender().uuid) ?: return EmptyFuture
+
         if (args.isNotEmpty() && args[0].equals("spy", true)) {
-            if (!sender.hasPermission(Permissions.ADMIN_SPY)) {
-                sender.sendMessage(MessagesConfig::spyNoPermission)
+            if (!user.hasPermission(Permissions.ADMIN_SPY)) {
+                user.sendMessage(MessagesConfig::spyNoPermission)
                 return EmptyFuture
             }
 
             return CompletableFuture.runAsync {
                 with(userService) {
-                    val user = getUser(sender.uuid) ?: return@runAsync
                     user.updateSettings {
                         it.spyMode = !it.spyMode
 
@@ -54,11 +54,11 @@ class ChatCommand(private val userService: UserService) :
 
         // Open page
         if (!ctx.isPlayer) {
-            sender.sendMessage(Message.raw("You are not a player!"))
+            user.sendMessage(Message.raw("You are not a player!"))
             return EmptyFuture
         }
 
-        val openUserSettings = !sender.hasPermission(Permissions.ADMIN_SETTINGS)
+        val openUserSettings = !user.hasPermission(Permissions.ADMIN_SETTINGS)
                 || (args.isNotEmpty() && args[0].equals("settings", true))
 
         val ref = ctx.senderAsPlayerRef() ?: return EmptyFuture
@@ -74,11 +74,11 @@ class ChatCommand(private val userService: UserService) :
                 )
                 return@runAsync
             }
-            val user = userService.getUser(sender.uuid) as? PlayerUser ?: return@runAsync
+
             player.pageManager.openCustomPage(
                 ref,
                 store,
-                UserSettingsPage(user, HeroChat.instance.channelService)
+                UserSettingsPage(user as? PlayerUser ?: return@runAsync, HeroChat.instance.channelService)
             )
 
         }, store.externalData.world)

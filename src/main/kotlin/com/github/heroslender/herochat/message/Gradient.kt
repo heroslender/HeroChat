@@ -1,4 +1,4 @@
-package com.github.heroslender.herochat
+package com.github.heroslender.herochat.message
 
 import java.awt.Color
 

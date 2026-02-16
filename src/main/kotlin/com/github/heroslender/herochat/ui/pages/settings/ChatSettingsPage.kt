@@ -1,7 +1,9 @@
 package com.github.heroslender.herochat.ui.pages.settings
 
+import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.channel.StandardChannel
+import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
@@ -24,6 +26,7 @@ class ChatSettingsPage(
     val channelService: ChannelService,
 ) : Page<ChatSettingsPage.UiState>(playerRef, UiState.CODEC) {
     private val navController = NavController<UiState>(Destination.Settings, "#PageContent")
+    val user: User = HeroChat.instance.userService.getUser(playerRef)!!
 
     override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
         cmd.append(LAYOUT)
@@ -47,8 +50,8 @@ class ChatSettingsPage(
                 onLeave = { cmd -> cmd["#NavChannels[$i].Style"] = NavBtnStyle },
                 pageInitializer = {
                     when(channel) {
-                        is StandardChannel ->ChannelSubPage(this, channel)
-                        is PrivateChannel -> PrivateChannelSubPage(this, channel)
+                        is StandardChannel ->ChannelSubPage(this, user, channel)
+                        is PrivateChannel -> PrivateChannelSubPage(this, user, channel)
                         else -> throw IllegalStateException("Unknown channel type: ${channel.javaClass.name}")
                     }
                 }

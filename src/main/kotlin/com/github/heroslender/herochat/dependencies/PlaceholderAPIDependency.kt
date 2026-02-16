@@ -10,13 +10,9 @@ object PlaceholderAPIDependency {
         get() = HeroChat.instance.isPlaceholderApiEnabled
 
     @JvmStatic
-    fun parsePlaceholder(playerRef: PlayerRef?, placeholder: String): String? {
-        if (playerRef == null) {
-            return null
-        }
-
+    fun parsePlaceholder(playerRef: PlayerRef, placeholder: String): String? {
         if (!IsPlaceholderApiEnabled) {
-            return parsePlaceholderSimple(playerRef, placeholder)
+            return null
         }
 
         val indexOf = placeholder.indexOf('_')
@@ -28,12 +24,5 @@ object PlaceholderAPIDependency {
         val manager = PlaceholderAPIPlugin.instance().localExpansionManager()
         val expansion = manager.getExpansion(identifier) ?: return null
         return expansion.onPlaceholderRequest(playerRef, placeholder.substring(indexOf + 1))
-    }
-
-    private fun parsePlaceholderSimple(playerRef: PlayerRef, placeholder: String): String? {
-        return when (placeholder) {
-            "player_username" -> playerRef.username
-            else -> null
-        }
     }
 }

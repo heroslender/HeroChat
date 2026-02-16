@@ -1,6 +1,6 @@
 package com.github.heroslender.herochat.channel
 
-import com.github.heroslender.herochat.ComponentParser
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -86,7 +86,7 @@ class StandardChannel(
         }
 
         val comp = components + ("message" to ComponentConfig(event.message))
-        val message = ComponentParser.parse(event.sender.uuid, format, comp)
+        val message = ComponentParser.parse(event.sender, format, comp)
 
         for (recipient in event.recipients) {
             recipient.sendMessage(message)

@@ -1,9 +1,10 @@
 package com.github.heroslender.herochat.ui.pages.settings
 
-import com.github.heroslender.herochat.ComponentParser
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.config.ComponentConfig
+import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
@@ -21,6 +22,7 @@ import kotlin.collections.iterator
 
 class PrivateChannelSubPage(
     parent: ChatSettingsPage,
+    val user: User,
     val channel: PrivateChannel,
 ) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/PrivateChannelSubPage.ui") {
 
@@ -241,7 +243,7 @@ class PrivateChannelSubPage(
         val components = updatedData.components ?: channel.components
 
         val msg = ComponentParser.parse(
-            playerRef.uuid,
+            user,
             format,
             HeroChat.instance.config.components +
                     components +
@@ -260,7 +262,7 @@ class PrivateChannelSubPage(
         val components = updatedData.components ?: channel.components
 
         val msg = ComponentParser.parse(
-            playerRef.uuid,
+            user,
             format,
             HeroChat.instance.config.components +
                     components +

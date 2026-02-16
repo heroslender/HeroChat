@@ -89,8 +89,6 @@ class UserSettingsPage(
     ) {
         super.handleDataEvent(ref, store, data)
 
-        println("handleDataEvent: $data")
-
         when {
             data.action == "save" -> {
                 with(HeroChat.instance.userService) {
@@ -117,8 +115,8 @@ class UserSettingsPage(
 
                 NotificationUtil.sendNotification(
                     playerRef.packetHandler,
-                    messageFromConfig(MessagesConfig::menuSuccessNotificationTitle, playerRef),
-                    messageFromConfig(MessagesConfig::menuSuccessNotificationDescription, playerRef),
+                    messageFromConfig(MessagesConfig::menuSuccessNotificationTitle, user),
+                    messageFromConfig(MessagesConfig::menuSuccessNotificationDescription, user),
                     NotificationStyle.Success
                 )
 
@@ -135,7 +133,6 @@ class UserSettingsPage(
                 }
             }
             data.action == "remove-muted-channel" -> {
-                println("remove-muted-channel ch: ${data.channel} muted: ${data.mutedChannels.contentToString()}")
                 val ch = data.channel ?: return
                 val muted = data.mutedChannels ?: return
 

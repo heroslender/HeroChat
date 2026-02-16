@@ -1,35 +1,21 @@
 package com.github.heroslender.herochat.utils
 
-import com.github.heroslender.herochat.ComponentParser
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.data.User
 import com.hypixel.hytale.server.core.Message
-import com.hypixel.hytale.server.core.command.system.CommandSender
-import com.hypixel.hytale.server.core.universe.PlayerRef
-import java.util.*
 import kotlin.reflect.KProperty1
-
-fun CommandSender.sendMessage(
-    msgProp: KProperty1<MessagesConfig, String>,
-    vararg placeholders: Pair<String, String>,
-): Unit = sendMessage(messageFromConfig(msgProp, uuid, *placeholders))
 
 fun User.sendMessage(
     msgProp: KProperty1<MessagesConfig, String>,
     vararg placeholders: Pair<String, String>,
-): Unit = sendMessage(messageFromConfig(msgProp, uuid, *placeholders))
+): Unit = sendMessage(messageFromConfig(msgProp, this, *placeholders))
 
 fun messageFromConfig(
     msgProp: KProperty1<MessagesConfig, String>,
-    target: PlayerRef,
-    vararg placeholders: Pair<String, String>,
-): Message = messageFromConfig(msgProp, target.uuid, *placeholders)
-
-fun messageFromConfig(
-    msgProp: KProperty1<MessagesConfig, String>,
-    target: UUID,
+    target: User,
     vararg placeholders: Pair<String, String>,
 ): Message {
     val message = messageStrFromConfig(msgProp)
