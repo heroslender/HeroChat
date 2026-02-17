@@ -60,8 +60,8 @@ A simple and customizable chat plugin for Hytale servers.
 - `/chat spy` - Toggle chat spy;
 - `/tell <player>` - Change the default chat to this private channel;
 - `/tell <player> <message>` - Sends a private message;
-- `/nickname set <nickname>` - Sends a private message;
-- `/nickname clear` - Sends a private message;
+- `/nickname set <nickname>` - Changes your nickname;
+- `/nickname clear` - Clears your nickname;
 - `/<channel-id>` - Change the default chat to this channel;
 - `/<channel-id> <message>` - Sends a message in a specific channel
 
@@ -174,6 +174,11 @@ specific channel. A channel ID is its file name.
   "PrivateChatNotActive": "{#FF5555}You are not in a private conversation.",
   "SpyNoPermission": "{#FF5555}You do not have permission to use chat spy.",
   "SpyToggle": "{#CCCCCC}Chat spy has been {status}{#CCCCCC}.",
+  "NicknameNoPermission": "{#FF5555}You do not have permission to change your nickname.",
+  "NicknameTooLong": "{#FF5555}Nickname is too long.",
+  "NicknameContainsSpaces": "{#FF5555}Your nickname can not contain spaces.",
+  "NicknameSet": "{#55FF55}Your nickname has been set to {#FFFFFF}{nickname}{#55FF55}.",
+  "NicknameReset": "{#55FF55}Your nickname has been reset.",
   "MenuFocusedChannel": "Focused Channel",
   "MenuMutedChannels": "Muted Channels",
   "MenuMessageColor": "Message Color",
