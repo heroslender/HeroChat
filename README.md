@@ -47,6 +47,7 @@ A simple and customizable chat plugin for Hytale servers.
 - [x] Custom components to allow for reusable placeholders and better organization
 - [x] Multiple spam checks including repeated messages & capslock spam
 - [x] Chat cooldown configurable per channel
+- [x] Chat auto-mod with support for regex
 - [x] Support for PlaceholderAPI everywhere in the plugin
 - [ ] Player mention system
 - [ ] Discord integration & sync
@@ -84,6 +85,7 @@ A simple and customizable chat plugin for Hytale servers.
 - `herochat.bypass.cooldown` - Permission to bypass the cooldown checks
 - `herochat.bypass.spam` - Permission to bypass the spam checks
 - `herochat.bypass.capslock` - Permission to bypass the capslock spam checks
+- `herochat.bypass.automod` - Permission to bypass the auto-mod
 - `herochat.admin.spy` - Permission to enable chat spy
 - `herochat.admin.settings` - Permission to open the admin settings menu
 
@@ -153,6 +155,37 @@ specific channel. A channel ID is its file name.
   "CapslockFilter": {}, // Optional - defaults to disabled
   "Cooldowns": {},
   "Components": {}
+}
+```
+
+
+### Auto-Mod Config
+
+```json
+{
+  "Enabled": true,
+  "DefaultBlockMessage": "&cYour message contains forbidden content.",
+  "Rules": [
+    {
+      // Words to block/replace
+      "Patterns": [ "badword", "word" ],
+      // If not set, the message is BLOCKED and the player receives the BlockMessage 
+      // or the DefaultBlockMessage if not set.
+      // If set (e.g., "***"), the pattern is replaced by this.
+      "Replacement": "***"
+    },
+    {
+      "Patterns": [ "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b" ],
+      // Tell the plugin this is a regex pattern
+      "IsRegex": true,
+      "BlockMessage": "&cPlease do not share IP addresses!"
+    },
+    {
+      "Patterns": [ "\\b(https?://|www\\.)\\S+\\b" ],
+      "IsRegex": true,
+      "BlockMessage": "&cPlease do not advertise!"
+    }
+  ]
 }
 ```
 

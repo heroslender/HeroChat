@@ -11,6 +11,7 @@ object Permissions {
     const val BYPASS_COOLDOWN = "herochat.bypass.cooldown"
     const val BYPASS_SPAM = "herochat.bypass.spam"
     const val BYPASS_CAPSLOCK = "herochat.bypass.capslock"
+    const val BYPASS_AUTOMOD = "herochat.bypass.automod"
     const val ADMIN_SPY = "herochat.admin.spy"
     const val ADMIN_SETTINGS = "herochat.admin.settings"
 }

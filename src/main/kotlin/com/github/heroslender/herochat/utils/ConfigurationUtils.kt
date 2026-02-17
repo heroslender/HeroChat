@@ -21,6 +21,10 @@ fun <T> BuilderCodec.Builder<T>.appendString(
     prop: KMutableProperty1<T, String>,
 ): BuilderCodec.Builder<T> = append(prop, Codec.STRING, true)
 
+fun <T> BuilderCodec.Builder<T>.appendBoolean(
+    prop: KMutableProperty1<T, Boolean>,
+): BuilderCodec.Builder<T> = append(prop, Codec.BOOLEAN, true)
+
 fun <T> BuilderCodec.Builder<T>.appendStringOpt(
     prop: KMutableProperty1<T, String?>,
 ): BuilderCodec.Builder<T> = append(prop, Codec.STRING, false)

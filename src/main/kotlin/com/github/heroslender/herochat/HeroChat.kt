@@ -3,12 +3,14 @@ package com.github.heroslender.herochat
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.commands.ChatCommand
 import com.github.heroslender.herochat.commands.NicknameCommand
+import com.github.heroslender.herochat.config.AutoModConfig
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ChatConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.github.heroslender.herochat.database.Database
 import com.github.heroslender.herochat.database.UserSettingsRepository
+import com.github.heroslender.herochat.listeners.AutoModListener
 import com.github.heroslender.herochat.listeners.ChatListener
 import com.github.heroslender.herochat.listeners.PlayerListener
 import com.github.heroslender.herochat.service.ChannelService
@@ -25,6 +27,10 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     private val _config: Config<ChatConfig> = withConfig(ChatConfig.CODEC)
     val config: ChatConfig
         get() = _config.get()
+
+    private val _autoModConfig: Config<AutoModConfig> = withConfig("automod",AutoModConfig.CODEC)
+    val autoModConfig: AutoModConfig
+        get() = _autoModConfig.get()
 
     private val _messagesConfig: Config<MessagesConfig> = withConfig("messages", MessagesConfig.CODEC)
     val messages: MessagesConfig
@@ -60,6 +66,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
     override fun setup() {
         _config.save()
+        _autoModConfig.save()
         _messagesConfig.save()
         _privateChannelConfig.save()
         _channelConfigs.values.forEach { it.save() }
@@ -75,6 +82,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     override fun start() {
         PlayerListener(userService, channelService)
         ChatListener(userService)
+        AutoModListener(config, autoModConfig)
 
         commandRegistry.registerCommand(ChatCommand(userService))
         commandRegistry.registerCommand(NicknameCommand(userService))
