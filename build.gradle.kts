@@ -22,7 +22,7 @@ dependencies {
 
     compileOnly("at.helpch:placeholderapi-hytale:1.0.4")
 
-    testImplementation("com.hypixel.hytale:Server:2026.01.28-87d03be09")
+    testImplementation("com.hypixel.hytale:Server:2026.02.18-f3b8fff95")
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
