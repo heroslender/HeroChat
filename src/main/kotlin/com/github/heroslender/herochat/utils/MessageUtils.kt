@@ -19,9 +19,12 @@ fun messageFromConfig(
     vararg placeholders: Pair<String, String>,
 ): Message {
     val message = messageStrFromConfig(msgProp)
-    val placeholderComponents = if (placeholders.isNotEmpty())
-        mapOf(*placeholders.map { (key, value) -> (key to ComponentConfig(value)) }.toTypedArray())
-    else emptyMap()
+
+    val placeholderComponents = mutableMapOf<String, ComponentConfig>()
+    placeholderComponents.putAll(HeroChat.instance.config.components)
+    if (placeholders.isNotEmpty()) {
+        placeholderComponents.putAll(placeholders.map { (key, value) -> (key to ComponentConfig(value)) })
+    }
 
     return ComponentParser.parse(target, message, placeholderComponents)
 }
