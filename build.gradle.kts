@@ -15,14 +15,14 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.hypixel.hytale:Server:2026.01.28-87d03be09")
+    compileOnly("com.hypixel.hytale:Server:2026.02.19-1a311a592")
 
     implementation("com.h2database:h2:2.2.224")
     implementation("com.zaxxer:HikariCP:5.1.0")
 
     compileOnly("at.helpch:placeholderapi-hytale:1.0.4")
 
-    testImplementation("com.hypixel.hytale:Server:2026.02.18-f3b8fff95")
+    testImplementation("com.hypixel.hytale:Server:2026.02.19-1a311a592")
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")

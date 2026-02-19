@@ -10,7 +10,7 @@
   ],
   "Website": "https://github.com/heroslender/HeroChat",
   "Main": "com.github.heroslender.herochat.HeroChat",
-  "ServerVersion": "*",
+  "ServerVersion": "2026.02.19-1a311a592",
   "Description": "A chat plugin",
   "IncludesAssetPack": true,
   "OptionalDependencies": {
