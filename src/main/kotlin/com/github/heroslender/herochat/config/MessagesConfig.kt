@@ -25,6 +25,7 @@ class MessagesConfig {
     var nicknameReset: String = "{#55FF55}Your nickname has been reset."
     var menuSuccessNotificationTitle: String = "Settings Saved"
     var menuSuccessNotificationDescription: String = "Your settings were successfully saved!"
+    var menuNickname: String = "Nickname"
     var menuFocusedChannel: String = "Focused Channel"
     var menuMutedChannels: String = "Muted Channels"
     var menuMessageColor: String = "Message Color"
@@ -57,6 +58,7 @@ class MessagesConfig {
             .appendString(MessagesConfig::nicknameContainsSpaces)
             .appendString(MessagesConfig::nicknameSet)
             .appendString(MessagesConfig::nicknameReset)
+            .appendString(MessagesConfig::menuNickname)
             .appendString(MessagesConfig::menuFocusedChannel)
             .appendString(MessagesConfig::menuMutedChannels)
             .appendString(MessagesConfig::menuMessageColor)

@@ -58,6 +58,13 @@ $Sounds = "../../Sounds.ui";
     FlexWeight: 1;
   }
 
+  Group #Error {
+    Anchor: (Width: 24, Height: 24, Right: 24);
+    Background: (TexturePath: "../Assets/IconError.png");
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    Visible: false;
+  }
+
   TextField #Txt {
     Anchor: (Width: 270, Right: 10);
     PlaceholderText: @Placeholder;

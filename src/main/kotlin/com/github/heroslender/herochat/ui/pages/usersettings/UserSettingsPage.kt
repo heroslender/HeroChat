@@ -2,8 +2,11 @@ package com.github.heroslender.herochat.ui.pages.usersettings
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
+import com.github.heroslender.herochat.channel.StandardChannel
+import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.data.PlayerUser
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
@@ -16,6 +19,7 @@ import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle
 import com.hypixel.hytale.server.core.ui.DropdownEntryInfo
 import com.hypixel.hytale.server.core.ui.LocalizableString
+import com.hypixel.hytale.server.core.ui.Value
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
@@ -27,11 +31,22 @@ class UserSettingsPage(
     val channelService: ChannelService,
 ) : Page<UserSettingsPage.UiState>(user.player, UiState.CODEC) {
     private val settings = user.settings
+    val previewUser = PlayerUser(
+        user.player,
+        user.settings.copy()
+    )
+    val previewFormat = (HeroChat.instance.channelService.defaultChannel as? StandardChannel)?.format
+        ?: "{player_nickname}: {message}"
+    val previewComponents = HeroChat.instance.config.components.toMutableMap().apply {
+        putAll((HeroChat.instance.channelService.defaultChannel as? StandardChannel)?.components ?: emptyMap())
+        put("message", ComponentConfig("Hello Wold."))
+    }
 
     override fun build(ref: Ref<EntityStore?>, cmd: UICommandBuilder, evt: UIEventBuilder, store: Store<EntityStore?>) {
         cmd.append(LAYOUT)
 
         cmd["#FocusedChannel #Name.Text"] = messageStrFromConfig(MessagesConfig::menuFocusedChannel)
+        cmd["#Nickname #Name.Text"] = messageStrFromConfig(MessagesConfig::menuNickname)
         cmd["#MutedChannels #Name.Text"] = messageStrFromConfig(MessagesConfig::menuMutedChannels)
         cmd["#MessageColor #Name.Text"] = messageStrFromConfig(MessagesConfig::menuMessageColor)
         cmd["#SpyMode #Name.Text"] = messageStrFromConfig(MessagesConfig::menuSpyMode)
@@ -45,6 +60,16 @@ class UserSettingsPage(
         cmd["#FocusedChannel #Dropdown.Entries"] = channels
         cmd["#FocusedChannel #Dropdown.Value"] =
             settings.focusedChannelId ?: channelService.defaultChannel?.id ?: ""
+
+        if (playerRef.hasPermission(Permissions.COMMAND_NICKNAME)) {
+            cmd["#Nickname.Visible"] = true
+            cmd["#Nickname #Txt.Value"] = settings.nickname ?: ""
+            evt.onValueChanged(
+                "#Nickname #Txt",
+                "@Nickname" to "#Nickname #Txt.Value",
+                "@Color" to "#MessageColor #ColorPicker.Color",
+            )
+        }
 
         if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
             cmd["#MutedChannels.Visible"] = true
@@ -68,17 +93,40 @@ class UserSettingsPage(
             cmd["#SpyMode #CheckBox.Value"] = settings.spyMode
         }
 
+        updatePreview(cmd)
+
         evt.onValueChanged("#MutedChannels #Dropdown", "@MutedChannels" to "#MutedChannels #Dropdown.SelectedValues")
+        // Does not work for some reason
+//        evt.onValueChanged("#MessageColor #ColorPicker", "@Color" to "#MessageColor #ColorPicker.Color")
 
         evt.onActivating("#MessageColor #ResetBtn", "Action" to "reset-color")
         evt.onActivating("#Cancel", "Action" to "cancel")
         evt.onActivating(
             "#Save",
             "Action" to "save",
+            "@Nickname" to "#Nickname #Txt.Value",
             "@FocusedChannel" to "#FocusedChannel #Dropdown.Value",
             "@MutedChannels" to "#MutedChannels #Dropdown.SelectedValues",
             "@Color" to "#MessageColor #ColorPicker.Color",
             "@SpyMode" to "#SpyMode #CheckBox.Value"
+        )
+    }
+
+    fun updatePreview(cmd: UICommandBuilder) {
+        var message = "Hello World."
+
+        val settings = previewUser.settings
+        if (settings.messageColor != null
+            && user.hasPermission(Permissions.CHAT_COLOR)
+            && user.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)
+        ) {
+            message = "{${settings.messageColor}}${message}"
+        }
+
+        cmd["#PreviewLbl.TextSpans"] = ComponentParser.parse(
+            sender = previewUser,
+            message = previewFormat,
+            components = previewComponents + ("message" to ComponentConfig(message))
         )
     }
 
@@ -91,11 +139,39 @@ class UserSettingsPage(
 
         when {
             data.action == "save" -> {
+                val nickname = data.nickname?.ifEmpty { null }
+                if (nickname != null) {
+                    val striped = ComponentParser.stripStyle(data.nickname!!)
+                    if (striped.length > HeroChat.instance.config.nicknameMaxLength) {
+                        NotificationUtil.sendNotification(
+                            playerRef.packetHandler,
+                            messageFromConfig(MessagesConfig::nicknameTooLong, user),
+                            NotificationStyle.Danger
+                        )
+
+                        return
+                    }
+
+                    if (striped.isEmpty() || striped.contains(' ')) {
+                        NotificationUtil.sendNotification(
+                            playerRef.packetHandler,
+                            messageFromConfig(MessagesConfig::nicknameContainsSpaces, user),
+                            NotificationStyle.Danger
+                        )
+
+                        return
+                    }
+                }
+
                 with(HeroChat.instance.userService) {
                     user.updateSettings { settings ->
                         val focusedChannel = data.focusedChannel
                         settings.focusedChannelId =
                             if (focusedChannel == channelService.defaultChannel?.id) null else focusedChannel
+
+                        if (playerRef.hasPermission(Permissions.COMMAND_NICKNAME)) {
+                            settings.nickname = nickname
+                        }
 
                         if (playerRef.hasPermission(Permissions.SETTINGS_MUTE_CHANNEL)) {
                             settings.disabledChannels.clear()
@@ -123,31 +199,63 @@ class UserSettingsPage(
                 closePage()
                 return
             }
+
             data.action == "cancel" -> {
                 closePage()
                 return
             }
+
             data.action == "reset-color" -> {
                 runUiCmdUpdate { cmd ->
                     cmd["#MessageColor #ColorPicker.Color"] = "#ffffffFF"
                 }
             }
+
             data.action == "remove-muted-channel" -> {
                 val ch = data.channel ?: return
                 val muted = data.mutedChannels ?: return
 
                 runUiCmdEvtUpdate { cmd, evt ->
                     val newList = muted.filter { it != ch }.toTypedArray()
-                    cmd["#MutedChannels #Dropdown.SelectedValues"] = newList.map(LocalizableString::fromString).toTypedArray()
+                    cmd["#MutedChannels #Dropdown.SelectedValues"] =
+                        newList.map(LocalizableString::fromString).toTypedArray()
 
                     cmd.clear("#MutedChannelsList")
                     populateMutedChannels(newList, cmd, evt)
                 }
             }
+
             data.mutedChannels != null -> {
                 runUiCmdEvtUpdate { cmd, evt ->
                     cmd.clear("#MutedChannelsList")
                     populateMutedChannels(data.mutedChannels!!, cmd, evt)
+                }
+            }
+
+            data.nickname != null -> {
+                runUiCmdUpdate { cmd ->
+                    val striped = ComponentParser.stripStyle(data.nickname!!)
+                    if (striped.length > HeroChat.instance.config.nicknameMaxLength) {
+                        cmd["#Nickname #Error.Visible"] = true
+                        cmd["#Nickname #Error.TooltipTextSpans"] = messageFromConfig(MessagesConfig::nicknameTooLong, user)
+                        cmd["#Nickname #Txt.Style"] = FieldStyleError
+                        return@runUiCmdUpdate
+                    }
+
+                    if (striped.contains(' ')) {
+                        cmd["#Nickname #Error.Visible"] = true
+                        cmd["#Nickname #Error.TooltipTextSpans"] = messageFromConfig(MessagesConfig::nicknameContainsSpaces, user)
+                        cmd["#Nickname #Txt.Style"] = FieldStyleError
+                        return@runUiCmdUpdate
+                    }
+
+                    cmd["#Nickname #Error.Visible"] = false
+                    cmd["#Nickname #Txt.Style"] = FieldStyle
+
+                    previewUser.settings.nickname = data.nickname
+                    val color = data.color?.substring(0, 7)
+                    previewUser.settings.messageColor = if (color == "#ffffff") null else color
+                    updatePreview(cmd)
                 }
             }
         }
@@ -173,6 +281,7 @@ class UserSettingsPage(
         var channel: String? = null
 
         // Settings page props
+        var nickname: String? = null
         var mutedChannels: Array<String>? = null
         var focusedChannel: String? = null
         var color: String? = null
@@ -186,11 +295,10 @@ class UserSettingsPage(
                     { e, v -> e.action = v },
                     { e -> e.action }).add()
                 .appendStringOpt(UiState::channel)
-//                .append(
-//                    KeyedCodec("@Channel", Codec.STRING),
-//                    { e, v -> e.channel = v },
-//                    { e -> e.channel }).add()
-                // Settings page props
+                .append(
+                    KeyedCodec("@Nickname", Codec.STRING),
+                    { e, v -> e.nickname = v },
+                    { e -> e.nickname }).add()
                 .append(
                     KeyedCodec("@MutedChannels", Codec.STRING_ARRAY),
                     { e, v -> e.mutedChannels = v },
@@ -213,6 +321,10 @@ class UserSettingsPage(
 
     companion object {
         const val LAYOUT: String = "HeroChat/UserSettingsPage.ui"
+
+        val FieldStyle: Value<String> = Value.ref(LAYOUT, "FieldStyle")
+        val FieldStyleError: Value<String> = Value.ref(LAYOUT, "FieldStyleError")
+
     }
 
     fun String.isValidColor(): Boolean {

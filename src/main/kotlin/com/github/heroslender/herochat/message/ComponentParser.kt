@@ -12,7 +12,7 @@ class ComponentParser(
     companion object {
         const val PLACEHOLDER_START = '{'
         const val PLACEHOLDER_END = '}'
-        private const val ESCAPE_CHAR = '\\'
+        const val ESCAPE_CHAR = '\\'
 
         const val RAINBOW = "rainbow"
         const val RESET = "reset"

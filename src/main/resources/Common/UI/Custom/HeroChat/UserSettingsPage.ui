@@ -12,6 +12,9 @@ $Components = "SubPage/SettingComponents.ui";
   SelectedEntryIconBackground: (TexturePath: "Assets/Checkmark.png"),
 );
 
+@FieldStyle = InputFieldStyle();
+@FieldStyleError = InputFieldStyle(TextColor: #FF5555);
+
 Group {
   LayoutMode: Middle;
 
@@ -28,6 +31,22 @@ Group {
 
     #Content {
       LayoutMode: Top;
+
+      Group #PreviewContainer {
+        Anchor: (Bottom: 16);
+        Background: (TexturePath: "../Common/ContainerPanelPatch.png", Border: 10);
+        Padding: (Horizontal: 12, Vertical: 12);
+
+        Label #PreviewLbl {
+          Style: (FontSize: 16, TextColor: #ffffff, RenderBold: false);
+        }
+      }
+
+      $Components.@TextSetting #Nickname {
+        @Text = "Nickname";
+        @Placeholder = "Your nickname";
+        Visible: false;
+      }
 
       Group #FocusedChannel {
         LayoutMode: Left;
@@ -114,7 +133,8 @@ Group {
             ...$C.@DefaultColorPickerDropdownBoxStyle,
             Overlay: (Default: "Assets/ColorPickerDropdownBoxOverlay.png")
           );
-          Color: #ffffffFF;
+          Format: Rgb;
+          Color: #ffffff;
         }
 
         $C.@SecondaryButton #ResetBtn {

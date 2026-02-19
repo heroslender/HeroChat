@@ -1,6 +1,7 @@
 package com.github.heroslender.herochat.message
 
 import com.github.heroslender.herochat.message.ComponentParser.Companion.BOLD
+import com.github.heroslender.herochat.message.ComponentParser.Companion.ESCAPE_CHAR
 import com.github.heroslender.herochat.message.ComponentParser.Companion.ITALIC
 import com.github.heroslender.herochat.message.ComponentParser.Companion.RESET
 
@@ -52,7 +53,11 @@ object McColorParser {
         while (i < length) {
             val current = message[i]
 
-            if (current == COLOR_CHAR && i + 1 < length) {
+            if (current == ESCAPE_CHAR) {
+                builder.append(message[++i])
+                i++
+                continue
+            } else if (current == COLOR_CHAR && i + 1 < length) {
                 val nextChar = message[i + 1]
                 val nextCode = nextChar.code
 

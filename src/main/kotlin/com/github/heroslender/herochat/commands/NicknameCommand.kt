@@ -35,7 +35,7 @@ class NicknameCommand(userService: UserService) : AbstractCommandCollection("nic
                     return@runAsync
                 }
 
-                if (striped.contains(' ')) {
+                if (striped.isEmpty() || striped.contains(' ')) {
                     sender.sendMessage(MessagesConfig::nicknameContainsSpaces)
                     return@runAsync
                 }
