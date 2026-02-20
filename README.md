@@ -212,6 +212,7 @@ specific channel. A channel ID is its file name.
   "NicknameContainsSpaces": "{#FF5555}Your nickname can not contain spaces.",
   "NicknameSet": "{#55FF55}Your nickname has been set to {#FFFFFF}{nickname}{#55FF55}.",
   "NicknameReset": "{#55FF55}Your nickname has been reset.",
+  "MenuNickname": "Nickname",
   "MenuFocusedChannel": "Focused Channel",
   "MenuMutedChannels": "Muted Channels",
   "MenuMessageColor": "Message Color",
