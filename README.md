@@ -22,6 +22,7 @@ A simple and customizable chat plugin for Hytale servers.
       * [Global config](#global-config)
       * [Private channel config](#private-channel-config)
       * [Channel config](#channel-config)
+      * [Auto-Mod Config](#auto-mod-config)
       * [Messages Config](#messages-config)
     * [Available placeholders](#available-placeholders)
     * [Formatting placeholders](#formatting-placeholders)
@@ -159,7 +160,7 @@ specific channel. A channel ID is its file name.
 ```
 
 
-### Auto-Mod Config
+#### Auto-Mod Config
 
 ```json
 {
