@@ -3,11 +3,7 @@ package com.github.heroslender.herochat
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.commands.ChatCommand
 import com.github.heroslender.herochat.commands.NicknameCommand
-import com.github.heroslender.herochat.config.AutoModConfig
-import com.github.heroslender.herochat.config.ChannelConfig
-import com.github.heroslender.herochat.config.ChatConfig
-import com.github.heroslender.herochat.config.MessagesConfig
-import com.github.heroslender.herochat.config.PrivateChannelConfig
+import com.github.heroslender.herochat.config.*
 import com.github.heroslender.herochat.database.Database
 import com.github.heroslender.herochat.database.UserSettingsRepository
 import com.github.heroslender.herochat.listeners.AutoModListener
@@ -15,8 +11,6 @@ import com.github.heroslender.herochat.listeners.ChatListener
 import com.github.heroslender.herochat.listeners.PlayerListener
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.service.UserService
-import com.hypixel.hytale.common.plugin.PluginIdentifier
-import com.hypixel.hytale.common.semver.SemverRange
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
 import com.hypixel.hytale.server.core.plugin.PluginManager
@@ -52,11 +46,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     lateinit var channelService: ChannelService
         private set
 
-    var isPlaceholderApiEnabled: Boolean = false
-        private set
-
     companion object {
-        val PlaceholderApiId = PluginIdentifier("HelpChat", "PlaceholderAPI")
         lateinit var instance: HeroChat
     }
 
@@ -70,8 +60,6 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         _messagesConfig.save()
         _privateChannelConfig.save()
         _channelConfigs.values.forEach { it.save() }
-
-        isPlaceholderApiEnabled = PluginManager.get().hasPlugin(PlaceholderApiId, SemverRange.fromString(">= 1.0.2"))
 
         database = Database(dataDirectory.toFile())
         val repository = UserSettingsRepository(database)

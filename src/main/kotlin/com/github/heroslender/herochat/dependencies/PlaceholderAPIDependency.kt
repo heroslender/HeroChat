@@ -1,13 +1,16 @@
 package com.github.heroslender.herochat.dependencies
 
 import at.helpch.placeholderapi.PlaceholderAPIPlugin
-import com.github.heroslender.herochat.HeroChat
+import com.hypixel.hytale.common.plugin.PluginIdentifier
+import com.hypixel.hytale.common.semver.SemverRange
+import com.hypixel.hytale.server.core.plugin.PluginManager
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import java.util.*
 
 object PlaceholderAPIDependency {
-    val IsPlaceholderApiEnabled: Boolean
-        get() = HeroChat.instance.isPlaceholderApiEnabled
+    val PlaceholderApiId = PluginIdentifier("HelpChat", "PlaceholderAPI")
+    val IsPlaceholderApiEnabled: Boolean =
+        PluginManager.get().hasPlugin(PlaceholderApiId, SemverRange.fromString(">= 1.0.2"))
 
     @JvmStatic
     fun parsePlaceholder(playerRef: PlayerRef, placeholder: String): String? {
