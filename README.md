@@ -101,11 +101,12 @@ specific channel. A channel ID is its file name.
 {
   "DefaultChat": "global",
   "enableMinecraftColors": false, // Enable &a, &4, etc colors as in minecraft
+  "NicknameMaxLength": 16,
   "Components": {
     "prefix": {
-      "Text": "{#00ffff}{bold}[HeroChatt]"
+      "Text": "{#555555}[{#55FFFF-#FF55FF}HeroChat{#555555}] "
     },
-    "admin_prefix": {
+    "component_with_permission": {
       "Text": "{#00AAAA}[Admin]",
       "Permission": "tag.admin" // Optional
     }
@@ -146,16 +147,20 @@ specific channel. A channel ID is its file name.
 {
   "Name": "Local",
   "Commands": [
-    "g",
-    "global"
+    "l",
+    "local"
   ],
-  "Format": "{#FFFF55}[L] {player_username}{#555555}{bold}> {#AAAAAA}{message}",
+  "Format": "{color}[Local] {#DDDDDD}{player_username}{#555555}{bold}> {color}{message}",
   "Permission": "chat.local", // Optional
   "Distance": 60, // Optional
   "CrossWorld": false, // Optional
   "CapslockFilter": {}, // Optional - defaults to disabled
   "Cooldowns": {},
-  "Components": {}
+  "Components": {
+    "color": {
+      "Text": "{#FFFF55}"
+    }
+  }
 }
 ```
 
@@ -194,25 +199,25 @@ specific channel. A channel ID is its file name.
 
 ```json
 {
-  "ChannelNoPermission": "{#FF5555}You do not have permission to send messages in this channel.",
-  "ChannelNotFound": "{#FF5555}Channel not found.",
-  "ChannelJoined": "{#55FF55}You are now talking in {#FFFFFF}{channel}{#55FF55}.",
-  "ChannelDisabled": "{#FF5555}You have disabled this channel. Enable it again to be able to talk here.",
-  "ChatNoRecipients": "{#FF5555}No one hears you.",
-  "ChatSpamWarning": "{#FF5555}Please do not spam.",
-  "ChatCooldown": "{#FF5555}Please wait before sending another message.",
-  "ChatCapslockWarning": "{#FF5555}Please do not abuse capslock.",
-  "PrivateChatStarted": "{#55FF55}You are now in a private conversation with {#FFFFFF}{player}{#55FF55}.",
-  "PrivateChatPlayerNotFound": "{#FF5555}Player not found.",
-  "PrivateChatSelf": "{#FF5555}You cannot start a private conversation with yourself.",
-  "PrivateChatNotActive": "{#FF5555}You are not in a private conversation.",
-  "SpyNoPermission": "{#FF5555}You do not have permission to use chat spy.",
-  "SpyToggle": "{#CCCCCC}Chat spy has been {status}{#CCCCCC}.",
-  "NicknameNoPermission": "{#FF5555}You do not have permission to change your nickname.",
-  "NicknameTooLong": "{#FF5555}Nickname is too long.",
-  "NicknameContainsSpaces": "{#FF5555}Your nickname can not contain spaces.",
-  "NicknameSet": "{#55FF55}Your nickname has been set to {#FFFFFF}{nickname}{#55FF55}.",
-  "NicknameReset": "{#55FF55}Your nickname has been reset.",
+  "ChannelNoPermission": "{prefix}{#FF5555}You do not have permission to send messages in this channel.",
+  "ChannelNotFound": "{prefix}{#FF5555}Channel not found.",
+  "ChannelJoined": "{prefix}{#AAAAAA}You are now talking in {#FFFFFF}{channel}{#AAAAAA}.",
+  "ChannelDisabled": "{prefix}{#FF5555}You have disabled this channel. Enable it again to be able to talk here.",
+  "ChatNoRecipients": "{prefix}{#FF5555}No one hears you.",
+  "ChatCooldown": "{prefix}{#FF5555}Please wait before sending another message.",
+  "ChatSpamWarning": "{prefix}{#FF5555}Please do not spam.",
+  "ChatCapslockWarning": "{prefix}{#FF5555}Please do not abuse capslock!",
+  "PrivateChatStarted": "{prefix}{#AAAAAA}You are now in a private conversation with {#FFFFFF}{target}{#AAAAAA}.",
+  "PrivateChatPlayerNotFound": "{prefix}{#FF5555}The player is not online.",
+  "PrivateChatSelf": "{prefix}{#FF5555}You cannot start a private conversation with yourself.",
+  "PrivateChatNotActive": "{prefix}{#FF5555}You are not in a private conversation.",
+  "SpyNoPermission": "{prefix}{#FF5555}You do not have permission to use chat spy.",
+  "SpyToggle": "{prefix}{#AAAAAA}Chat spy has been {status}{#AAAAAA}.",
+  "NicknameNoPermission": "{prefix}{#FF5555}You do not have permission to change your nickname.",
+  "NicknameTooLong": "{prefix}{#FF5555}Nickname is too long.",
+  "NicknameContainsSpaces": "{prefix}{#FF5555}Your nickname can not contain spaces.",
+  "NicknameSet": "{prefix}{#AAAAAA}Your nickname has been set to {#FFFFFF}{nickname}{#AAAAAA}.",
+  "NicknameReset": "{prefix}{#AAAAAA}Your nickname has been reset.",
   "MenuNickname": "Nickname",
   "MenuFocusedChannel": "Focused Channel",
   "MenuMutedChannels": "Muted Channels",

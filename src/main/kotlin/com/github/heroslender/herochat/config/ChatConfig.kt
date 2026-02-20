@@ -11,7 +11,7 @@ class ChatConfig {
     var defaultChat: String = "global"
     var enableMinecraftColors: Boolean = true
     var nicknameMaxLength: Int = 16
-    var components: MutableMap<String, ComponentConfig> = mutableMapOf()
+    var components: MutableMap<String, ComponentConfig> = mutableMapOf("prefix" to ComponentConfig("{#555555}[{#55FFFF-#FF55FF}HeroChat{#555555}] "))
 
     companion object {
 

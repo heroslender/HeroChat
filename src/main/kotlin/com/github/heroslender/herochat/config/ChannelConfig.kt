@@ -11,13 +11,13 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec
 class ChannelConfig {
     var name: String = "Global"
     var commands: Array<String> = arrayOf("g", "global")
-    var format: String = "{player_username}{#555555}{bold}> {#AAAAAA}{message}"
+    var format: String = "{color}[Global] {#FFFFFF}{player_username}{#555555}{bold}> {color}{message}"
     var permission: String? = null
     var distance: Double? = null
     var crossWorld: Boolean? = null
     var capslockFilter: CapslockFilterConfig = CapslockFilterConfig()
     var cooldowns: MutableMap<String, Long> = mutableMapOf()
-    var components: MutableMap<String, ComponentConfig> = mutableMapOf()
+    var components: MutableMap<String, ComponentConfig> = mutableMapOf("color" to ComponentConfig("{#DDDDDD}"))
 
     companion object {
         @JvmField
