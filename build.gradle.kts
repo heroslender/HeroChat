@@ -19,6 +19,7 @@ dependencies {
 
     implementation("com.h2database:h2:2.2.224")
     implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("org.slf4j:slf4j-nop:1.7.36")
 
     compileOnly("at.helpch:placeholderapi-hytale:1.0.4")
 
