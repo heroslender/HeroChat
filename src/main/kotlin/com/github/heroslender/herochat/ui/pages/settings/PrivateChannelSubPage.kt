@@ -90,6 +90,7 @@ class PrivateChannelSubPage(
                     var components = updatedData.components
                     if (components == null) {
                         components = HashMap(channel.components)
+                        updatedData.components = components
                     }
 
                     components.remove(id)
