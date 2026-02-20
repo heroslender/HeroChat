@@ -1,5 +1,6 @@
 package com.github.heroslender.herochat.listeners
 
+import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.channel.Channel
@@ -31,6 +32,8 @@ class ChatListener(
         // Chat spy
         registerEvent<ChannelChatEvent>(EventPriority.LAST, ::handleChatSpy)
         registerEvent<PrivateChannelChatEvent>(EventPriority.LAST, ::handleChatSpy)
+
+        HeroChat.instance.logger.atInfo().log("Registered chat listeners")
     }
 
     fun handleDefaultUserColor(e: ChannelChatEvent) {

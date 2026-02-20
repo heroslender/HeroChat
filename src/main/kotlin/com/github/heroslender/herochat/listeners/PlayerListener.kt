@@ -1,5 +1,6 @@
 package com.github.heroslender.herochat.listeners
 
+import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.service.UserService
@@ -35,5 +36,7 @@ class PlayerListener(
         registerEvent<PlayerDisconnectEvent> { e ->
             userService.onQuit(e.playerRef)
         }
+
+        HeroChat.instance.logger.atInfo().log("Registered player listeners")
     }
 }

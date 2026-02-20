@@ -13,7 +13,7 @@ import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.service.UserService
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
-import com.hypixel.hytale.server.core.plugin.PluginManager
+import com.hypixel.hytale.server.core.universe.Universe
 import com.hypixel.hytale.server.core.util.Config
 import java.io.File
 
@@ -22,7 +22,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     val config: ChatConfig
         get() = _config.get()
 
-    private val _autoModConfig: Config<AutoModConfig> = withConfig("automod",AutoModConfig.CODEC)
+    private val _autoModConfig: Config<AutoModConfig> = withConfig("automod", AutoModConfig.CODEC)
     val autoModConfig: AutoModConfig
         get() = _autoModConfig.get()
 
@@ -68,6 +68,8 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     }
 
     override fun start() {
+        Universe.get().players.forEach(userService::onJoin)
+
         PlayerListener(userService, channelService)
         ChatListener(userService)
         AutoModListener(config, autoModConfig)
