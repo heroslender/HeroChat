@@ -121,7 +121,8 @@ class StandardChannel(
         }
 
         recipients.removeIf { user ->
-            return@removeIf user.settings.disabledChannels.contains(this.id)
+            return@removeIf permission?.let { !user.hasPermission(it) } ?: false
+                    && user.settings.disabledChannels.contains(this.id)
         }
 
         return recipients
