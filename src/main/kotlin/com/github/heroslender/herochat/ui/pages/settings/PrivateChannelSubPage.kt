@@ -1,10 +1,10 @@
 package com.github.heroslender.herochat.ui.pages.settings
 
-import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.data.User
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
@@ -18,7 +18,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
-import kotlin.collections.iterator
 
 class PrivateChannelSubPage(
     parent: ChatSettingsPage,
@@ -50,9 +49,23 @@ class PrivateChannelSubPage(
         cmd["#PreviewReceiverField.Value"] = receiverFormat
         cmd["#Permission #Txt.Value"] = channel.permission ?: ""
 
+        cmd["#CapslockSettings.Visible"] = channel.capslockFilter.enabled
+        cmd["#CapslockEnabled #CheckBox.Value"] = channel.capslockFilter.enabled
+        cmd["#CapslockPercentage #Slider.Value"] = channel.capslockFilter.percentage
+        cmd["#CapslockMinLength #Slider.Value"] = channel.capslockFilter.minLength
+
         evt.onValueChanged("#PreviewField", "@Format" to "#PreviewField.Value")
         evt.onValueChanged("#PreviewReceiverField", "@ReceiverFormat" to "#PreviewReceiverField.Value")
         evt.onValueChanged("#Permission #Txt", "@Permission" to "#Permission #Txt.Value")
+        evt.onValueChanged("#CapslockEnabled #CheckBox", "@CapslockFilterEnabled" to "#CapslockEnabled #CheckBox.Value")
+        evt.onValueChanged(
+            "#CapslockPercentage #Slider",
+            "@CapslockFilterPercentage" to "#CapslockPercentage #Slider.Value"
+        )
+        evt.onValueChanged(
+            "#CapslockMinLength #Slider",
+            "@CapslockFilterMinLength" to "#CapslockMinLength #Slider.Value"
+        )
 
         evt.onActivating("#NewComponentBtn", "Action" to "newComponent")
         evt.onActivating("#Save", "Action" to "save")
@@ -105,36 +118,41 @@ class PrivateChannelSubPage(
             }
 
             "save" -> {
-                val config = HeroChat.instance.privateChannelConfig ?: return
-                var hasUpdatedData = false
-                if (updatedData.senderFormat != null) {
-                    config.senderFormat = updatedData.senderFormat!!
-                    hasUpdatedData = true
-                }
-                if (updatedData.receiverFormat != null) {
-                    config.receiverFormat = updatedData.receiverFormat!!
-                    hasUpdatedData = true
-                }
-                if (updatedData.permission != null) {
-                    config.permission = updatedData.permission!!
-                    hasUpdatedData = true
-                }
-                if (updatedData.components != null) {
-                    config.components = updatedData.components!!
-                    hasUpdatedData = true
-                }
-
-                if (hasUpdatedData) {
-                    HeroChat.instance.saveChannelConfig(channel.id)
-                    updatedData.clear()
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
-                    )
-                } else {
+                if (!updatedData.hasChanges()) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
                     )
+                    return
                 }
+
+                val config = HeroChat.instance.privateChannelConfig ?: return
+                if (updatedData.senderFormat != null) {
+                    config.senderFormat = updatedData.senderFormat!!
+                }
+                if (updatedData.receiverFormat != null) {
+                    config.receiverFormat = updatedData.receiverFormat!!
+                }
+                if (updatedData.permission != null) {
+                    config.permission = updatedData.permission!!
+                }
+                if (updatedData.capslockFilterEnabled != null) {
+                    config.capslockFilter.enabled = updatedData.capslockFilterEnabled!!
+                }
+                if (updatedData.capslockFilterPercentage != null) {
+                    config.capslockFilter.percentage = updatedData.capslockFilterPercentage!!
+                }
+                if (updatedData.capslockFilterMinLength != null) {
+                    config.capslockFilter.minLength = updatedData.capslockFilterMinLength!!
+                }
+                if (updatedData.components != null) {
+                    config.components = updatedData.components!!
+                }
+
+                HeroChat.instance.saveChannelConfig(channel.id)
+                updatedData.clear()
+                NotificationUtil.sendNotification(
+                    playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
+                )
                 return
             }
 
@@ -163,6 +181,16 @@ class PrivateChannelSubPage(
             this.senderFormat = data.format!!
 
             updateSenderPreview()
+        } else if (data.capslockFilterEnabled != null) {
+            updatedData.capslockFilterEnabled = data.capslockFilterEnabled!!
+
+            runUiCmdUpdate { cmd ->
+                cmd["#CapslockSettings.Visible"] = data.capslockFilterEnabled!!
+            }
+        } else if (data.capslockFilterPercentage != null) {
+            updatedData.capslockFilterPercentage = data.capslockFilterPercentage!!
+        } else if (data.capslockFilterMinLength != null) {
+            updatedData.capslockFilterMinLength = data.capslockFilterMinLength!!
         }
     }
 
@@ -278,15 +306,23 @@ class PrivateChannelSubPage(
         var senderFormat: String? = null,
         var receiverFormat: String? = null,
         var permission: String? = null,
+
+        var capslockFilterEnabled: Boolean? = null,
+        var capslockFilterPercentage: Int? = null,
+        var capslockFilterMinLength: Int? = null,
+
         var components: MutableMap<String, ComponentConfig>? = null,
     ) {
         fun hasChanges(): Boolean =
-            senderFormat != null || receiverFormat != null || permission != null || components != null
+            senderFormat != null || receiverFormat != null || permission != null || capslockFilterEnabled != null || capslockFilterPercentage != null || capslockFilterMinLength != null || components != null
 
         fun clear() {
             senderFormat = null
             receiverFormat = null
             permission = null
+            capslockFilterEnabled = null
+            capslockFilterPercentage = null
+            capslockFilterMinLength = null
             components = null
         }
     }

@@ -93,6 +93,8 @@ class ChatSettingsPage(
 
         // Settings page props
         var defaultChannel: String? = null
+        var mcColors: Boolean? = null
+        var nicknameLength: Int? = null
 
         // Private channel props
         var receiverFormat: String? = null
@@ -102,6 +104,10 @@ class ChatSettingsPage(
         var permission: String? = null
         var crossWorld: Boolean? = null
         var distance: Double? = null
+
+        var capslockFilterEnabled: Boolean? = null
+        var capslockFilterPercentage: Int? = null
+        var capslockFilterMinLength: Int? = null
 
         companion object {
             val CODEC: BuilderCodec<UiState> = BuilderCodec.builder(
@@ -135,6 +141,14 @@ class ChatSettingsPage(
                     KeyedCodec("@DefaultChannel", Codec.STRING),
                     { e, v -> e.defaultChannel = v },
                     { e -> e.defaultChannel }).add()
+                .append(
+                    KeyedCodec("@McColors", Codec.BOOLEAN),
+                    { e, v -> e.mcColors = v },
+                    { e -> e.mcColors }).add()
+                .append(
+                    KeyedCodec("@NicknameLength", Codec.INTEGER),
+                    { e, v -> e.nicknameLength = v },
+                    { e -> e.nicknameLength }).add()
                 // Private channel props
                 .append(
                     KeyedCodec("@ReceiverFormat", Codec.STRING),
@@ -157,6 +171,18 @@ class ChatSettingsPage(
                     KeyedCodec("@Distance", Codec.DOUBLE),
                     { e, v -> e.distance = v },
                     { e -> e.distance }).add()
+                .append(
+                    KeyedCodec("@CapslockFilterEnabled", Codec.BOOLEAN),
+                    { e, v -> e.capslockFilterEnabled = v },
+                    { e -> e.capslockFilterEnabled }).add()
+                .append(
+                    KeyedCodec("@CapslockFilterPercentage", Codec.INTEGER),
+                    { e, v -> e.capslockFilterPercentage = v },
+                    { e -> e.capslockFilterPercentage }).add()
+                .append(
+                    KeyedCodec("@CapslockFilterMinLength", Codec.INTEGER),
+                    { e, v -> e.capslockFilterMinLength = v },
+                    { e -> e.capslockFilterMinLength }).add()
                 .build()
         }
     }

@@ -76,6 +76,9 @@ $Sounds = "../../Sounds.ui";
 };
 
 @SliderSetting = Group {
+  @ExtraText = "";
+  @Min = 1;
+  @Max = 100;
   Anchor: (Height: 44, Bottom: 8);
   Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 16);
   LayoutMode: Left;
@@ -100,8 +103,8 @@ $Sounds = "../../Sounds.ui";
     Anchor: (Width: 270, Height: 5, Right: 10);
     SliderStyle: $C.@DefaultSliderStyle;
     NumberFieldStyle: $C.@DefaultInputFieldStyle;
-    Min: 1;
-    Max: 100;
+    Min: @Min;
+    Max: @Max;
     Value: 60;
   }
 };

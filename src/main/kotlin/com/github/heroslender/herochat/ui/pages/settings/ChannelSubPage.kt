@@ -1,10 +1,10 @@
 package com.github.heroslender.herochat.ui.pages.settings
 
-import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.StandardChannel
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.data.User
+import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
@@ -18,7 +18,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
-import kotlin.collections.iterator
 
 class ChannelSubPage(
     parent: ChatSettingsPage,
@@ -49,10 +48,21 @@ class ChannelSubPage(
         cmd["#CrossWorld #CheckBox.Value"] = channel.crossWorld
         cmd["#Distance #Slider.Value"] = channel.distance?.toInt() ?: 1
 
+        cmd["#CapslockEnabled #CheckBox.Value"] = channel.capslockFilter.enabled
+        cmd["#CapslockPercentage #Slider.Value"] = channel.capslockFilter.percentage
+        cmd["#CapslockMinLength #Slider.Value"] = channel.capslockFilter.minLength
+
+        if (channel.capslockFilter.enabled) {
+            cmd["#CapslockSettings.Visible"] = true
+        }
+
         evt.onValueChanged("#PreviewField", "@Format" to "#PreviewField.Value")
         evt.onValueChanged("#Permission #Txt", "@Permission" to "#Permission #Txt.Value")
         evt.onValueChanged("#CrossWorld #CheckBox", "@CrossWorld" to "#CrossWorld #CheckBox.Value")
         evt.onValueChanged("#Distance #Slider", "@Distance" to "#Distance #Slider.Value")
+        evt.onValueChanged("#CapslockEnabled #CheckBox", "@CapslockFilterEnabled" to "#CapslockEnabled #CheckBox.Value")
+        evt.onValueChanged("#CapslockPercentage #Slider", "@CapslockFilterPercentage" to "#CapslockPercentage #Slider.Value")
+        evt.onValueChanged("#CapslockMinLength #Slider", "@CapslockFilterMinLength" to "#CapslockMinLength #Slider.Value")
 
         evt.onActivating("#NewComponentBtn", "Action" to "newComponent")
         evt.onActivating("#CloseButton", "Action" to "closeUI")
@@ -99,40 +109,43 @@ class ChannelSubPage(
             }
 
             "save" -> {
-                val config = HeroChat.instance.channelConfigs[channel.id] ?: return
-                var hasUpdatedData = false
-                if (updatedData.format != null) {
-                    config.format = updatedData.format!!
-                    hasUpdatedData = true
-                }
-                if (updatedData.permission != null) {
-                    config.permission = updatedData.permission!!
-                    hasUpdatedData = true
-                }
-                if (updatedData.crossWorld != null) {
-                    config.crossWorld = updatedData.crossWorld
-                    hasUpdatedData = true
-                }
-                if (updatedData.distance != null) {
-                    config.distance = updatedData.distance
-                    hasUpdatedData = true
-                }
-                if (updatedData.components != null) {
-                    config.components = updatedData.components!!
-                    hasUpdatedData = true
-                }
-
-                if (hasUpdatedData) {
-                    HeroChat.instance.saveChannelConfig(channel.id)
-                    updatedData.clear()
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
-                    )
-                } else {
+                if (!updatedData.hasChanges()) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
                     )
+                    return
                 }
+                val config = HeroChat.instance.channelConfigs[channel.id] ?: return
+                if (updatedData.format != null) {
+                    config.format = updatedData.format!!
+                }
+                if (updatedData.permission != null) {
+                    config.permission = updatedData.permission!!
+                }
+                if (updatedData.crossWorld != null) {
+                    config.crossWorld = updatedData.crossWorld
+                }
+                if (updatedData.distance != null) {
+                    config.distance = updatedData.distance
+                }
+                if (updatedData.capslockFilterEnabled != null) {
+                    config.capslockFilter.enabled = updatedData.capslockFilterEnabled!!
+                }
+                if (updatedData.capslockFilterPercentage != null) {
+                    config.capslockFilter.percentage = updatedData.capslockFilterPercentage!!
+                }
+                if (updatedData.capslockFilterMinLength != null) {
+                    config.capslockFilter.minLength = updatedData.capslockFilterMinLength!!
+                }
+                if (updatedData.components != null) {
+                    config.components = updatedData.components!!
+                }
+
+                HeroChat.instance.saveChannelConfig(channel.id)
+                updatedData.clear()
+                NotificationUtil.sendNotification(
+                    playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
+                )
                 return
             }
 
@@ -165,6 +178,16 @@ class ChannelSubPage(
             this.format = data.format!!
 
             updatePreview()
+        } else if (data.capslockFilterEnabled != null) {
+            updatedData.capslockFilterEnabled = data.capslockFilterEnabled!!
+
+            runUiCmdUpdate { cmd ->
+                cmd["#CapslockSettings.Visible"] = data.capslockFilterEnabled!!
+            }
+        } else if (data.capslockFilterPercentage != null) {
+            updatedData.capslockFilterPercentage = data.capslockFilterPercentage!!
+        } else if (data.capslockFilterMinLength != null) {
+            updatedData.capslockFilterMinLength = data.capslockFilterMinLength!!
         }
     }
 
@@ -260,16 +283,24 @@ class ChannelSubPage(
         var permission: String? = null,
         var distance: Double? = null,
         var crossWorld: Boolean? = null,
+
+        var capslockFilterEnabled: Boolean? = null,
+        var capslockFilterPercentage: Int? = null,
+        var capslockFilterMinLength: Int? = null,
+
         var components: MutableMap<String, ComponentConfig>? = null,
     ) {
         fun hasChanges(): Boolean =
-            format != null || permission != null || distance != null || crossWorld != null || components != null
+            format != null || permission != null || distance != null || crossWorld != null || capslockFilterEnabled != null || capslockFilterPercentage != null || capslockFilterMinLength != null || components != null
 
         fun clear() {
             format = null
             permission = null
             distance = null
             crossWorld = null
+            capslockFilterEnabled = null
+            capslockFilterPercentage = null
+            capslockFilterMinLength = null
             components = null
         }
     }

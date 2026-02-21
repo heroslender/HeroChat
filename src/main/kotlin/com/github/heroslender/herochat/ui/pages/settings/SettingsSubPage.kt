@@ -1,8 +1,8 @@
 package com.github.heroslender.herochat.ui.pages.settings
 
-import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
+import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
@@ -18,7 +18,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
-import kotlin.collections.iterator
 
 class SettingsSubPage(
     parent: ChatSettingsPage,
@@ -39,7 +38,12 @@ class SettingsSubPage(
 
         cmd["#Dropdown.Entries"] = channels
         cmd["#Dropdown.Value"] = channelService.defaultChannel?.id ?: ""
+        cmd["#McColorsCb #CheckBox.Value"] = HeroChat.instance.config.enableMinecraftColors
+        cmd["#NicknameLengthSlider #Slider.Value"] = HeroChat.instance.config.nicknameMaxLength
+
         evt.onValueChanged("#Dropdown", "@DefaultChannel" to "#Dropdown.Value")
+        evt.onValueChanged("#McColorsCb #CheckBox", "@McColors" to "#McColorsCb #CheckBox.Value")
+        evt.onValueChanged("#NicknameLengthSlider #Slider", "@NicknameLength" to "#NicknameLengthSlider #Slider.Value")
 
         populateComponents(cmd, evt)
 
@@ -91,29 +95,40 @@ class SettingsSubPage(
             }
 
             "save" -> {
-                var hasUpdatedData = false
-                if (updatedData.defaultChannel != null) {
-                    channelService.updateDefaultChannel(updatedData.defaultChannel!!)
-                    hasUpdatedData = true
-                }
-                if (updatedData.components != null) {
-                    HeroChat.instance.config.components.clear()
-                    HeroChat.instance.config.components.putAll(updatedData.components!!)
-                    HeroChat.instance.saveConfig()
-                    hasUpdatedData = true
-                }
-
-                if (hasUpdatedData) {
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
-                    )
-                } else {
+                if (!updatedData.hasChanges()) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
                     )
+                    return
+                }
+
+                val config = HeroChat.instance.config
+                var configUpdated = false
+                if (updatedData.defaultChannel != null) {
+                    channelService.updateDefaultChannel(updatedData.defaultChannel!!)
+                }
+                if (updatedData.mcColors != null) {
+                    config.enableMinecraftColors = updatedData.mcColors!!
+                    configUpdated = true
+                }
+                if (updatedData.nicknameLength != null) {
+                    config.nicknameMaxLength = updatedData.nicknameLength!!
+                    configUpdated = true
+                }
+                if (updatedData.components != null) {
+                    config.components.clear()
+                    config.components.putAll(updatedData.components!!)
+                    configUpdated = true
+                }
+
+                if (configUpdated) {
+                    HeroChat.instance.saveConfig()
                 }
 
                 updatedData.clear()
+                NotificationUtil.sendNotification(
+                    playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
+                )
                 return
             }
 
@@ -137,6 +152,10 @@ class SettingsSubPage(
 
         if (data.defaultChannel != null) {
             updatedData.defaultChannel = data.defaultChannel
+        } else if (data.mcColors != null) {
+            updatedData.mcColors = data.mcColors
+        } else if (data.nicknameLength != null) {
+            updatedData.nicknameLength = data.nicknameLength
         }
     }
 
@@ -209,12 +228,17 @@ class SettingsSubPage(
 
     data class UpdatedData(
         var defaultChannel: String? = null,
+        var mcColors: Boolean? = null,
+        var nicknameLength: Int? = null,
         var components: MutableMap<String, ComponentConfig>? = null,
     ) {
-        fun hasChanges(): Boolean = defaultChannel != null || components != null
+        fun hasChanges(): Boolean =
+            defaultChannel != null || mcColors != null || nicknameLength != null || components != null
 
         fun clear() {
             defaultChannel = null
+            mcColors = null
+            nicknameLength = null
             components = null
         }
     }
