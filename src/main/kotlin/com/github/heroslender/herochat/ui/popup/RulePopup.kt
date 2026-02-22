@@ -63,7 +63,6 @@ class RulePopup<T>(
             }.openPopup(ref, store)
             return
         } else if (data.action == ActionDeletePattern) {
-            println("Deleting pattern ${data.ruleIndex}")
             val i = data.ruleIndex!!
             var patterns = updatedData.patterns
             if (patterns == null) {

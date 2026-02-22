@@ -1,6 +1,7 @@
 package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.HeroChat
+import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.config.PrivateChannelConfig
@@ -98,9 +99,15 @@ class PrivateChannel(
 
         val sender = event.sender
         val target = event.target
+        val message = ComponentParser.validateFormat(
+            user = event.sender,
+            message = event.message,
+            basePermission = Permissions.CHAT_MESSAGE_STYLE,
+            remove = true
+        )
         val comp = HeroChat.instance.config.components +
                 components +
-                ("message" to ComponentConfig(event.message)) +
+                ("message" to ComponentConfig(message)) +
                 ("target_username" to ComponentConfig(target.username))
 
         // Some placeholders require the world thread to work

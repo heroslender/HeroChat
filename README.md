@@ -80,8 +80,12 @@ A simple and customizable chat plugin for Hytale servers.
 - `herochat.nickname.style.italic` - Permission to use italic on the nickname
 - `herochat.nickname.style.monospaced` - Permission to use monospaced on the nickname
 - `herochat.chat.mute-channels` - Permission for player to mute channels
-- `herochat.chat.message-color` - Permission for player to change the default message color on chat
-- `herochat.chat.message.colors` - Permission for player to use colors on chat
+- `herochat.chat.style.colors` - Permission to use colors on the chat
+- `herochat.chat.style.rainbow` - Permission to use rainbow on the chat
+- `herochat.chat.style.gradient` - Permission to use gradient on the chat
+- `herochat.chat.style.bold` - Permission to use bold on the chat
+- `herochat.chat.style.italic` - Permission to use italic on the chat
+- `herochat.chat.style.monospaced` - Permission to use monospaced on the chat
 - `herochat.chat.message.formatting` - Permission for player to use formatting tags on chat
 - `herochat.bypass.cooldown` - Permission to bypass the cooldown checks
 - `herochat.bypass.spam` - Permission to bypass the spam checks

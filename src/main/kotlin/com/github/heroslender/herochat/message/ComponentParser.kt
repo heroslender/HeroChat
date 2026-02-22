@@ -32,6 +32,7 @@ class ComponentParser(
             user: User,
             message: String,
             basePermission: String,
+            formatPlaceholders: Boolean = false,
             remove: Boolean = false,
         ): String = validateFormat(
             message = message,
@@ -41,6 +42,7 @@ class ComponentParser(
             formatBold = user.hasPermission("$basePermission.$BOLD"),
             formatItalic = user.hasPermission("$basePermission.$ITALIC"),
             formatMonospaced = user.hasPermission("$basePermission.$MONOSPACED"),
+            formatPlaceholders = formatPlaceholders,
             remove = remove,
         )
 
@@ -52,6 +54,7 @@ class ComponentParser(
             formatBold: Boolean = true,
             formatItalic: Boolean = true,
             formatMonospaced: Boolean = true,
+            formatPlaceholders: Boolean = false,
             remove: Boolean = false,
         ): String {
             val parseMcColors: Boolean = HeroChat.instance.config.enableMinecraftColors
@@ -105,11 +108,10 @@ class ComponentParser(
                 } else if (placeholder.isGradient() && !formatGradient) {
                     remove()
                     continue
-                } else if (!placeholder.isStyle()) {
+                } else if (!placeholder.isStyle() && !formatPlaceholders) {
                     // It's a placeholder, ignore it
                     buffer.append(ESCAPE_CHAR)
                 }
-
                 buffer.append(message, start, suffixIndex + 1)
                 start = suffixIndex + 1
             }
@@ -231,12 +233,8 @@ class ComponentParser(
         sender: User,
         message: String,
         components: Map<String, ComponentConfig>,
-        formatColors: Boolean = true,
-        formatStyle: Boolean = true,
-        formatPlaceholders: Boolean = true,
         buffer: StringBuilder = StringBuilder(message.length)
     ): StringBuilder {
-        val message = if (parseMcColors && (formatColors || formatStyle)) McColorParser.parse(message) else message
         if (!message.contains(PLACEHOLDER_START)) {
             return buffer.append(message)
         }
@@ -256,22 +254,7 @@ class ComponentParser(
             if (suffixIndex == -1) break
 
             val placeholder = message.substring(prefixIndex + 1, suffixIndex)
-            if (placeholder.isStyle()) {
-                if ((!formatColors && (placeholder.isColor() || placeholder.isRainbow() || placeholder.isGradient()))
-                    || !formatStyle && placeholder.isFormatting()
-                ) {
-                    buffer.append(ESCAPE_CHAR)
-                }
-                buffer.append(message, start, suffixIndex + 1)
-                start = suffixIndex + 1
-                continue
-            } else {
-                if (!formatPlaceholders) {
-                    buffer.append(message, start, suffixIndex + 1)
-                    start = suffixIndex + 1
-                    continue
-                }
-
+            if (!placeholder.isStyle()) {
                 if (start != prefixIndex) {
                     buffer.append(message, start, prefixIndex)
                 }
@@ -285,20 +268,10 @@ class ComponentParser(
                 } else null
 
                 if (text != null) {
-                    if (placeholder == "message") {
-                        parsePlaceholders(
-                            sender = sender,
-                            message = text,
-                            components = components,
-                            formatColors = sender.hasPermission(Permissions.CHAT_COLOR),
-                            formatStyle = sender.hasPermission(Permissions.CHAT_FORMATTING),
-                            formatPlaceholders = false,
-                            buffer = buffer
-                        )
-                    } else {
                         parsePlaceholders(sender, text, components, buffer = buffer)
-                    }
                 }
+            } else{
+                buffer.append(message, start, suffixIndex + 1)
             }
 
             start = suffixIndex + 1
@@ -316,7 +289,10 @@ class ComponentParser(
         message: String,
         components: Map<String, ComponentConfig> = emptyMap(),
     ): Message {
-        val message = parsePlaceholders(sender, message, components).toString()
+        var message = parsePlaceholders(sender, message, components).toString()
+        if (parseMcColors) {
+            message = McColorParser.parse(message)
+        }
         if (!message.contains(PLACEHOLDER_START)) {
             return getCurrentComp().insert(message)
         }

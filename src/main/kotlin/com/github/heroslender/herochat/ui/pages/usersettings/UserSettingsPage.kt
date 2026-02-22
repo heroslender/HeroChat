@@ -117,7 +117,7 @@ class UserSettingsPage(
 
         val settings = previewUser.settings
         if (settings.messageColor != null
-            && user.hasPermission(Permissions.CHAT_COLOR)
+            && user.hasPermission(Permissions.CHAT_MESSAGE_STYLE + ".colors")
             && user.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)
         ) {
             message = "{${settings.messageColor}}${message}"

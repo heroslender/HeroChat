@@ -1,5 +1,6 @@
 package com.github.heroslender.herochat.channel
 
+import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -86,7 +87,13 @@ class StandardChannel(
             return
         }
 
-        val comp = components + ("message" to ComponentConfig(event.message))
+        val message = ComponentParser.validateFormat(
+            user = event.sender,
+            message = event.message,
+            basePermission = Permissions.CHAT_MESSAGE_STYLE,
+            remove = true
+        )
+        val comp = components + ("message" to ComponentConfig(message))
 
         // Some placeholders require the world thread to work
         event.sender.runInWorld {
