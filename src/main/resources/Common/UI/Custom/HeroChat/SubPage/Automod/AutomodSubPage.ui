@@ -1,0 +1,90 @@
+$C = "../../../Common.ui";
+$S = "../SettingComponents.ui";
+
+Group {
+  LayoutMode: TopScrolling;
+  FlexWeight: 1;
+  ScrollbarStyle: $C.@DefaultScrollbarStyle;
+
+  Label {
+    Text: "Automod";
+    Style: (TextColor: #96a9be, FontSize: 18, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
+    Anchor: (Top: 6, Bottom: 8);
+  }
+
+  $S.@CheckSetting #Enabled {
+    @Text = "Enabled";
+  }
+
+  Group #AutomodSettings {
+    Visible: true;
+    LayoutMode: Top;
+
+    Group {
+      Anchor: (Bottom: 8);
+      Background: (TexturePath: "../../Assets/OptionBackgroundPatch.png", Border: 16);
+      LayoutMode: Top;
+
+      Label {
+        Text: "Default Block Message";
+        Style: (TextColor: #96a9be, FontSize: 18);
+        Anchor: (Top: 8, Left: 16);
+      }
+
+      MultilineTextField #DefaultBlockMessageField {
+        AutoGrow: false;
+        Anchor: (Height: 64, Left: 16, Right: 2);
+        Padding: (Vertical: 6, Right:4);
+        ContentPadding: (Right:8);
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Style: (FontSize: 16, TextColor: #d4d4d4);
+      }
+    }
+
+    Group { Anchor: (Height: 16); }
+
+    Group {
+      LayoutMode: Left;
+
+      Label {
+        Text: "Rules";
+        Style: (TextColor: #96a9be, FontSize: 18, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
+        Anchor: (Bottom: 6);
+      }
+
+      $C.@TertiaryTextButton #NewRuleBtn {
+        @Text = "+";
+        Padding: (Horizontal: 0);
+        Anchor: (Width: 32, Height: 32, Left: 12, Bottom: 8);
+        TooltipText: "Add new rule";
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+      }
+    }
+
+    Group {
+      Background: #393426(0.5);
+      Anchor: (Height: 1);
+    }
+
+    Group #ListContainer {
+      FlexWeight: 1;
+      Anchor: (Bottom: 20);
+      LayoutMode: Top;
+    }
+  }
+}
+
+Group {
+  LayoutMode: Right;
+  Anchor: (Top: 16);
+
+  $C.@TextButton #Save {
+    @Text = "Save";
+    Anchor: (Width: 120, Height: 44, Right: 12);
+  }
+
+  $C.@SecondaryTextButton #Cancel {
+    @Text = "Close";
+    Anchor: (Width: 120, Height: 44);
+  }
+}

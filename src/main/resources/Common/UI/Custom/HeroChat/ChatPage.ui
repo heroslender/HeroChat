@@ -26,6 +26,10 @@ $C.@DecoratedContainer {
         @Text = "Settings";
       }
 
+      $Nav.@NavButton #ShowAutomodBtn {
+        @Text = "Automod";
+      }
+
       Label {
         Text: "Channels";
         Style: (RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center, FontSize: 12, TextColor: #869394);

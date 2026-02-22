@@ -1,0 +1,48 @@
+$C = "../../../Common.ui";
+$Popup = "../../Popup/Popup.ui";
+
+$Popup.@Popup #RulePatternPopup {
+  @Title = "Add New Pattern";
+
+  #Content {
+    Group #Error {
+      Anchor: (Bottom: 8);
+      LayoutMode: Center;
+      Visible: false;
+
+      Group {
+        Anchor: (Width: 24, Height: 24, Right: 24);
+        Background: (TexturePath: "../../Assets/IconError.png");
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+      }
+
+      Label #Txt {
+        Style: (TextColor: #FF5555, FontSize: 18);
+      }
+    }
+
+    Label {
+      Text: "Pattern";
+      Style: (TextColor: #96a9be, FontSize: 15, RenderBold: true);
+      Anchor: (Bottom: 8);
+    }
+
+    $C.@TextField #Pattern {
+      Anchor: (Height: 38, Bottom: 12);
+      Style: (FontSize: 16, TextColor: #ffffff);
+    }
+  }
+
+  #BottomBar {
+    $C.@TextButton #AddBtn {
+      @Text = "Add";
+      FlexWeight: 1;
+      Anchor: (Right: 10);
+    }
+
+    $C.@SecondaryTextButton #Close {
+      @Text = "Cancel";
+      FlexWeight: 1;
+    }
+  }
+}

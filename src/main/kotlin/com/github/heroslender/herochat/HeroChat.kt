@@ -91,6 +91,10 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         _config.save()
     }
 
+    fun saveAutomodConfig() {
+        _autoModConfig.save()
+    }
+
     fun saveChannelConfig(channelId: String) {
         val cfg = if (channelId == PrivateChannel.ID) _privateChannelConfig else _channelConfigs[channelId]
         cfg?.save()

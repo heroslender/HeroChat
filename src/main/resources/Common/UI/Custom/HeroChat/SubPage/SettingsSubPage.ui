@@ -29,7 +29,7 @@ Group {
     }
 
     $C.@DropdownBox #Dropdown {
-      Anchor: (Width: 270, Height: 40);
+      Anchor: (Width: 285, Height: 40);
       Style: DropdownBoxStyle(
         ...$C.@DefaultDropdownBoxStyle,
         LabelStyle: (...$C.@DefaultDropdownBoxLabelStyle, RenderBold: true, FontSize: 16)

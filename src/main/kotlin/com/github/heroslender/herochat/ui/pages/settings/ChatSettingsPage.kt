@@ -8,6 +8,8 @@ import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
 import com.github.heroslender.herochat.ui.navigation.NavController
+import com.github.heroslender.herochat.ui.popup.RulePatternPopup
+import com.github.heroslender.herochat.ui.popup.RulePopup
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
@@ -38,6 +40,14 @@ class ChatSettingsPage(
             pageInitializer = { SettingsSubPage(this, channelService) }
         )
         evt.onActivating("#ShowSettingsBtn", "NavigateTo" to Destination.Settings)
+
+        navController.addNavLocation(
+            location = Destination.Automod,
+            onEnter = { cmd -> cmd["#ShowAutomodBtn.Style"] = NavBtnSelectedStyle },
+            onLeave = { cmd -> cmd["#ShowAutomodBtn.Style"] = NavBtnStyle },
+            pageInitializer = { AutomodSubPage(this, user, HeroChat.instance.autoModConfig) }
+        )
+        evt.onActivating("#ShowAutomodBtn", "NavigateTo" to Destination.Automod)
 
         channelService.channels.values.forEachIndexed { i, channel ->
             cmd.append("#NavChannels", "HeroChat/Sidebar/SidebarButton.ui")
@@ -80,7 +90,7 @@ class ChatSettingsPage(
         navController.currentPage?.handleDataEvent(ref, store, data)
     }
 
-    class UiState: ActionEventData {
+    class UiState: ActionEventData, RulePatternPopup.EventData, RulePopup.EventData {
         override var action: String? = null
 
         // Navigation
@@ -95,6 +105,17 @@ class ChatSettingsPage(
         var defaultChannel: String? = null
         var mcColors: Boolean? = null
         var nicknameLength: Int? = null
+
+        // Automod page props
+        var automodEnabled: Boolean? = null
+        var automodDefaultBlockMessage: String? = null
+
+        override var ruleIndex: Int? = null
+        var rulePattern: Array<String>? = null
+        var ruleIsRegex: Boolean? = null
+        var ruleReplacement: String? = null
+        var ruleBlockMessage: String? = null
+        override var rulePopupPattern: String? = null
 
         // Private channel props
         var receiverFormat: String? = null
@@ -149,6 +170,39 @@ class ChatSettingsPage(
                     KeyedCodec("@NicknameLength", Codec.INTEGER),
                     { e, v -> e.nicknameLength = v },
                     { e -> e.nicknameLength }).add()
+                // Automod page props
+                .append(
+                    KeyedCodec("@AutomodEnabled", Codec.BOOLEAN),
+                    { e, v -> e.automodEnabled = v },
+                    { e -> e.automodEnabled }).add()
+                .append(
+                    KeyedCodec("@AutomodDefaultBlockMessage", Codec.STRING),
+                    { e, v -> e.automodDefaultBlockMessage = v },
+                    { e -> e.automodDefaultBlockMessage }).add()
+                .append(
+                    KeyedCodec("RuleIndex", Codec.STRING),
+                    { e, v -> e.ruleIndex = v?.toInt() },
+                    { e -> e.ruleIndex?.toString() }).add()
+                .append(
+                    KeyedCodec("RulePattern", Codec.STRING),
+                    { e, v -> e.rulePattern = v.split("√¿").toTypedArray() },
+                    { e -> e.rulePattern?.joinToString("√¿") }).add()
+                .append(
+                    KeyedCodec("@RuleIsRegex", Codec.BOOLEAN),
+                    { e, v -> e.ruleIsRegex = v},
+                    { e -> e.ruleIsRegex }).add()
+                .append(
+                    KeyedCodec("@RuleReplacement", Codec.STRING),
+                    { e, v -> e.ruleReplacement = v },
+                    { e -> e.ruleReplacement }).add()
+                .append(
+                    KeyedCodec("@RuleBlockMessage", Codec.STRING),
+                    { e, v -> e.ruleBlockMessage = v},
+                    { e -> e.ruleBlockMessage }).add()
+                .append(
+                    KeyedCodec("@RulePopupPattern", Codec.STRING),
+                    { e, v -> e.rulePopupPattern = v},
+                    { e -> e.rulePopupPattern }).add()
                 // Private channel props
                 .append(
                     KeyedCodec("@ReceiverFormat", Codec.STRING),
@@ -197,6 +251,7 @@ class ChatSettingsPage(
 
     object Destination {
         const val Settings = "Settings"
+        const val Automod = "Automod"
 
         fun Channel(channel: String): String = "channel-$channel"
     }

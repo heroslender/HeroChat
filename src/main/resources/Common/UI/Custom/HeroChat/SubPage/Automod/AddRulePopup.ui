@@ -1,0 +1,75 @@
+$C = "../../../Common.ui";
+$Popup = "../../Popup/Popup.ui";
+
+$Popup.@Popup #RulePopup {
+  @Title = "Add New Rule";
+
+  #Content {
+
+    Group {
+      LayoutMode: Left;
+      Anchor: (Bottom: 8);
+
+      Label {
+        Text: "Patterns";
+        Style: (TextColor: #96a9be, FontSize: 15, RenderBold: true);
+      }
+
+      $C.@TertiaryTextButton #NewPatternBtn {
+        @Text = "+";
+        Padding: (Horizontal: 0);
+        Anchor: (Width: 26, Height: 26, Left: 12, Bottom: 4);
+        TooltipText: "Add new Pattern";
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+      }
+    }
+
+    Group #PatternList {
+      LayoutMode: LeftCenterWrap;
+      Anchor: (Bottom: 12);
+    }
+
+    $C.@CheckBoxWithLabel #IsRegexCb {
+      @Text = "Is Regex";
+      @Checked = false;
+      Anchor: (Bottom: 12);
+    }
+
+    Label {
+      Text: "Replacement";
+      Style: (TextColor: #96a9be, FontSize: 15, RenderBold: true);
+      Anchor: (Bottom: 8);
+    }
+
+    $C.@TextField #Replacement {
+      Anchor: (Height: 44, Bottom: 12);
+      Style: (FontSize: 16, TextColor: #ffffff);
+      PlaceholderText: "None";
+    }
+
+    Label {
+      Text: "Block Message";
+      Style: (TextColor: #96a9be, FontSize: 15, RenderBold: true);
+      Anchor: (Bottom: 8);
+    }
+
+    $C.@TextField #BlockMessage {
+      Anchor: (Height: 44);
+      Style: (FontSize: 16, TextColor: #ffffff);
+      PlaceholderText: "None";
+    }
+  }
+
+  #BottomBar {
+    $C.@TextButton #AddBtn {
+      @Text = "Add";
+      FlexWeight: 1;
+      Anchor: (Right: 10);
+    }
+
+    $C.@SecondaryTextButton #Close {
+      @Text = "Cancel";
+      FlexWeight: 1;
+    }
+  }
+}

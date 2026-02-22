@@ -1,0 +1,62 @@
+$C = "../../../Common.ui";
+
+Group {
+  Anchor: (Top: 12);
+  Background: (TexturePath: "../../../Common/ContainerPanelPatch.png", Border: 10);
+  Padding: (Full: 12);
+  LayoutMode: Top;
+
+  Group #Title {
+    Anchor: (Bottom: 12);
+    LayoutMode: Top;
+
+    Group {
+      LayoutMode: Left;
+      Anchor: (Bottom: 8, Left: 8);
+
+
+      Label #Tag {
+        Style: (VerticalAlignment: Center, FontSize: 15, TextColor: #869394);
+      }
+
+      Group {FlexWeight: 1;}
+
+      $C.@SecondaryButton #EditBtn {
+        Anchor: (Width: 32, Height: 32, Right: 8);
+        TooltipText: "Edit Component";
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+        Group {
+          Anchor: (Width: 24, Height: 24);
+          Background: "../../Assets/EditIcon.png";
+        }
+      }
+
+      $C.@CancelTextButton #DeleteBtn {
+        @Text = "x";
+        Anchor: (Width: 32, Height: 32, Right: 8);
+        TooltipText: "Delete Component";
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+      }
+    }
+
+    Group {
+      Background: #393426(0.5);
+      Anchor: (Height: 1);
+    }
+  }
+
+  Group #Content {
+    LayoutMode: Top;
+
+    Label #Action {
+      Anchor: (Left: 6);
+      Style: (TextColor: #96a9be, FontSize: 20);
+    }
+
+    Label #Patterns {
+      Anchor: (Left: 6);
+      Style: (TextColor: #96a9be, FontSize: 20);
+    }
+  }
+}

@@ -1,0 +1,39 @@
+$C = "../../../Common.ui";
+
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 32, Right: 8, Bottom: 8);
+  OutlineColor: $C.@ColorBlueAccentPressed;
+  OutlineSize: 1;
+  Padding: (Left: 12, Right: 8);
+
+  Label #Txt{
+    Text: "";
+    Style: (TextColor: $C.@ColorBlueAccentPressed, FontSize: 16, RenderBold: true, VerticalAlignment: Center);
+  }
+
+  Button #EditBtn {
+    Anchor: (Width: 24, Height: 24, Left: 8);
+    TooltipText: "Edit Pattern";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+    Group {
+      Anchor: (Width: 20, Height: 20);
+      Background: "../../Assets/EditIcon.png";
+    }
+  }
+
+  $C.@TextButton #DeleteBtn {
+    @Text = "x";
+    Anchor: (Width: 24, Height: 24);
+    Style: (
+      ...$C.@DefaultTextButtonStyle,
+      Default: (LabelStyle: $C.@DefaultButtonLabelStyle),
+      Hovered: (LabelStyle: $C.@DefaultButtonLabelStyle),
+      Pressed: (LabelStyle: $C.@DefaultButtonLabelStyle),
+      Disabled: (LabelStyle: $C.@DefaultButtonDisabledLabelStyle),
+    );
+    TooltipText: "Remove pattern";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}
