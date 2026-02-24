@@ -36,12 +36,12 @@ class ComponentParser(
             remove: Boolean = false,
         ): String = validateFormat(
             message = message,
-            formatColors = user.hasPermission("$basePermission.colors"),
+            formatColors = user.hasPermission("$basePermission.colors") || user.hasPermission(Permissions.CHAT_COLOR),
             formatRainbow = user.hasPermission("$basePermission.$RAINBOW"),
             formatGradient = user.hasPermission("$basePermission.gradient"),
-            formatBold = user.hasPermission("$basePermission.$BOLD"),
-            formatItalic = user.hasPermission("$basePermission.$ITALIC"),
-            formatMonospaced = user.hasPermission("$basePermission.$MONOSPACED"),
+            formatBold = user.hasPermission("$basePermission.$BOLD") || user.hasPermission(Permissions.CHAT_FORMATTING),
+            formatItalic = user.hasPermission("$basePermission.$ITALIC") || user.hasPermission(Permissions.CHAT_FORMATTING),
+            formatMonospaced = user.hasPermission("$basePermission.$MONOSPACED") || user.hasPermission(Permissions.CHAT_FORMATTING),
             formatPlaceholders = formatPlaceholders,
             remove = remove,
         )
@@ -268,9 +268,9 @@ class ComponentParser(
                 } else null
 
                 if (text != null) {
-                        parsePlaceholders(sender, text, components, buffer = buffer)
+                    parsePlaceholders(sender, text, components, buffer = buffer)
                 }
-            } else{
+            } else {
                 buffer.append(message, start, suffixIndex + 1)
             }
 

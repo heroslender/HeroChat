@@ -39,7 +39,7 @@ class ChatListener(
     fun handleDefaultUserColor(e: ChannelChatEvent) {
         val settings = e.sender.settings
         if (settings.messageColor != null
-            && e.sender.hasPermission(Permissions.CHAT_MESSAGE_STYLE + ".colors")
+            && (e.sender.hasPermission(Permissions.CHAT_MESSAGE_STYLE + ".colors") || e.sender.hasPermission(Permissions.CHAT_COLOR))
             && e.sender.hasPermission(Permissions.SETTINGS_MESSAGE_COLOR)
         ) {
             e.message = "{${settings.messageColor}}${e.message}"
