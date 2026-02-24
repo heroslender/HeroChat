@@ -245,6 +245,7 @@ Default placeholders available:
 
 - `{message}` - The message to be sent by the player
 - `{player_username}` - The player username
+- `{player_nickname}` - The player nickname if set, or else defaults to the player username
 
 ### Formatting placeholders
 
