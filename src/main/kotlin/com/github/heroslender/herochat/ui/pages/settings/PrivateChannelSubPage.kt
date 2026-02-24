@@ -4,7 +4,7 @@ import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.data.User
-import com.github.heroslender.herochat.message.ComponentParser
+import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
@@ -271,7 +271,7 @@ class PrivateChannelSubPage(
     fun appendFormattedSenderPreview(cmd: UICommandBuilder, format: String = senderFormat) {
         val components = updatedData.components ?: channel.components
 
-        val msg = ComponentParser.parse(
+        val msg = MessageParser.parse(
             user,
             format,
             HeroChat.instance.config.components +
@@ -290,7 +290,7 @@ class PrivateChannelSubPage(
     fun appendFormattedReceiverPreview(cmd: UICommandBuilder, format: String = receiverFormat) {
         val components = updatedData.components ?: channel.components
 
-        val msg = ComponentParser.parse(
+        val msg = MessageParser.parse(
             user,
             format,
             HeroChat.instance.config.components +

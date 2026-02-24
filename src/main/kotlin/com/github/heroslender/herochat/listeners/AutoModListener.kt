@@ -4,8 +4,8 @@ import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.AutoModConfig
 import com.github.heroslender.herochat.config.ChatConfig
 import com.github.heroslender.herochat.event.PreChatEvent
-import com.github.heroslender.herochat.message.ComponentParser
 import com.github.heroslender.herochat.utils.registerEvent
+import com.github.heroslender.herochat.utils.sendMessage
 import java.util.regex.Pattern
 
 class AutoModListener(val config: ChatConfig, val autoModConfig: AutoModConfig) {
@@ -36,13 +36,7 @@ class AutoModListener(val config: ChatConfig, val autoModConfig: AutoModConfig) 
                             continue
                         }
 
-                        e.sender.sendMessage(
-                            ComponentParser.parse(
-                                sender = e.sender,
-                                message = rule.blockMessage ?: autoModConfig.defaultBlockMessage,
-                                components = config.components
-                            )
-                        )
+                        e.sender.sendMessage(rule.blockMessage ?: autoModConfig.defaultBlockMessage)
                         e.isCancelled = true
                     }
                 } else {
@@ -56,13 +50,7 @@ class AutoModListener(val config: ChatConfig, val autoModConfig: AutoModConfig) 
                             continue
                         }
 
-                        e.sender.sendMessage(
-                            ComponentParser.parse(
-                                sender = e.sender,
-                                message = rule.blockMessage ?: autoModConfig.defaultBlockMessage,
-                                components = config.components
-                            )
-                        )
+                        e.sender.sendMessage(rule.blockMessage ?: autoModConfig.defaultBlockMessage)
                         e.isCancelled = true
                     }
                 }

@@ -6,7 +6,8 @@ import com.github.heroslender.herochat.channel.StandardChannel
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.data.PlayerUser
-import com.github.heroslender.herochat.message.ComponentParser
+import com.github.heroslender.herochat.message.ColorParser
+import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
@@ -123,7 +124,7 @@ class UserSettingsPage(
             message = "{${settings.messageColor}}${message}"
         }
 
-        cmd["#PreviewLbl.TextSpans"] = ComponentParser.parse(
+        cmd["#PreviewLbl.TextSpans"] = MessageParser.parse(
             sender = previewUser,
             message = previewFormat,
             components = previewComponents + ("message" to ComponentConfig(message))
@@ -141,7 +142,7 @@ class UserSettingsPage(
             data.action == "save" -> {
                 val nickname = data.nickname?.ifEmpty { null }
                 if (nickname != null) {
-                    val striped = ComponentParser.stripStyle(data.nickname!!)
+                    val striped = ColorParser.stripStyle(data.nickname!!)
                     if (striped.length > HeroChat.instance.config.nicknameMaxLength) {
                         NotificationUtil.sendNotification(
                             playerRef.packetHandler,
@@ -234,17 +235,19 @@ class UserSettingsPage(
 
             data.nickname != null -> {
                 runUiCmdUpdate { cmd ->
-                    val striped = ComponentParser.stripStyle(data.nickname!!)
+                    val striped = ColorParser.stripStyle(data.nickname!!)
                     if (striped.length > HeroChat.instance.config.nicknameMaxLength) {
                         cmd["#Nickname #Error.Visible"] = true
-                        cmd["#Nickname #Error.TooltipTextSpans"] = messageFromConfig(MessagesConfig::nicknameTooLong, user)
+                        cmd["#Nickname #Error.TooltipTextSpans"] =
+                            messageFromConfig(MessagesConfig::nicknameTooLong, user)
                         cmd["#Nickname #Txt.Style"] = FieldStyleError
                         return@runUiCmdUpdate
                     }
 
                     if (striped.contains(' ')) {
                         cmd["#Nickname #Error.Visible"] = true
-                        cmd["#Nickname #Error.TooltipTextSpans"] = messageFromConfig(MessagesConfig::nicknameContainsSpaces, user)
+                        cmd["#Nickname #Error.TooltipTextSpans"] =
+                            messageFromConfig(MessagesConfig::nicknameContainsSpaces, user)
                         cmd["#Nickname #Txt.Style"] = FieldStyleError
                         return@runUiCmdUpdate
                     }

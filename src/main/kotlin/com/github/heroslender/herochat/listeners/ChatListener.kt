@@ -1,7 +1,7 @@
 package com.github.heroslender.herochat.listeners
 
 import com.github.heroslender.herochat.HeroChat
-import com.github.heroslender.herochat.message.ComponentParser
+import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.channel.Channel
 import com.github.heroslender.herochat.channel.PrivateChannel
@@ -55,7 +55,7 @@ class ChatListener(
         // Spy format: [SPY] Sender -> Target: Message
         val spyText =
             "{#FF5555}[SPY] {#AAAAAA}${e.sender.username} {#555555}-> {#AAAAAA}${e.target.username}{#555555}: {#FFFFFF}${e.message}"
-        val spyMsg = ComponentParser.parse(e.sender, spyText)
+        val spyMsg = MessageParser.parse(e.sender, spyText)
 
         for (spy in spies) {
             if (spy.uuid != e.sender.uuid && spy.uuid != e.target.uuid) {

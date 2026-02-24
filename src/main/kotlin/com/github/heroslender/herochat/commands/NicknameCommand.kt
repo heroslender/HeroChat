@@ -3,7 +3,7 @@ package com.github.heroslender.herochat.commands
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.config.MessagesConfig
-import com.github.heroslender.herochat.message.ComponentParser
+import com.github.heroslender.herochat.message.ColorParser
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.AbstractCommand
@@ -29,7 +29,7 @@ class NicknameCommand(userService: UserService) : AbstractCommandCollection("nic
                 val sender = userService.getUser(ctx.sender().uuid) ?: return@runAsync
 
                 var nickname = nicknameArg.get(ctx)
-                val striped = ComponentParser.stripStyle(nickname)
+                val striped = ColorParser.stripStyle(nickname)
                 if (striped.length > HeroChat.instance.config.nicknameMaxLength) {
                     sender.sendMessage(MessagesConfig::nicknameTooLong)
                     return@runAsync
@@ -40,7 +40,7 @@ class NicknameCommand(userService: UserService) : AbstractCommandCollection("nic
                     return@runAsync
                 }
 
-                nickname = ComponentParser.validateFormat(
+                nickname = ColorParser.validateFormat(
                     user = sender,
                     message = nickname,
                     basePermission = Permissions.NICKNAME_BASE_PERMISSION,

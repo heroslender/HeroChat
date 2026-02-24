@@ -8,7 +8,8 @@ import com.github.heroslender.herochat.data.PlayerUser
 import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.event.ChannelChatEvent
 import com.github.heroslender.herochat.event.PreChatEvent
-import com.github.heroslender.herochat.message.ComponentParser
+import com.github.heroslender.herochat.message.ColorParser
+import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.runInWorld
 import com.github.heroslender.herochat.utils.sendMessage
@@ -87,17 +88,16 @@ class StandardChannel(
             return
         }
 
-        val message = ComponentParser.validateFormat(
+        val message = ColorParser.validateFormat(
             user = event.sender,
             message = event.message,
             basePermission = Permissions.CHAT_MESSAGE_STYLE,
-            remove = true
         )
         val comp = components + ("message" to ComponentConfig(message))
 
         // Some placeholders require the world thread to work
         event.sender.runInWorld {
-            val message = ComponentParser.parse(event.sender, format, comp)
+            val message = MessageParser.parse(event.sender, format, comp)
 
             for (recipient in event.recipients) {
                 recipient.sendMessage(message)

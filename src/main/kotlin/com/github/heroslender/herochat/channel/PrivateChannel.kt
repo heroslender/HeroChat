@@ -8,7 +8,8 @@ import com.github.heroslender.herochat.config.PrivateChannelConfig
 import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.event.PreChatEvent
 import com.github.heroslender.herochat.event.PrivateChannelChatEvent
-import com.github.heroslender.herochat.message.ComponentParser
+import com.github.heroslender.herochat.message.ColorParser
+import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.runInWorld
 import com.github.heroslender.herochat.utils.sendMessage
@@ -99,11 +100,10 @@ class PrivateChannel(
 
         val sender = event.sender
         val target = event.target
-        val message = ComponentParser.validateFormat(
+        val message = ColorParser.validateFormat(
             user = event.sender,
             message = event.message,
             basePermission = Permissions.CHAT_MESSAGE_STYLE,
-            remove = true
         )
         val comp = HeroChat.instance.config.components +
                 components +
@@ -112,8 +112,8 @@ class PrivateChannel(
 
         // Some placeholders require the world thread to work
         sender.runInWorld {
-            val message = ComponentParser.parse(sender, format, comp)
-            val receivedMessage = ComponentParser.parse(sender, receiverFormat, comp)
+            val message = MessageParser.parse(sender, format, comp)
+            val receivedMessage = MessageParser.parse(sender, receiverFormat, comp)
 
             sender.sendMessage(message)
             target.sendMessage(receivedMessage)
