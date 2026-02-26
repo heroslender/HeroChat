@@ -7,6 +7,7 @@ import com.github.heroslender.herochat.message.MessageParser.ESCAPE_CHAR
 import com.github.heroslender.herochat.message.MessageParser.PLACEHOLDER_END
 import com.github.heroslender.herochat.message.MessageParser.PLACEHOLDER_START
 import com.hypixel.hytale.server.core.Message
+import kotlin.math.ceil
 
 class ColorParser {
     companion object {
@@ -501,15 +502,34 @@ class ColorParser {
         val italic = italicIndex == 0
         val monospaced = monospacedIndex == 0
 
-        var comp: Message
         val length = buffer.length
-        for (i in 0 until length) {
-            comp = newTopComp()
-            comp.color(gradient.getColorAt(i, length))
-            if (bold) comp.bold(true)
-            if (italic) comp.italic(true)
-            if (monospaced) comp.monospace(true)
-            comp.formattedMessage.rawText = buffer[i].toString()
+        if (length < 30) {
+            val parts = Array(length) { i ->
+                val comp = Message.raw(buffer[i].toString()).color(gradient.getColorAt(i, length))
+                if (bold) comp.bold(true)
+                if (italic) comp.italic(true)
+                if (monospaced) comp.monospace(true)
+                return@Array comp
+            }
+
+            newTopComp().insertAll(*parts)
+        } else {
+            // fix long gradient texts getting outside the chat box by
+            // appending more than 1 char to the same Message component
+            val parts = Array(length / 2) { i ->
+                val comp = Message.raw("${buffer[i * 2]}${buffer[i * 2 + 1]}").color(gradient.getColorAt(i, length / 2))
+                if (bold) comp.bold(true)
+                if (italic) comp.italic(true)
+                if (monospaced) comp.monospace(true)
+                return@Array comp
+            }
+
+            newTopComp().insertAll(*parts)
+
+            if (length % 2 == 1) {
+                val comp = Message.raw(buffer[length - 1].toString()).color(gradient.getColorAt(length, length))
+                topComp?.insert(comp)
+            }
         }
     }
 }
