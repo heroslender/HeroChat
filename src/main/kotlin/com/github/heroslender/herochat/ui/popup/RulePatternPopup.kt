@@ -2,6 +2,7 @@ package com.github.heroslender.herochat.ui.popup
 
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
+import com.github.heroslender.herochat.ui.pages.settings.automod.AutomodEventData
 import com.github.heroslender.herochat.utils.onActivating
 import com.github.heroslender.herochat.utils.onValueChanged
 import com.hypixel.hytale.component.Ref
@@ -28,12 +29,12 @@ class RulePatternPopup<T>(
             cmd["$PopupSelector #Pattern.Value"] = pattern
         }
 
-        evt.onValueChanged("$PopupSelector #Pattern", "@RulePopupPattern" to "$PopupSelector #Pattern.Value")
-        evt.onActivating("$PopupSelector #Close", "Action" to ActionCancel)
+        evt.onValueChanged("$PopupSelector #Pattern", AutomodEventData.FieldRulePopupPattern to "$PopupSelector #Pattern.Value")
+        evt.onActivating("$PopupSelector #Close", AutomodEventData.Action to ActionCancel)
         evt.onActivating(
             "$PopupSelector #AddBtn",
-            "Action" to ActionConfirm,
-            "@RulePopupPattern" to "$PopupSelector #Pattern.Value",
+            AutomodEventData.Action to ActionConfirm,
+            AutomodEventData.FieldRulePopupPattern to "$PopupSelector #Pattern.Value",
         )
     }
 

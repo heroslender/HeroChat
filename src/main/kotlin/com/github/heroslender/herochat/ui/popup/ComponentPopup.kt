@@ -2,6 +2,8 @@ package com.github.heroslender.herochat.ui.popup
 
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.ui.Page
+import com.github.heroslender.herochat.ui.event.ActionEventData
+import com.github.heroslender.herochat.ui.pages.settings.ComponentManagerEventData
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
@@ -28,10 +30,10 @@ class ComponentPopup<T>(
         evt.onActivating("$PopupSelector #Close", "Action" to ActionCancelPopup)
         evt.onActivating(
             "$PopupSelector #AddBtn",
-            "Action" to ActionConfirmPopup,
-            "@CId" to "$PopupSelector #Tag.Value",
-            "@CText" to "$PopupSelector #Format.Value",
-            "@CPerm" to "$PopupSelector #Permission.Value",
+            ActionEventData.Action to ActionConfirmPopup,
+            ComponentManagerEventData.FieldComponentId to "$PopupSelector #Tag.Value",
+            ComponentManagerEventData.FieldComponentText to "$PopupSelector #Format.Value",
+            ComponentManagerEventData.FieldComponentPermission to "$PopupSelector #Permission.Value",
         )
     }
 

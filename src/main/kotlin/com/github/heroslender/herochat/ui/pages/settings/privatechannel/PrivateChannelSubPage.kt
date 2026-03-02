@@ -1,4 +1,4 @@
-package com.github.heroslender.herochat.ui.pages.settings
+package com.github.heroslender.herochat.ui.pages.settings.privatechannel
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.PrivateChannel
@@ -6,6 +6,9 @@ import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.ui.SubPage
+import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
+import com.github.heroslender.herochat.ui.pages.settings.UiState
+import com.github.heroslender.herochat.ui.pages.settings.channel.ChannelSubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -18,16 +21,13 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
+import kotlin.collections.iterator
 
 class PrivateChannelSubPage(
     parent: ChatSettingsPage,
     val user: User,
     val channel: PrivateChannel,
-) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/PrivateChannelSubPage.ui") {
-
-    companion object {
-        const val LAYOUT_COMPONENT_LIST_ITEM: String = "HeroChat/ChatComponentListItem.ui"
-    }
+) : SubPage<UiState>(parent, "HeroChat/SubPage/PrivateChannelSubPage.ui") {
 
     private var senderFormat: String = channel.format
     private var receiverFormat: String = channel.receiverFormat
@@ -54,32 +54,42 @@ class PrivateChannelSubPage(
         cmd["#CapslockPercentage #Slider.Value"] = channel.capslockFilter.percentage
         cmd["#CapslockMinLength #Slider.Value"] = channel.capslockFilter.minLength
 
-        evt.onValueChanged("#PreviewField", "@Format" to "#PreviewField.Value")
-        evt.onValueChanged("#PreviewReceiverField", "@ReceiverFormat" to "#PreviewReceiverField.Value")
-        evt.onValueChanged("#Permission #Txt", "@Permission" to "#Permission #Txt.Value")
-        evt.onValueChanged("#CapslockEnabled #CheckBox", "@CapslockFilterEnabled" to "#CapslockEnabled #CheckBox.Value")
+        evt.onValueChanged("#PreviewField", PrivateChannelEventData.FieldFormat to "#PreviewField.Value")
+        evt.onValueChanged(
+            "#PreviewReceiverField",
+            PrivateChannelEventData.FieldReceiverFormat to "#PreviewReceiverField.Value"
+        )
+        evt.onValueChanged("#Permission #Txt", PrivateChannelEventData.FieldPermission to "#Permission #Txt.Value")
+        evt.onValueChanged(
+            "#CapslockEnabled #CheckBox",
+            PrivateChannelEventData.FieldCapslockFilterEnabled to "#CapslockEnabled #CheckBox.Value"
+        )
         evt.onValueChanged(
             "#CapslockPercentage #Slider",
-            "@CapslockFilterPercentage" to "#CapslockPercentage #Slider.Value"
+            PrivateChannelEventData.FieldCapslockFilterPercentage to "#CapslockPercentage #Slider.Value"
         )
         evt.onValueChanged(
             "#CapslockMinLength #Slider",
-            "@CapslockFilterMinLength" to "#CapslockMinLength #Slider.Value"
+            PrivateChannelEventData.FieldCapslockFilterMinLength to "#CapslockMinLength #Slider.Value"
         )
 
-        evt.onActivating("#NewComponentBtn", "Action" to "newComponent")
-        evt.onActivating("#Save", "Action" to "save")
-        evt.onActivating("#CloseButton", "Action" to "closeUI")
-        evt.onActivating("#Cancel", "Action" to "closeUI")
+        evt.onActivating(
+            "#NewComponentBtn",
+            PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.NewComponent
+        )
+        evt.onActivating("#Save", PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.Save)
+        evt.onActivating("#CloseButton", PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.Close)
+        evt.onActivating("#Cancel", PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.Close)
     }
 
     override fun handleDataEvent(
         ref: Ref<EntityStore?>,
         store: Store<EntityStore?>,
-        data: ChatSettingsPage.UiState
+        data: UiState
     ) {
         when (data.action) {
-            "newComponent", "editComponent" -> {
+            PrivateChannelEventData.ActionType.NewComponent,
+            PrivateChannelEventData.ActionType.EditComponent -> {
                 val id = data.componentId
                 val component = if (id != null) {
                     updatedData.components?.get(id) ?: channel.components[id]
@@ -97,7 +107,7 @@ class PrivateChannelSubPage(
                 return
             }
 
-            "deleteComponent" -> {
+            PrivateChannelEventData.ActionType.DeleteComponent -> {
                 val id = data.componentId
                 if (id != null) {
                     var components = updatedData.components
@@ -117,7 +127,7 @@ class PrivateChannelSubPage(
                 return
             }
 
-            "save" -> {
+            PrivateChannelEventData.ActionType.Save -> {
                 if (!updatedData.hasChanges()) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
@@ -156,7 +166,7 @@ class PrivateChannelSubPage(
                 return
             }
 
-            "closeUI" -> {
+            PrivateChannelEventData.ActionType.Close -> {
                 if (updatedData.hasChanges()) {
                     ConfirmationPopup(
                         parent,
@@ -194,7 +204,7 @@ class PrivateChannelSubPage(
         }
     }
 
-    fun onSaveChatComponent(data: ChatSettingsPage.UiState) {
+    fun onSaveChatComponent(data: UiState) {
         val id = data.componentId
         val text = data.componentText
         val perm = data.componentPermission
@@ -240,7 +250,7 @@ class PrivateChannelSubPage(
 
         var i = 0
         for (component in components) {
-            cmd.append("#ListContainer", LAYOUT_COMPONENT_LIST_ITEM)
+            cmd.append("#ListContainer", ChannelSubPage.LAYOUT_COMPONENT_LIST_ITEM)
             cmd["#ListContainer[$i] #Tag.Text"] = "{${component.key}}"
             cmd["#ListContainer[$i] #TagText.Text"] = component.value.text
             if (component.value.permission != null) {
@@ -250,14 +260,14 @@ class PrivateChannelSubPage(
 
             evt.onActivating(
                 "#ListContainer[$i] #EditBtn",
-                "CId" to component.key,
-                "Action" to "editComponent",
+                PrivateChannelEventData.ComponentId to component.key,
+                PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.EditComponent,
             )
 
             evt.onActivating(
                 "#ListContainer[$i] #DeleteBtn",
-                "CId" to component.key,
-                "Action" to "deleteComponent",
+                PrivateChannelEventData.ComponentId to component.key,
+                PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.DeleteComponent,
             )
 
             i++

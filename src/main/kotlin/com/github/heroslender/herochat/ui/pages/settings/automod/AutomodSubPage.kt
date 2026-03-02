@@ -1,10 +1,12 @@
-package com.github.heroslender.herochat.ui.pages.settings
+package com.github.heroslender.herochat.ui.pages.settings.automod
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.AutoModConfig
 import com.github.heroslender.herochat.config.AutoModRule
 import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.ui.SubPage
+import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
+import com.github.heroslender.herochat.ui.pages.settings.UiState
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.ui.popup.RulePopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -22,7 +24,7 @@ class AutomodSubPage(
     parent: ChatSettingsPage,
     val user: User,
     val config: AutoModConfig,
-) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/Automod/AutomodSubPage.ui") {
+) : SubPage<UiState>(parent, "HeroChat/SubPage/Automod/AutomodSubPage.ui") {
 
     companion object {
         const val LAYOUT_RULE_LIST_ITEM: String = "HeroChat/SubPage/Automod/RuleListItem.ui"
@@ -42,21 +44,22 @@ class AutomodSubPage(
         cmd["#DefaultBlockMessageField.Value"] = config.defaultBlockMessage
         cmd["#AutomodSettings.Visible"] = config.enabled
 
-        evt.onValueChanged("#Enabled #CheckBox", "@AutomodEnabled" to "#Enabled #CheckBox.Value")
+        evt.onValueChanged("#Enabled #CheckBox", AutomodEventData.FieldEnabled to "#Enabled #CheckBox.Value")
         evt.onValueChanged(
             "#DefaultBlockMessageField",
-            "@AutomodDefaultBlockMessage" to "#DefaultBlockMessageField.Value"
+            AutomodEventData.FieldDefaultBlockMessage to "#DefaultBlockMessageField.Value"
         )
 
-        evt.onActivating("#NewRuleBtn", "Action" to "newRule")
-        evt.onActivating("#CloseButton", "Action" to "closeUI")
-        evt.onActivating("#Cancel", "Action" to "closeUI")
-        evt.onActivating("#Save", "Action" to "save")
+        evt.onActivating("#NewRuleBtn", AutomodEventData.Action to AutomodEventData.ActionType.NewRule)
+        evt.onActivating("#CloseButton", AutomodEventData.Action to AutomodEventData.ActionType.Close)
+        evt.onActivating("#Cancel", AutomodEventData.Action to AutomodEventData.ActionType.Close)
+        evt.onActivating("#Save", AutomodEventData.Action to AutomodEventData.ActionType.Save)
     }
 
-    override fun handleDataEvent(ref: Ref<EntityStore?>, store: Store<EntityStore?>, data: ChatSettingsPage.UiState) {
+    override fun handleDataEvent(ref: Ref<EntityStore?>, store: Store<EntityStore?>, data: UiState) {
         when (data.action) {
-            "newRule", "editRule" -> {
+            AutomodEventData.ActionType.NewRule,
+            AutomodEventData.ActionType.EditRule -> {
                 val i = data.ruleIndex
                 val rule = i?.let { updatedData.rules?.get(it) ?: config.rules[it] }
 
@@ -64,8 +67,7 @@ class AutomodSubPage(
                     when (data.action) {
                         RulePopup.ActionCancel -> closePopup()
                         RulePopup.ActionConfirm -> {
-                            data.ruleIndex = i
-                            onSaveRule(data)
+                            onSaveRule(i, data)
                             closePopup()
                         }
                     }
@@ -74,7 +76,7 @@ class AutomodSubPage(
                 return
             }
 
-            "deleteRule" -> {
+            AutomodEventData.ActionType.DeleteRule -> {
                 val id = data.ruleIndex
                 if (id != null) {
                     var rules = updatedData.rules
@@ -92,7 +94,7 @@ class AutomodSubPage(
                 return
             }
 
-            "save" -> {
+            AutomodEventData.ActionType.Save -> {
                 if (!updatedData.hasChanges()) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
@@ -117,7 +119,7 @@ class AutomodSubPage(
                 return
             }
 
-            "closeUI" -> {
+            AutomodEventData.ActionType.Close -> {
                 if (updatedData.hasChanges()) {
                     ConfirmationPopup(
                         parent,
@@ -145,8 +147,7 @@ class AutomodSubPage(
         }
     }
 
-    fun onSaveRule(data: ChatSettingsPage.UiState): Boolean {
-        val i = data.ruleIndex
+    fun onSaveRule(i: Int?, data: AutomodEventData): Boolean {
         val patterns = data.rulePattern!!
         val isRegex = data.ruleIsRegex
         val replacement = data.ruleReplacement
@@ -196,7 +197,6 @@ class AutomodSubPage(
         return true
     }
 
-
     fun populateRules(cmd: UICommandBuilder, evt: UIEventBuilder) {
         cmd.clear("#ListContainer")
 
@@ -216,14 +216,14 @@ class AutomodSubPage(
 
             evt.onActivating(
                 "#ListContainer[$i] #EditBtn",
-                "RuleIndex" to i.toString(),
-                "Action" to "editRule",
+                AutomodEventData.RuleIndex to i.toString(),
+                AutomodEventData.Action to AutomodEventData.ActionType.NewRule,
             )
 
             evt.onActivating(
                 "#ListContainer[$i] #DeleteBtn",
-                "RuleIndex" to i.toString(),
-                "Action" to "deleteRule",
+                AutomodEventData.RuleIndex to i.toString(),
+                AutomodEventData.Action to AutomodEventData.ActionType.DeleteRule,
             )
         }
     }

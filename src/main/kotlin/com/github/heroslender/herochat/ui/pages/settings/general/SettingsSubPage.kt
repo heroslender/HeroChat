@@ -1,9 +1,12 @@
-package com.github.heroslender.herochat.ui.pages.settings
+package com.github.heroslender.herochat.ui.pages.settings.general
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.ui.SubPage
+import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
+import com.github.heroslender.herochat.ui.pages.settings.UiState
+import com.github.heroslender.herochat.ui.pages.settings.channel.ChannelSubPage
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -18,11 +21,12 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
+import kotlin.collections.iterator
 
 class SettingsSubPage(
     parent: ChatSettingsPage,
     private val channelService: ChannelService,
-) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/SettingsSubPage.ui") {
+) : SubPage<UiState>(parent, "HeroChat/SubPage/SettingsSubPage.ui") {
 
     private val updatedData: UpdatedData = UpdatedData()
 
@@ -38,28 +42,30 @@ class SettingsSubPage(
 
         cmd["#Dropdown.Entries"] = channels
         cmd["#Dropdown.Value"] = channelService.defaultChannel?.id ?: ""
-        cmd["#McColorsCb #CheckBox.Value"] = HeroChat.instance.config.enableMinecraftColors
         cmd["#NicknameLengthSlider #Slider.Value"] = HeroChat.instance.config.nicknameMaxLength
 
-        evt.onValueChanged("#Dropdown", "@DefaultChannel" to "#Dropdown.Value")
-        evt.onValueChanged("#McColorsCb #CheckBox", "@McColors" to "#McColorsCb #CheckBox.Value")
-        evt.onValueChanged("#NicknameLengthSlider #Slider", "@NicknameLength" to "#NicknameLengthSlider #Slider.Value")
+        evt.onValueChanged("#Dropdown", SettingsEventData.FieldDefaultChannel to "#Dropdown.Value")
+        evt.onValueChanged(
+            "#NicknameLengthSlider #Slider",
+            SettingsEventData.FieldNicknameLength to "#NicknameLengthSlider #Slider.Value"
+        )
 
         populateComponents(cmd, evt)
 
-        evt.onActivating("#NewComponentBtn", "Action" to "newComponent")
-        evt.onActivating("#CloseButton", "Action" to "closeUI")
-        evt.onActivating("#Cancel", "Action" to "closeUI")
-        evt.onActivating("#Save", "Action" to "save")
+        evt.onActivating("#NewComponentBtn", SettingsEventData.Action to SettingsEventData.ActionType.NewComponent)
+        evt.onActivating("#CloseButton", SettingsEventData.Action to SettingsEventData.ActionType.Close)
+        evt.onActivating("#Cancel", SettingsEventData.Action to SettingsEventData.ActionType.Close)
+        evt.onActivating("#Save", SettingsEventData.Action to SettingsEventData.ActionType.Save)
     }
 
     override fun handleDataEvent(
         ref: Ref<EntityStore?>,
         store: Store<EntityStore?>,
-        data: ChatSettingsPage.UiState
+        data: UiState
     ) {
         when (data.action) {
-            "newComponent", "editComponent" -> {
+            SettingsEventData.ActionType.NewComponent,
+            SettingsEventData.ActionType.EditComponent -> {
                 val id = data.componentId
                 val component = if (id != null) {
                     updatedData.components?.get(id) ?: HeroChat.instance.config.components[id]
@@ -78,7 +84,7 @@ class SettingsSubPage(
                 return
             }
 
-            "deleteComponent" -> {
+            SettingsEventData.ActionType.DeleteComponent -> {
                 val id = data.componentId
                 if (id != null) {
                     var components = updatedData.components
@@ -94,7 +100,7 @@ class SettingsSubPage(
                 return
             }
 
-            "save" -> {
+            SettingsEventData.ActionType.Save -> {
                 if (!updatedData.hasChanges()) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
@@ -106,10 +112,6 @@ class SettingsSubPage(
                 var configUpdated = false
                 if (updatedData.defaultChannel != null) {
                     channelService.updateDefaultChannel(updatedData.defaultChannel!!)
-                }
-                if (updatedData.mcColors != null) {
-                    config.enableMinecraftColors = updatedData.mcColors!!
-                    configUpdated = true
                 }
                 if (updatedData.nicknameLength != null) {
                     config.nicknameMaxLength = updatedData.nicknameLength!!
@@ -132,7 +134,7 @@ class SettingsSubPage(
                 return
             }
 
-            "closeUI" -> {
+            SettingsEventData.ActionType.Close -> {
                 if (updatedData.hasChanges()) {
                     ConfirmationPopup(
                         parent,
@@ -152,14 +154,12 @@ class SettingsSubPage(
 
         if (data.defaultChannel != null) {
             updatedData.defaultChannel = data.defaultChannel
-        } else if (data.mcColors != null) {
-            updatedData.mcColors = data.mcColors
         } else if (data.nicknameLength != null) {
             updatedData.nicknameLength = data.nicknameLength
         }
     }
 
-    fun onSaveChatComponent(data: ChatSettingsPage.UiState) {
+    fun onSaveChatComponent(data: UiState) {
         val id = data.componentId
         val text = data.componentText
         val perm = data.componentPermission
@@ -202,7 +202,7 @@ class SettingsSubPage(
 
         var i = 0
         for (component in components) {
-            cmd.append("#ListContainer", ChannelSubPage.Companion.LAYOUT_COMPONENT_LIST_ITEM)
+            cmd.append("#ListContainer", ChannelSubPage.LAYOUT_COMPONENT_LIST_ITEM)
             cmd["#ListContainer[$i] #Tag.Text"] = "{${component.key}}"
             cmd["#ListContainer[$i] #TagText.Text"] = component.value.text
             if (component.value.permission != null) {
@@ -212,14 +212,14 @@ class SettingsSubPage(
 
             evt.onActivating(
                 "#ListContainer[$i] #EditBtn",
-                "CId" to component.key,
-                "Action" to "editComponent",
+                SettingsEventData.ComponentId to component.key,
+                SettingsEventData.Action to SettingsEventData.ActionType.EditComponent,
             )
 
             evt.onActivating(
                 "#ListContainer[$i] #DeleteBtn",
-                "CId" to component.key,
-                "Action" to "deleteComponent",
+                SettingsEventData.ComponentId to component.key,
+                SettingsEventData.Action to SettingsEventData.ActionType.DeleteComponent,
             )
 
             i++
@@ -228,16 +228,14 @@ class SettingsSubPage(
 
     data class UpdatedData(
         var defaultChannel: String? = null,
-        var mcColors: Boolean? = null,
         var nicknameLength: Int? = null,
         var components: MutableMap<String, ComponentConfig>? = null,
     ) {
         fun hasChanges(): Boolean =
-            defaultChannel != null || mcColors != null || nicknameLength != null || components != null
+            defaultChannel != null || nicknameLength != null || components != null
 
         fun clear() {
             defaultChannel = null
-            mcColors = null
             nicknameLength = null
             components = null
         }

@@ -25,8 +25,8 @@ class ConfirmationPopup<T: ActionEventData>(
         cmd["$PopupSelector #ConfirmBtn.Text"] = confirmButtonText
         cmd["$PopupSelector #CancelBtn.Text"] = cancelButtonText
 
-        evt.onActivating("$PopupSelector #ConfirmBtn", "Action" to ActionConfirmPopup)
-        evt.onActivating("$PopupSelector #CancelBtn", "Action" to ActionCancelPopup)
+        evt.onActivating("$PopupSelector #ConfirmBtn", ActionEventData.Action to ActionConfirmPopup)
+        evt.onActivating("$PopupSelector #CancelBtn", ActionEventData.Action to ActionCancelPopup)
     }
 
     override fun handleDataEvent(

@@ -3,7 +3,7 @@ package com.github.heroslender.herochat.ui.popup
 import com.github.heroslender.herochat.config.AutoModRule
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
-import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
+import com.github.heroslender.herochat.ui.pages.settings.automod.AutomodEventData
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
@@ -35,8 +35,8 @@ class RulePopup<T>(
             updatePatternList(cmd, evt)
         }
 
-        evt.onActivating("$PopupSelector #NewPatternBtn", "Action" to ActionNewPattern)
-        evt.onActivating("$PopupSelector #Close", "Action" to ActionCancel)
+        evt.onActivating("$PopupSelector #NewPatternBtn", AutomodEventData.Action to ActionNewPattern)
+        evt.onActivating("$PopupSelector #Close", AutomodEventData.Action to ActionCancel)
 
     }
 
@@ -59,7 +59,7 @@ class RulePopup<T>(
                     return@RulePatternPopup
                 }
 
-                addPattern(i, data.rulePopupPattern!!,this)
+                addPattern(i, data.rulePopupPattern!!, this)
             }.openPopup(ref, store)
             return
         } else if (data.action == ActionDeletePattern) {
@@ -110,12 +110,12 @@ class RulePopup<T>(
         val patterns = updatedData.patterns ?: rule?.patterns?.toList()
         evt.onActivating(
             "$PopupSelector #AddBtn",
-            "Action" to ActionConfirm,
-            "RuleIndex" to "1",
-            "RulePattern" to patterns?.joinToString("√¿").orEmpty(),
-            "@RuleIsRegex" to "$PopupSelector #IsRegexCb #CheckBox.Value",
-            "@RuleReplacement" to "$PopupSelector #Replacement.Value",
-            "@RuleBlockMessage" to "$PopupSelector #BlockMessage.Value",
+            AutomodEventData.Action to ActionConfirm,
+            AutomodEventData.RuleIndex to "1",
+            AutomodEventData.RulePattern to patterns?.joinToString("√¿").orEmpty(),
+            AutomodEventData.FieldRuleIsRegex to "$PopupSelector #IsRegexCb #CheckBox.Value",
+            AutomodEventData.FieldRuleReplacement to "$PopupSelector #Replacement.Value",
+            AutomodEventData.FieldRuleBlockMessage to "$PopupSelector #BlockMessage.Value",
         )
 
         cmd.clear("$PopupSelector #PatternList")
@@ -128,13 +128,13 @@ class RulePopup<T>(
             cmd["$PopupSelector #PatternList[$i] #Txt.Text"] = pattern
             evt.onActivating(
                 "$PopupSelector #PatternList[$i] #EditBtn",
-                "Action" to ActionEditPattern,
-                "RuleIndex" to i.toString()
+                AutomodEventData.Action to ActionEditPattern,
+                AutomodEventData.RuleIndex to i.toString()
             )
             evt.onActivating(
                 "$PopupSelector #PatternList[$i] #DeleteBtn",
-                "Action" to ActionDeletePattern,
-                "RuleIndex" to i.toString()
+                AutomodEventData.Action to ActionDeletePattern,
+                AutomodEventData.RuleIndex to i.toString()
             )
         }
     }

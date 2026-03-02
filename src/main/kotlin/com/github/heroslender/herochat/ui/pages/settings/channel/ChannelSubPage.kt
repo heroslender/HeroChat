@@ -1,4 +1,4 @@
-package com.github.heroslender.herochat.ui.pages.settings
+package com.github.heroslender.herochat.ui.pages.settings.channel
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.channel.StandardChannel
@@ -6,6 +6,8 @@ import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.ui.SubPage
+import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
+import com.github.heroslender.herochat.ui.pages.settings.UiState
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -23,7 +25,7 @@ class ChannelSubPage(
     parent: ChatSettingsPage,
     val user: User,
     val channel: StandardChannel,
-) : SubPage<ChatSettingsPage.UiState>(parent, "HeroChat/SubPage/ChannelSubPage.ui") {
+) : SubPage<UiState>(parent, "HeroChat/SubPage/ChannelSubPage.ui") {
 
     companion object {
         const val LAYOUT_COMPONENT_LIST_ITEM: String = "HeroChat/ChatComponentListItem.ui"
@@ -56,23 +58,33 @@ class ChannelSubPage(
             cmd["#CapslockSettings.Visible"] = true
         }
 
-        evt.onValueChanged("#PreviewField", "@Format" to "#PreviewField.Value")
-        evt.onValueChanged("#Permission #Txt", "@Permission" to "#Permission #Txt.Value")
-        evt.onValueChanged("#CrossWorld #CheckBox", "@CrossWorld" to "#CrossWorld #CheckBox.Value")
-        evt.onValueChanged("#Distance #Slider", "@Distance" to "#Distance #Slider.Value")
-        evt.onValueChanged("#CapslockEnabled #CheckBox", "@CapslockFilterEnabled" to "#CapslockEnabled #CheckBox.Value")
-        evt.onValueChanged("#CapslockPercentage #Slider", "@CapslockFilterPercentage" to "#CapslockPercentage #Slider.Value")
-        evt.onValueChanged("#CapslockMinLength #Slider", "@CapslockFilterMinLength" to "#CapslockMinLength #Slider.Value")
+        evt.onValueChanged("#PreviewField", ChannelEventData.FieldFormat to "#PreviewField.Value")
+        evt.onValueChanged("#Permission #Txt", ChannelEventData.FieldPermission to "#Permission #Txt.Value")
+        evt.onValueChanged("#CrossWorld #CheckBox", ChannelEventData.FieldCrossWorld to "#CrossWorld #CheckBox.Value")
+        evt.onValueChanged("#Distance #Slider", ChannelEventData.FieldDistance to "#Distance #Slider.Value")
+        evt.onValueChanged(
+            "#CapslockEnabled #CheckBox",
+            ChannelEventData.FieldCapslockFilterEnabled to "#CapslockEnabled #CheckBox.Value"
+        )
+        evt.onValueChanged(
+            "#CapslockPercentage #Slider",
+            ChannelEventData.FieldCapslockFilterPercentage to "#CapslockPercentage #Slider.Value"
+        )
+        evt.onValueChanged(
+            "#CapslockMinLength #Slider",
+            ChannelEventData.FieldCapslockFilterMinLength to "#CapslockMinLength #Slider.Value"
+        )
 
-        evt.onActivating("#NewComponentBtn", "Action" to "newComponent")
-        evt.onActivating("#CloseButton", "Action" to "closeUI")
-        evt.onActivating("#Cancel", "Action" to "closeUI")
-        evt.onActivating("#Save", "Action" to "save")
+        evt.onActivating("#NewComponentBtn", ChannelEventData.Action to ChannelEventData.ActionType.NewComponent)
+        evt.onActivating("#CloseButton", ChannelEventData.Action to ChannelEventData.ActionType.Close)
+        evt.onActivating("#Cancel", ChannelEventData.Action to ChannelEventData.ActionType.Close)
+        evt.onActivating("#Save", ChannelEventData.Action to ChannelEventData.ActionType.Save)
     }
 
-    override fun handleDataEvent(ref: Ref<EntityStore?>, store: Store<EntityStore?>, data: ChatSettingsPage.UiState) {
+    override fun handleDataEvent(ref: Ref<EntityStore?>, store: Store<EntityStore?>, data: UiState) {
         when (data.action) {
-            "newComponent", "editComponent" -> {
+            ChannelEventData.ActionType.NewComponent,
+            ChannelEventData.ActionType.EditComponent -> {
                 val id = data.componentId
                 val component = id?.let { id -> updatedData.components?.get(id) ?: channel.components[id] }
 
@@ -89,7 +101,7 @@ class ChannelSubPage(
                 return
             }
 
-            "deleteComponent" -> {
+            ChannelEventData.ActionType.DeleteComponent -> {
                 val id = data.componentId
                 if (id != null) {
                     var components = updatedData.components
@@ -108,7 +120,7 @@ class ChannelSubPage(
                 return
             }
 
-            "save" -> {
+            ChannelEventData.ActionType.Save -> {
                 if (!updatedData.hasChanges()) {
                     NotificationUtil.sendNotification(
                         playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
@@ -149,7 +161,7 @@ class ChannelSubPage(
                 return
             }
 
-            "closeUI" -> {
+            ChannelEventData.ActionType.Close -> {
                 if (updatedData.hasChanges()) {
                     ConfirmationPopup(
                         parent,
@@ -191,7 +203,7 @@ class ChannelSubPage(
         }
     }
 
-    fun onSaveChatComponent(data: ChatSettingsPage.UiState) {
+    fun onSaveChatComponent(data: UiState) {
         val id = data.componentId
         val text = data.componentText
         val perm = data.componentPermission
@@ -248,14 +260,14 @@ class ChannelSubPage(
 
             evt.onActivating(
                 "#ListContainer[$i] #EditBtn",
-                "CId" to component.key,
-                "Action" to "editComponent",
+                ChannelEventData.ComponentId to component.key,
+                ChannelEventData.Action to ChannelEventData.ActionType.EditComponent,
             )
 
             evt.onActivating(
                 "#ListContainer[$i] #DeleteBtn",
-                "CId" to component.key,
-                "Action" to "deleteComponent",
+                ChannelEventData.ComponentId to component.key,
+                ChannelEventData.Action to ChannelEventData.ActionType.DeleteComponent,
             )
 
             i++
