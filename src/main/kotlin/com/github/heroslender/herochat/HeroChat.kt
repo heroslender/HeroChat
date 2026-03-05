@@ -1,8 +1,10 @@
 package com.github.heroslender.herochat
 
 import com.github.heroslender.herochat.channel.PrivateChannel
+import com.github.heroslender.herochat.commands.BlockCommand
 import com.github.heroslender.herochat.commands.ChatCommand
 import com.github.heroslender.herochat.commands.NicknameCommand
+import com.github.heroslender.herochat.commands.UnblockCommand
 import com.github.heroslender.herochat.config.*
 import com.github.heroslender.herochat.database.Database
 import com.github.heroslender.herochat.database.UserSettingsRepository
@@ -63,7 +65,7 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
         database = Database(dataDirectory.toFile())
         val repository = UserSettingsRepository(database)
-        userService = UserService(repository, logger.getSubLogger("UserService"))
+        userService = UserService(repository, logger.getSubLogger("UserService"), dataDirectory.toFile())
         channelService = ChannelService(this, config)
     }
 
@@ -76,6 +78,8 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
         commandRegistry.registerCommand(ChatCommand(userService))
         commandRegistry.registerCommand(NicknameCommand(userService))
+        commandRegistry.registerCommand(BlockCommand(userService))
+        commandRegistry.registerCommand(UnblockCommand(userService))
     }
 
     override fun shutdown() {

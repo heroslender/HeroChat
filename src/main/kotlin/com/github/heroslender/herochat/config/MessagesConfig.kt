@@ -12,6 +12,12 @@ class MessagesConfig {
     var chatCooldown: String = "{prefix}{#FF5555}Please wait before sending another message."
     var chatSpamWarning: String = "{prefix}{#FF5555}Please do not spam."
     var chatCapslockWarning: String = "{prefix}{#FF5555}Please do not abuse capslock!"
+    var blockSelf: String = "{prefix}{#FF5555}You cannot block yourself."
+    var blockSuccess: String = "{prefix}{#AAAAAA}You blocked {#FFFFFF}{player}{#AAAAAA}."
+    var blockAlready: String = "{prefix}{#FF5555}You already blocked {#FFFFFF}{player}{#FF5555}."
+    var unblockSelf: String = "{prefix}{#FF5555}You cannot unblock yourself."
+    var unblockSuccess: String = "{prefix}{#AAAAAA}You unblocked {#FFFFFF}{player}{#AAAAAA}."
+    var unblockNotBlocked: String = "{prefix}{#FF5555}{#FFFFFF}{player}{#FF5555} is not blocked."
     var privateChatStarted: String = "{prefix}{#AAAAAA}You are now in a private conversation with {#FFFFFF}{target}{#AAAAAA}."
     var privateChatPlayerNotFound: String = "{prefix}{#FF5555}The player is not online."
     var privateChatSelf: String = "{prefix}{#FF5555}You cannot start a private conversation with yourself."
@@ -47,6 +53,12 @@ class MessagesConfig {
             .appendString(MessagesConfig::chatCooldown)
             .appendString(MessagesConfig::chatSpamWarning)
             .appendString(MessagesConfig::chatCapslockWarning)
+            .appendString(MessagesConfig::blockSelf)
+            .appendString(MessagesConfig::blockSuccess)
+            .appendString(MessagesConfig::blockAlready)
+            .appendString(MessagesConfig::unblockSelf)
+            .appendString(MessagesConfig::unblockSuccess)
+            .appendString(MessagesConfig::unblockNotBlocked)
             .appendString(MessagesConfig::privateChatStarted)
             .appendString(MessagesConfig::privateChatPlayerNotFound)
             .appendString(MessagesConfig::privateChatSelf)
