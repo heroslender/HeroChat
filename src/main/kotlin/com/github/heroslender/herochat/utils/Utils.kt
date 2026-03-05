@@ -3,6 +3,7 @@ package com.github.heroslender.herochat.utils
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.data.PlayerUser
 import com.github.heroslender.herochat.data.User
+import com.hypixel.hytale.event.IBaseEvent
 import com.hypixel.hytale.event.EventPriority
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.console.ConsoleSender
@@ -18,6 +19,27 @@ inline fun <reified E> registerEvent(
     noinline handler: (e: E) -> Unit
 ) {
     HeroChat.instance.eventRegistry.register(priority, E::class.java, handler)
+}
+
+inline fun <reified E> registerEvent(
+    priority: Short,
+    noinline handler: (e: E) -> Unit
+) {
+    HeroChat.instance.eventRegistry.register(priority, E::class.java, handler)
+}
+
+inline fun <KeyType, reified E : IBaseEvent<KeyType>> registerGlobalEvent(
+    priority: EventPriority = EventPriority.NORMAL,
+    noinline handler: (e: E) -> Unit
+) {
+    HeroChat.instance.eventRegistry.registerGlobal(priority, E::class.java, handler)
+}
+
+inline fun <KeyType, reified E : IBaseEvent<KeyType>> registerGlobalEvent(
+    priority: Short,
+    noinline handler: (e: E) -> Unit
+) {
+    HeroChat.instance.eventRegistry.registerGlobal(priority, E::class.java, handler)
 }
 
 fun Universe.sendMessage(uuid: UUID, message: Message) {
