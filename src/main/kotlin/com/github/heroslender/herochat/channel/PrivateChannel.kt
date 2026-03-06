@@ -79,17 +79,32 @@ class PrivateChannel(
             return
         }
 
-        HytaleServer.get()
-            .eventBus
-            .dispatchForAsync(PrivateChannelChatEvent::class.java)
-            .dispatch(
-                PrivateChannelChatEvent(
-                    sender = event.sender,
-                    channel = this,
-                    target = target,
-                    message = event.message
-                )
-            ).whenComplete(::onChatEvent)
+        dispatchTestChatEvent(
+            sender = event.sender,
+            recipients = mutableListOf(target),
+            message = event.message
+        ).whenComplete { e, throwable ->
+            if (throwable != null) {
+                throwable.printStackTrace()
+                return@whenComplete
+            }
+
+            if (e != null && e.isCancelled) {
+                return@whenComplete
+            }
+
+            HytaleServer.get()
+                .eventBus
+                .dispatchForAsync(PrivateChannelChatEvent::class.java)
+                .dispatch(
+                    PrivateChannelChatEvent(
+                        sender = event.sender,
+                        channel = this,
+                        target = target,
+                        message = event.message
+                    )
+                ).whenComplete(::onChatEvent)
+        }
     }
 
     fun onChatEvent(event: PrivateChannelChatEvent, throwable: Throwable?) {

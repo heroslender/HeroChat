@@ -18,11 +18,10 @@ import com.hypixel.hytale.server.core.HytaleServer
 import com.hypixel.hytale.server.core.Message
 
 class StandardChannel(
-    id: String,
+    override val id: String,
     config: ChannelConfig,
     private val userService: UserService
 ) : Channel {
-    override val id: String = id
     override val name: String = config.name
     override val commands: Array<String> = config.commands
     val format: String = config.format
@@ -64,18 +63,32 @@ class StandardChannel(
         }
 
         val recipients: MutableList<User> = getRecipients(event.sender) ?: return
+        dispatchTestChatEvent(
+            sender = event.sender,
+            recipients = recipients,
+            message = event.message
+        ).whenComplete { e, throwable ->
+            if (throwable != null) {
+                throwable.printStackTrace()
+                return@whenComplete
+            }
 
-        HytaleServer.get()
-            .eventBus
-            .dispatchForAsync(ChannelChatEvent::class.java)
-            .dispatch(
-                ChannelChatEvent(
-                    sender = event.sender,
-                    channel = this,
-                    message = event.message,
-                    recipients = recipients
-                )
-            ).whenComplete(::onChatEvent)
+            if (e != null && e.isCancelled) {
+                return@whenComplete
+            }
+
+            HytaleServer.get()
+                .eventBus
+                .dispatchForAsync(ChannelChatEvent::class.java)
+                .dispatch(
+                    ChannelChatEvent(
+                        sender = event.sender,
+                        channel = this,
+                        message = event.message,
+                        recipients = recipients
+                    )
+                ).whenComplete(::onChatEvent)
+        }
     }
 
     fun onChatEvent(event: ChannelChatEvent, throwable: Throwable?) {
