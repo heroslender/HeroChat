@@ -49,6 +49,7 @@ A simple and customizable chat plugin for Hytale servers.
 - [x] Multiple spam checks including repeated messages & capslock spam
 - [x] Chat cooldown configurable per channel
 - [x] Chat auto-mod with support for regex
+- [x] Players can ignore other players
 - [x] Support for PlaceholderAPI everywhere in the plugin
 - [ ] Player mention system
 - [ ] Discord integration & sync
@@ -60,6 +61,8 @@ A simple and customizable chat plugin for Hytale servers.
 - `/chat` - Opens the chat customization menu;
 - `/chat settings` - Opens the user settings menu;
 - `/chat spy` - Toggle chat spy;
+- `/ignore <player>` - Ignore a player, hiding their messages;
+- `/unignore <player>` - Unignore a player, showing their messages again;
 - `/tell <player>` - Change the default chat to this private channel;
 - `/tell <player> <message>` - Sends a private message;
 - `/nickname set <nickname>` - Changes your nickname;
@@ -73,6 +76,8 @@ A simple and customizable chat plugin for Hytale servers.
 - `herochat.commands.nickname` - Permission for player to use the `/nickname` command
 - `herochat.commands.nickname.set` - Permission for player to use the `/nickname set` command
 - `herochat.commands.nickname.clear` - Permission for player to use the `/nickname clear` command
+- `herochat.commands.ignore` - Permission for player to use the `/ignore` command
+- `herochat.commands.unignore` - Permission for player to use the `/unignore` command
 - `herochat.nickname.style.colors` - Permission to use colors on the nickname
 - `herochat.nickname.style.rainbow` - Permission to use rainbow on the nickname
 - `herochat.nickname.style.gradient` - Permission to use gradient on the nickname
@@ -212,7 +217,13 @@ specific channel. A channel ID is its file name.
   "ChatNoRecipients": "{prefix}{#FF5555}No one hears you.",
   "ChatCooldown": "{prefix}{#FF5555}Please wait before sending another message.",
   "ChatSpamWarning": "{prefix}{#FF5555}Please do not spam.",
-  "ChatCapslockWarning": "{prefix}{#FF5555}Please do not abuse capslock!",
+  "ChatCapslockWarning": "{prefix}{#FF5555}Please do not abuse capslock!"
+  "IgnoreSelf": "{prefix}{#FF5555}You cannot ignore yourself.",
+  "IgnoreSuccess": "{prefix}{#AAAAAA}You ignored {#FFFFFF}{player}{#AAAAAA}.",
+  "IgnoreAlready": "{prefix}{#FF5555}You already ignored {#FFFFFF}{player}{#FF5555}.",
+  "UnignoreSelf": "{prefix}{#FF5555}You cannot unignore yourself.",
+  "UnignoreSuccess": "{prefix}{#AAAAAA}You unignored {#FFFFFF}{player}{#AAAAAA}.",
+  "UnignoreNotIgnored": "{prefix}{#FF5555}{#FFFFFF}{player}{#FF5555} is not ignored.",
   "PrivateChatStarted": "{prefix}{#AAAAAA}You are now in a private conversation with {#FFFFFF}{target}{#AAAAAA}.",
   "PrivateChatPlayerNotFound": "{prefix}{#FF5555}The player is not online.",
   "PrivateChatSelf": "{prefix}{#FF5555}You cannot start a private conversation with yourself.",
