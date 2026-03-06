@@ -124,7 +124,6 @@ class PrivateChannel(
                 components +
                 ("message" to ComponentConfig(message)) +
                 ("target_username" to ComponentConfig(target.username))
-        val targetBlockedSender = userService.hasBlocked(target.uuid, sender.uuid)
 
         // Some placeholders require the world thread to work
         sender.runInWorld {
@@ -132,9 +131,7 @@ class PrivateChannel(
             val receivedMessage = MessageParser.parse(sender, receiverFormat, comp)
 
             sender.sendMessage(message)
-            if (!targetBlockedSender) {
-                target.sendMessage(receivedMessage)
-            }
+            target.sendMessage(receivedMessage)
         }
     }
 

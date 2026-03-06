@@ -144,7 +144,6 @@ class StandardChannel(
             return@removeIf permission?.let { !user.hasPermission(it) } ?: false
                     && user.settings.disabledChannels.contains(this.id)
         }
-        recipients.removeIf { user -> userService.hasBlocked(user.uuid, sender.uuid) }
 
         return recipients
     }
