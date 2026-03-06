@@ -26,6 +26,10 @@ class ChatListener(
         registerEvent<PreChatEvent>(handler = ::checkCapslockFilter)
         registerEvent<PreChatEvent>(handler = ::checkSpam)
 
+        // Filter messages from ignored users
+        registerEvent<ChannelChatEvent>(EventPriority.NORMAL, ::filterIgnoredUsers)
+        registerEvent<PrivateChannelChatEvent>(EventPriority.NORMAL, ::filterIgnoredUsers)
+
         // Append player default color to message
         registerEvent<ChannelChatEvent>(handler = ::handleDefaultUserColor)
 
@@ -137,6 +141,19 @@ class ChatListener(
 
         e.sender.sendMessage(MessagesConfig::chatCooldown)
         e.isCancelled = true
+    }
+
+    fun filterIgnoredUsers(e: ChannelChatEvent) {
+        e.recipients.removeIf { recipient ->
+            userService.hasIgnored(recipient.uuid, e.sender.uuid)
+        }
+    }
+
+    fun filterIgnoredUsers(e: PrivateChannelChatEvent) {
+        if (userService.hasIgnored(e.target.uuid, e.sender.uuid)) {
+            e.isCancelled = true
+//            e.sender.sendMessage(MessagesConfig::targetIgnoresYou, "player" to e.target.username)
+        }
     }
 
     fun Channel.getCooldown(user: User): Long {

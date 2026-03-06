@@ -3,8 +3,8 @@ package com.github.heroslender.herochat
 object Permissions {
     const val COMMAND_CHAT = "herochat.commands.chat"
     const val COMMAND_NICKNAME = "herochat.commands.nickname"
-    const val COMMAND_BLOCK = "herochat.commands.block"
-    const val COMMAND_UNBLOCK = "herochat.commands.unblock"
+    const val COMMAND_IGNORE = "herochat.commands.ignore"
+    const val COMMAND_UNIGNORE = "herochat.commands.unignore"
     const val NICKNAME_BASE_PERMISSION = "herochat.nickname.style"
     const val SETTINGS_MUTE_CHANNEL = "herochat.chat.mute-channels"
     const val SETTINGS_MESSAGE_COLOR = "herochat.chat.message-color"

@@ -11,12 +11,12 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractAsyncC
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import java.util.concurrent.CompletableFuture
 
-class BlockCommand(private val userService: UserService) :
-    AbstractAsyncCommand("block", "Block a player from appearing in your chat") {
+class UnignoreCommand(private val userService: UserService) :
+    AbstractAsyncCommand("unignore", "Unignore a player.") {
     private val targetArg: RequiredArg<PlayerRef> = withRequiredArg("player", "Target player", ArgTypes.PLAYER_REF)
 
     init {
-        requirePermission(Permissions.COMMAND_BLOCK)
+        requirePermission(Permissions.COMMAND_UNIGNORE)
     }
 
     override fun canGeneratePermission(): Boolean {
@@ -29,16 +29,19 @@ class BlockCommand(private val userService: UserService) :
             val target = targetArg.get(ctx)
 
             if (sender.uuid == target.uuid) {
-                sender.sendMessage(MessagesConfig::blockSelf)
+                sender.sendMessage(MessagesConfig::unignoreSelf)
                 return@runAsync
             }
 
-            if (userService.blockPlayer(sender.uuid, target.uuid)) {
-                sender.sendMessage(MessagesConfig::blockSuccess, "player" to target.username)
+            if (!sender.settings.ignoredUsers.contains(target.uuid)) {
+                sender.sendMessage(MessagesConfig::unignoreNotIgnored, "player" to target.username)
                 return@runAsync
             }
 
-            sender.sendMessage(MessagesConfig::blockAlready, "player" to target.username)
+            with(userService) {
+                sender.unignorePlayer(target.uuid)
+                sender.sendMessage(MessagesConfig::unignoreSuccess, "player" to target.username)
+            }
         }
     }
 }

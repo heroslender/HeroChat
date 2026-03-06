@@ -38,6 +38,14 @@ class Database(dataFolder: File) {
                     );
                 """.trimIndent())
 
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS ignored_users (
+                        ignoring_uuid VARCHAR(36) NOT NULL,
+                        ignored_uuid VARCHAR(36) NOT NULL,
+                        PRIMARY KEY (ignoring_uuid, ignored_uuid)
+                    );
+                """.trimIndent())
+
                 try {
                     stmt.execute("ALTER TABLE user_settings ADD COLUMN nickname TEXT DEFAULT NULL;")
                 } catch (_: SQLException) {

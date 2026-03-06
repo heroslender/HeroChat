@@ -1,12 +1,13 @@
 package com.github.heroslender.herochat
 
 import com.github.heroslender.herochat.channel.PrivateChannel
-import com.github.heroslender.herochat.commands.BlockCommand
 import com.github.heroslender.herochat.commands.ChatCommand
+import com.github.heroslender.herochat.commands.IgnoreCommand
 import com.github.heroslender.herochat.commands.NicknameCommand
-import com.github.heroslender.herochat.commands.UnblockCommand
+import com.github.heroslender.herochat.commands.UnignoreCommand
 import com.github.heroslender.herochat.config.*
 import com.github.heroslender.herochat.database.Database
+import com.github.heroslender.herochat.database.IgnoredUsersRepository
 import com.github.heroslender.herochat.database.UserSettingsRepository
 import com.github.heroslender.herochat.listeners.AutoModListener
 import com.github.heroslender.herochat.listeners.ChatListener
@@ -65,7 +66,8 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
         database = Database(dataDirectory.toFile())
         val repository = UserSettingsRepository(database)
-        userService = UserService(repository, logger.getSubLogger("UserService"), dataDirectory.toFile())
+        val ignoredUsersRepository = IgnoredUsersRepository(database)
+        userService = UserService(repository, ignoredUsersRepository, logger.getSubLogger("UserService"))
         channelService = ChannelService(this, config)
     }
 
@@ -78,8 +80,8 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
 
         commandRegistry.registerCommand(ChatCommand(userService))
         commandRegistry.registerCommand(NicknameCommand(userService))
-        commandRegistry.registerCommand(BlockCommand(userService))
-        commandRegistry.registerCommand(UnblockCommand(userService))
+        commandRegistry.registerCommand(IgnoreCommand(userService))
+        commandRegistry.registerCommand(UnignoreCommand(userService))
     }
 
     override fun shutdown() {

@@ -9,5 +9,6 @@ data class UserSettings(
     var messageColor: String? = null,
     val disabledChannels: MutableSet<String> = mutableSetOf(),
     var spyMode: Boolean = false,
-    var nickname: String? = null
+    var nickname: String? = null,
+    val ignoredUsers: MutableSet<UUID> = mutableSetOf()
 )
