@@ -10,6 +10,7 @@ interface User {
     var settings: UserSettings
 
     var lastMessage: String
+    var lastPrivateMessageSource: UUID?
     val cooldowns: Object2LongMap<String>
 
     fun sendMessage(message: Message)

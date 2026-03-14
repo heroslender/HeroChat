@@ -2,6 +2,8 @@ package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
+import com.github.heroslender.herochat.commands.PrivateChannelCommand
+import com.github.heroslender.herochat.commands.ReplyCommand
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
 import com.github.heroslender.herochat.config.PrivateChannelConfig
@@ -13,21 +15,51 @@ import com.github.heroslender.herochat.message.MessageParser
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.runInWorld
 import com.github.heroslender.herochat.utils.sendMessage
+import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.server.core.HytaleServer
+import com.hypixel.hytale.server.core.command.system.AbstractCommand
+import com.hypixel.hytale.server.core.command.system.CommandRegistration
 
 class PrivateChannel(
     config: PrivateChannelConfig,
-    private val userService: UserService
+    private val userService: UserService,
+    private val logger: HytaleLogger,
 ) : Channel {
     override val id: String = ID
     override val name: String = config.name
     override val commands: Array<String> = config.commands
+    val replyCommands: Array<String> = config.replyCommands
     val format: String = config.senderFormat
     val receiverFormat: String = config.receiverFormat
     override val permission: String? = config.permission
     override val capslockFilter: CapslockFilter = CapslockFilter(config.capslockFilter)
     val cooldowns: Map<String, Long> = config.cooldowns
     val components: Map<String, ComponentConfig> = config.components
+
+    private var command: CommandRegistration? = null
+    private var replyCommand: CommandRegistration? = null
+
+    override fun load() {
+        val commandRegistry = HeroChat.instance.commandRegistry
+        if (commands.isNotEmpty()) {
+            val cmd: AbstractCommand = PrivateChannelCommand(this, userService)
+            command = commandRegistry.registerCommand(cmd)
+            logger.atInfo()
+                .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
+        }
+
+        if (replyCommands.isNotEmpty()) {
+            val cmd = ReplyCommand(this, userService)
+            replyCommand = commandRegistry.registerCommand(cmd)
+            logger.atInfo()
+                .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
+        }
+    }
+
+    override fun unload() {
+        command?.unregister()
+        replyCommand?.unregister()
+    }
 
     override fun sendMessage(sender: User, msg: String) {
         val settings = sender.settings
@@ -132,6 +164,9 @@ class PrivateChannel(
 
             sender.sendMessage(message)
             target.sendMessage(receivedMessage)
+
+            sender.lastPrivateMessageSource = target.uuid
+            target.lastPrivateMessageSource = sender.uuid
         }
     }
 

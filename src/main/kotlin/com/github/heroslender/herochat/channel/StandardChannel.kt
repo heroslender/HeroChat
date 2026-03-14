@@ -1,6 +1,8 @@
 package com.github.heroslender.herochat.channel
 
+import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
+import com.github.heroslender.herochat.commands.ChannelCommand
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -14,13 +16,17 @@ import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.runInWorld
 import com.github.heroslender.herochat.utils.sendMessage
 import com.github.heroslender.herochat.utils.square
+import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.server.core.HytaleServer
 import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.command.system.AbstractCommand
+import com.hypixel.hytale.server.core.command.system.CommandRegistration
 
 class StandardChannel(
     override val id: String,
     config: ChannelConfig,
-    private val userService: UserService
+    private val userService: UserService,
+    private val logger: HytaleLogger,
 ) : Channel {
     override val name: String = config.name
     override val commands: Array<String> = config.commands
@@ -33,6 +39,21 @@ class StandardChannel(
     val distance: Double? = config.distance
     val distanceSquared: Double? = distance?.let { square(it) }
     val crossWorld: Boolean = config.crossWorld ?: true
+
+    private var command: CommandRegistration? = null
+
+    override fun load() {
+        if (commands.isNotEmpty()) {
+            val cmd: AbstractCommand = ChannelCommand(this, userService)
+            command = HeroChat.instance.commandRegistry.registerCommand(cmd)
+            logger.atInfo()
+                .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
+        }
+    }
+
+    override fun unload() {
+        command?.unregister()
+    }
 
     override fun sendMessage(sender: User, msg: String) {
         if (permission != null && !sender.hasPermission(permission)) {

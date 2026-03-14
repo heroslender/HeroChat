@@ -10,7 +10,8 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec
 
 class PrivateChannelConfig {
     var name: String = "Whisper"
-    var commands: Array<String> = arrayOf("tell", "w", "whisper", "pm")
+    var commands: Array<String> = arrayOf("tell", "msg", "w", "whisper", "pm")
+    var replyCommands: Array<String> = arrayOf("reply", "r")
     var senderFormat: String = "Message to {target_username}{#555555}{bold}> {#AAAAAA}{message}"
     var receiverFormat: String = "Message from {player_username}{#555555}{bold}> {#AAAAAA}{message}"
     var permission: String? = null

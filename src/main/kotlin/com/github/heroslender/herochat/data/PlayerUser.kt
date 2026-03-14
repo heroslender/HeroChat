@@ -18,6 +18,7 @@ class PlayerUser(
         get() = player.username
 
     override var lastMessage: String = ""
+    override var lastPrivateMessageSource: UUID? = null
     override val cooldowns: Object2LongMap<String> = Object2LongOpenHashMap()
 
     override fun sendMessage(message: Message) {

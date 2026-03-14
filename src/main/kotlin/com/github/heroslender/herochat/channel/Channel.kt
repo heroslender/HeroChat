@@ -14,6 +14,10 @@ interface Channel {
     val permission: String?
     val capslockFilter: CapslockFilter
 
+    fun load()
+
+    fun unload()
+
     fun sendMessage(sender: User, msg: String)
 
     /**

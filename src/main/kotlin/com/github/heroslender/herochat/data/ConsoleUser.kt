@@ -16,6 +16,7 @@ class ConsoleUser(
         get() = console.displayName
 
     override var lastMessage: String = ""
+    override var lastPrivateMessageSource: UUID? = null
     override val cooldowns: Object2LongMap<String> = Object2LongOpenHashMap()
 
     override fun sendMessage(message: Message) {
