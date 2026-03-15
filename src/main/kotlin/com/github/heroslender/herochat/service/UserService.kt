@@ -7,7 +7,9 @@ import com.github.heroslender.herochat.data.UserSettings
 import com.github.heroslender.herochat.database.IgnoredUsersRepository
 import com.github.heroslender.herochat.database.UserSettingsRepository
 import com.hypixel.hytale.logger.HytaleLogger
+import com.hypixel.hytale.server.core.NameMatching
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.Universe
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -29,6 +31,10 @@ class UserService(
 
     fun getUser(playerRef: PlayerRef): User? {
         return getUser(playerRef.uuid)
+    }
+
+    fun getUser(username: String): User? {
+        return getUser(Universe.get().getPlayerByUsername(username, NameMatching.EXACT_IGNORE_CASE) ?: return null)
     }
 
     fun getUsers(): Collection<User> {

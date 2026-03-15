@@ -2,6 +2,7 @@ package com.github.heroslender.herochat.channel
 
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
+import com.github.heroslender.herochat.commands.IChannelCommand
 import com.github.heroslender.herochat.commands.PrivateChannelCommand
 import com.github.heroslender.herochat.commands.ReplyCommand
 import com.github.heroslender.herochat.config.ComponentConfig
@@ -17,7 +18,6 @@ import com.github.heroslender.herochat.utils.runInWorld
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.server.core.HytaleServer
-import com.hypixel.hytale.server.core.command.system.AbstractCommand
 import com.hypixel.hytale.server.core.command.system.CommandRegistration
 
 class PrivateChannel(
@@ -36,29 +36,41 @@ class PrivateChannel(
     val cooldowns: Map<String, Long> = config.cooldowns
     val components: Map<String, ComponentConfig> = config.components
 
-    private var command: CommandRegistration? = null
-    private var replyCommand: CommandRegistration? = null
+    var command: IChannelCommand? = null
+        private set
+    private var commandRegistration: CommandRegistration? = null
+
+    var replyCommand: IChannelCommand? = null
+        private set
+    private var replyCommandRegistration: CommandRegistration? = null
 
     override fun load() {
         val commandRegistry = HeroChat.instance.commandRegistry
         if (commands.isNotEmpty()) {
-            val cmd: AbstractCommand = PrivateChannelCommand(this, userService)
-            command = commandRegistry.registerCommand(cmd)
+            val cmd = PrivateChannelCommand(this, userService)
+            command = cmd
+            commandRegistration = commandRegistry.registerCommand(cmd)
             logger.atInfo()
                 .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
         }
 
         if (replyCommands.isNotEmpty()) {
             val cmd = ReplyCommand(this, userService)
-            replyCommand = commandRegistry.registerCommand(cmd)
+            replyCommand = cmd
+            replyCommandRegistration = commandRegistry.registerCommand(cmd)
             logger.atInfo()
                 .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
         }
     }
 
     override fun unload() {
-        command?.unregister()
-        replyCommand?.unregister()
+        commandRegistration?.unregister()
+        command = null
+        commandRegistration = null
+
+        replyCommandRegistration?.unregister()
+        replyCommand = null
+        replyCommandRegistration = null
     }
 
     override fun sendMessage(sender: User, msg: String) {

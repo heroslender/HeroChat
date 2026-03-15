@@ -2,6 +2,7 @@ package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.channel.StandardChannel
 import com.github.heroslender.herochat.config.MessagesConfig
+import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.CommandContext
@@ -12,7 +13,10 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractAsyncC
 import java.util.concurrent.CompletableFuture
 
 class ChannelCommand(val channel: StandardChannel, private val userService: UserService) :
-    AbstractAsyncCommand(channel.commands.first(), "Sends a chat message in a specific channel") {
+    AbstractAsyncCommand(channel.commands.first(), "Sends a chat message in a specific channel"),
+    IChannelCommand {
+    override val aliases: Array<String>
+        get() = channel.commands
     private val msgArg: OptionalArg<String> = withOptionalArg("msg", "message", ArgTypes.STRING)
 
     init {
@@ -30,20 +34,23 @@ class ChannelCommand(val channel: StandardChannel, private val userService: User
     override fun executeAsync(ctx: CommandContext): CompletableFuture<Void> {
         return CompletableFuture.runAsync {
             val sender = userService.getUser(ctx.sender().uuid) ?: return@runAsync
+            val msg = CommandUtil.stripCommandName(ctx.inputString)
 
-            if (ctx.inputString.indexOf(' ') >= 0) {
-                val msg = CommandUtil.stripCommandName(ctx.inputString)
-                channel.sendMessage(sender, msg)
-                return@runAsync
-            }
+            execute(sender, msg)
+        }
+    }
 
+    override fun execute(sender: User, message: String) {
+        if (message.isBlank()) {
             with(userService) {
                 sender.updateSettings {
                     it.focusedChannelId = channel.id
                 }
             }
-
             sender.sendMessage(MessagesConfig::channelJoined, "channel" to channel.name)
+            return
         }
+
+        channel.sendMessage(sender, message)
     }
 }

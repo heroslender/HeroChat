@@ -2,7 +2,7 @@ package com.github.heroslender.herochat.commands
 
 import com.github.heroslender.herochat.channel.PrivateChannel
 import com.github.heroslender.herochat.config.MessagesConfig
-import com.github.heroslender.herochat.service.ChannelService
+import com.github.heroslender.herochat.data.User
 import com.github.heroslender.herochat.service.UserService
 import com.github.heroslender.herochat.utils.sendMessage
 import com.hypixel.hytale.server.core.command.system.CommandContext
@@ -13,8 +13,12 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractAsyncC
 import java.util.concurrent.CompletableFuture
 
 class ReplyCommand(val channel: PrivateChannel, private val userService: UserService) :
-    AbstractAsyncCommand(channel.replyCommands.first(), "Reply to the last private message") {
+    AbstractAsyncCommand(channel.replyCommands.first(), "Reply to the last private message"),
+    IChannelCommand {
     private val msgArg: OptionalArg<String> = withOptionalArg("msg", "message", ArgTypes.STRING)
+    override val aliases: Array<String>
+        get() = channel.replyCommands
+
 
     init {
         setAllowsExtraArguments(true)
@@ -33,19 +37,25 @@ class ReplyCommand(val channel: PrivateChannel, private val userService: UserSer
             val sender = userService.getUser(ctx.sender().uuid) ?: return@runAsync
 
             val rawArgs = CommandUtil.stripCommandName(ctx.inputString)
-            if (rawArgs.isNotEmpty()) {
-                channel.sendMessage(sender, rawArgs)
-                return@runAsync
-            }
+            execute(sender, rawArgs)
+        }
+    }
 
+    override fun execute(sender: User, message: String) {
+        if (message.isBlank()) {
             with(userService) {
                 sender.updateSettings {
                     it.focusedChannelId = PrivateChannel.ID
                 }
             }
 
-            val target = sender.lastPrivateMessageSource?.let { userService.getUser(it)?.username }?: "Unknown"
+            val target = sender.lastPrivateMessageSource?.let { userService.getUser(it)?.username } ?: "Unknown"
             sender.sendMessage(MessagesConfig::privateChatStarted, "target" to target)
+            return
         }
+
+
+        channel.sendMessage(sender, message)
+        return
     }
 }

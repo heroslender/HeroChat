@@ -3,6 +3,7 @@ package com.github.heroslender.herochat.channel
 import com.github.heroslender.herochat.HeroChat
 import com.github.heroslender.herochat.Permissions
 import com.github.heroslender.herochat.commands.ChannelCommand
+import com.github.heroslender.herochat.commands.IChannelCommand
 import com.github.heroslender.herochat.config.ChannelConfig
 import com.github.heroslender.herochat.config.ComponentConfig
 import com.github.heroslender.herochat.config.MessagesConfig
@@ -19,7 +20,6 @@ import com.github.heroslender.herochat.utils.square
 import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.server.core.HytaleServer
 import com.hypixel.hytale.server.core.Message
-import com.hypixel.hytale.server.core.command.system.AbstractCommand
 import com.hypixel.hytale.server.core.command.system.CommandRegistration
 
 class StandardChannel(
@@ -40,19 +40,24 @@ class StandardChannel(
     val distanceSquared: Double? = distance?.let { square(it) }
     val crossWorld: Boolean = config.crossWorld ?: true
 
-    private var command: CommandRegistration? = null
+    var command: IChannelCommand? = null
+        private set
+    private var commandRegistration: CommandRegistration? = null
 
     override fun load() {
         if (commands.isNotEmpty()) {
-            val cmd: AbstractCommand = ChannelCommand(this, userService)
-            command = HeroChat.instance.commandRegistry.registerCommand(cmd)
+            val cmd = ChannelCommand(this, userService)
+            command = cmd
+            commandRegistration = HeroChat.instance.commandRegistry.registerCommand(cmd)
             logger.atInfo()
                 .log("Registered channel command ${cmd.name}${cmd.aliases.joinToString(", ", " with aliases: ")}.")
         }
     }
 
     override fun unload() {
-        command?.unregister()
+        commandRegistration?.unregister()
+        command = null
+        commandRegistration = null
     }
 
     override fun sendMessage(sender: User, msg: String) {
