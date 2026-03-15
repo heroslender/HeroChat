@@ -14,6 +14,7 @@ import com.github.heroslender.herochat.listeners.ChatListener
 import com.github.heroslender.herochat.listeners.PlayerListener
 import com.github.heroslender.herochat.service.ChannelService
 import com.github.heroslender.herochat.service.UserService
+import com.hypixel.hytale.server.core.io.adapter.PacketAdapters
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
 import com.hypixel.hytale.server.core.universe.Universe
@@ -49,6 +50,8 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     lateinit var channelService: ChannelService
         private set
 
+    private lateinit var playerListener: PlayerListener
+
     companion object {
         lateinit var instance: HeroChat
     }
@@ -74,7 +77,9 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
     override fun start() {
         Universe.get().players.forEach(userService::onJoin)
 
-        PlayerListener(userService, channelService)
+        playerListener = PlayerListener(userService, channelService)
+        PacketAdapters.registerInbound(playerListener)
+
         ChatListener(userService)
         AutoModListener(config, autoModConfig)
 
@@ -90,6 +95,10 @@ class HeroChat(init: JavaPluginInit) : JavaPlugin(init) {
         }
         if (::database.isInitialized) {
             database.close()
+        }
+
+        if (::playerListener.isInitialized) {
+            PacketAdapters.deregisterInbound(playerListener)
         }
     }
 

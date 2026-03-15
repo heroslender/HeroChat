@@ -18,7 +18,6 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent
 import com.hypixel.hytale.server.core.io.PacketHandler
-import com.hypixel.hytale.server.core.io.adapter.PacketAdapters
 import com.hypixel.hytale.server.core.io.adapter.PacketFilter
 import com.hypixel.hytale.server.core.io.handlers.game.GamePacketHandler
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -26,7 +25,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 class PlayerListener(
     private val userService: UserService,
     private val channelService: ChannelService,
-) {
+) : PacketFilter {
     init {
         registerGlobalEvent<String, PlayerChatEvent>(EventPriority.FIRST) { e ->
             if (e is TestPlayerChatEvent) {
@@ -49,64 +48,74 @@ class PlayerListener(
             userService.onQuit(e.playerRef)
         }
 
-        // Intercept the chat message packet to fix players not being
-        // able to use `"` char in chat messages as they get removed
-        // by the hytale command manager.
-        PacketAdapters.registerInbound(object : PacketFilter {
-            override fun test(
-                handler: PacketHandler,
-                packet: Packet
-            ): Boolean {
-                if (packet is ChatMessage) {
-                    val message = packet.message
-                    if (message.isNullOrEmpty()) {
-                        return false
-                    }
+        HeroChat.instance.logger.atInfo().log("Registered player listeners")
+    }
 
-                    val firstChar = message[0]
-                    if (firstChar == '.') {
-                        return false
-                    }
+    // Intercept the chat message packet to fix players not being
+    // able to use `"` char in chat messages as they get removed
+    // by the hytale command manager.
+    override fun test(
+        handler: PacketHandler,
+        packet: Packet
+    ): Boolean {
+        if (packet is ChatMessage) {
+            val message = packet.message
+            if (message.isNullOrEmpty()) {
+                return false
+            }
 
-                    if (firstChar == '/') {
-                        val i = message.indexOf(' ')
-                        val cmd = if (i == -1) message.substring(1) else message.substring(1, i).lowercase()
-                        val msg = if (i == -1) "" else message.substring(i + 1)
-                        for (channel in channelService.channels.values) {
-                            if (channel is StandardChannel) {
-                                val command = channel.command?: continue
-                                if (handleCommand(handler, command, cmd, msg)) {
-                                    return true
-                                }
-                            } else if (channel is PrivateChannel) {
-                                val command = channel.command
-                                if (command != null && handleCommand(handler, command, cmd, msg)) {
-                                    return true
-                                }
+            val firstChar = message[0]
+            if (firstChar == '.') {
+                return false
+            }
 
-                                val replyCommand = channel.replyCommand
-                                if (replyCommand != null && handleCommand(handler, replyCommand, cmd, msg)) {
-                                    return true
-                                }
-                            }
+            if (firstChar == '/') {
+                val i = message.indexOf(' ')
+                val cmd = if (i == -1) message.substring(1) else message.substring(1, i).lowercase()
+                val msg = if (i == -1) "" else message.substring(i + 1)
+                for (channel in channelService.channels.values) {
+                    if (channel is StandardChannel) {
+                        val command = channel.command ?: continue
+                        if (handleCommand(handler, command, cmd, msg)) {
+                            return true
+                        }
+                    } else if (channel is PrivateChannel) {
+                        val command = channel.command
+                        if (command != null && handleCommand(handler, command, cmd, msg)) {
+                            return true
                         }
 
-                        return false
+                        val replyCommand = channel.replyCommand
+                        if (replyCommand != null && handleCommand(handler, replyCommand, cmd, msg)) {
+                            return true
+                        }
                     }
-
-                    onChat(handler.playerRef, message)
-                    return true
                 }
 
                 return false
             }
-        })
 
-        HeroChat.instance.logger.atInfo().log("Registered player listeners")
+            onChat(handler.playerRef, message)
+            return true
+        }
+
+        return false
     }
 
     fun onChat(playerRef: PlayerRef, message: String) {
         val sender = userService.getUser(playerRef) ?: return
+
+        for (channel in channelService.channels.values) {
+            if (channel is StandardChannel && !channel.shoutCommands.isNullOrEmpty()) {
+                for (cmd in channel.shoutCommands) {
+                    if (message.startsWith(cmd)) {
+                        channel.sendMessage(sender, message.substring(cmd.length).trim())
+                        return
+                    }
+                }
+            }
+        }
+
         val channel = channelService.channels[sender.settings.focusedChannelId] ?: channelService.defaultChannel
         if (channel == null) {
             sender.sendMessage(MessagesConfig::channelNotFound)

@@ -30,6 +30,7 @@ class StandardChannel(
 ) : Channel {
     override val name: String = config.name
     override val commands: Array<String> = config.commands
+    val shoutCommands: Array<String>? = config.shoutCommands
     val format: String = config.format
     override val permission: String? = config.permission
     override val capslockFilter: CapslockFilter = CapslockFilter(config.capslockFilter)

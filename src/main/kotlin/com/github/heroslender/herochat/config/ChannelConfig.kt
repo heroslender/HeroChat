@@ -11,6 +11,7 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec
 class ChannelConfig {
     var name: String = "Global"
     var commands: Array<String> = arrayOf("g", "global")
+    var shoutCommands: Array<String>? = null
     var format: String = "{color}[Global] {#FFFFFF}{player_nickname}{#555555}{bold}> {color}{message}"
     var permission: String? = null
     var distance: Double? = null
@@ -27,6 +28,7 @@ class ChannelConfig {
         )
             .appendString(ChannelConfig::name)
             .append(ChannelConfig::commands, Codec.STRING_ARRAY) { emptyArray<String>() }
+            .append(ChannelConfig::shoutCommands, Codec.STRING_ARRAY)
             .appendString(ChannelConfig::format)
             .appendStringOpt(ChannelConfig::permission)
             .append(ChannelConfig::distance, Codec.DOUBLE)
