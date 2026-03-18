@@ -37,10 +37,6 @@ Group {
     }
   }
 
-  $S.@CheckSetting #McColorsCb {
-    @Text = "Enable Minecraft Colors";
-  }
-
   $S.@SliderSetting #NicknameLengthSlider {
     @Text = "Nickname Maximum Length";
   }
