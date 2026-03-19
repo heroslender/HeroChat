@@ -9,6 +9,7 @@ import com.github.heroslender.herochat.ui.pages.settings.general.SettingsEventDa
 import com.github.heroslender.herochat.ui.pages.settings.general.SettingsEventData.Companion.appendSettingsEventData
 import com.github.heroslender.herochat.ui.pages.settings.privatechannel.PrivateChannelEventData
 import com.github.heroslender.herochat.ui.pages.settings.privatechannel.PrivateChannelEventData.Companion.appendPrivateChannelEventData
+import com.github.heroslender.herochat.ui.popup.StringSupplierPopup.EventData.Companion.appendStringSupplierPopupEventData
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
@@ -37,7 +38,6 @@ class UiState: SettingsEventData, AutomodEventData, ChannelEventData, PrivateCha
     override var ruleIsRegex: Boolean? = null
     override var ruleReplacement: String? = null
     override var ruleBlockMessage: String? = null
-    override var rulePopupPattern: String? = null
 
     // Private channel props
     override var receiverFormat: String? = null
@@ -52,6 +52,9 @@ class UiState: SettingsEventData, AutomodEventData, ChannelEventData, PrivateCha
     override var capslockFilterPercentage: Int? = null
     override var capslockFilterMinLength: Int? = null
 
+    override var commandId: String? = null
+    override var suppliedString: String? = null
+
     companion object {
         val CODEC: BuilderCodec<UiState> = BuilderCodec.builder(
             UiState::class.java, { UiState() })
@@ -63,6 +66,7 @@ class UiState: SettingsEventData, AutomodEventData, ChannelEventData, PrivateCha
                 KeyedCodec("NavigateTo", Codec.STRING),
                 { e, v -> e.navigateTo = v },
                 { e -> e.navigateTo }).add()
+            .appendStringSupplierPopupEventData()
             .appendComponentManagerEventData()
             .appendSettingsEventData()
             .appendAutomodEventData()

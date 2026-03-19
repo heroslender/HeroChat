@@ -1,8 +1,8 @@
-$C = "../../../Common.ui";
-$Popup = "../../Popup/Popup.ui";
+$C = "../../Common.ui";
+$Popup = "Popup.ui";
 
-$Popup.@Popup #RulePatternPopup {
-  @Title = "Add New Pattern";
+$Popup.@Popup #StringSupplierPopup {
+  @Title = "String Supplier";
 
   #Content {
     Group #Error {
@@ -12,7 +12,7 @@ $Popup.@Popup #RulePatternPopup {
 
       Group {
         Anchor: (Width: 24, Height: 24, Right: 24);
-        Background: (TexturePath: "../../Assets/IconError.png");
+        Background: (TexturePath: "../Assets/IconError.png");
         TextTooltipStyle: $C.@DefaultTextTooltipStyle;
       }
 
@@ -21,26 +21,25 @@ $Popup.@Popup #RulePatternPopup {
       }
     }
 
-    Label {
-      Text: "Pattern";
+    Label #TfLabel{
       Style: (TextColor: #96a9be, FontSize: 15, RenderBold: true);
       Anchor: (Bottom: 8);
     }
 
-    $C.@TextField #Pattern {
+    $C.@TextField #Tf {
       Anchor: (Height: 38, Bottom: 12);
       Style: (FontSize: 16, TextColor: #ffffff);
     }
   }
 
   #BottomBar {
-    $C.@TextButton #AddBtn {
+    $C.@TextButton #Confirm {
       @Text = "Add";
       FlexWeight: 1;
       Anchor: (Right: 10);
     }
 
-    $C.@SecondaryTextButton #Close {
+    $C.@SecondaryTextButton #Cancel {
       @Text = "Cancel";
       FlexWeight: 1;
     }

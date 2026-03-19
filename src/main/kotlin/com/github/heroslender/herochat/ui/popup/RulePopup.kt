@@ -4,6 +4,7 @@ import com.github.heroslender.herochat.config.AutoModRule
 import com.github.heroslender.herochat.ui.Page
 import com.github.heroslender.herochat.ui.event.ActionEventData
 import com.github.heroslender.herochat.ui.pages.settings.automod.AutomodEventData
+import com.github.heroslender.herochat.ui.pages.settings.automod.RulePatternPopup
 import com.github.heroslender.herochat.utils.onActivating
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
@@ -59,7 +60,7 @@ class RulePopup<T>(
                     return@RulePatternPopup
                 }
 
-                addPattern(i, data.rulePopupPattern!!, this)
+                addPattern(i, pattern, this)
             }.openPopup(ref, store)
             return
         } else if (data.action == ActionDeletePattern) {
@@ -79,7 +80,7 @@ class RulePopup<T>(
         onEvent(data)
     }
 
-    fun addPattern(index: Int?, pattern: String, popup: RulePatternPopup<*>) {
+    fun addPattern(index: Int?, pattern: String, popup: StringSupplierPopup<*>) {
         var patterns = updatedData.patterns
         if (patterns == null) {
             patterns = rule?.patterns?.toMutableList() ?: mutableListOf()

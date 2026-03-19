@@ -6,7 +6,7 @@ import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
 
-interface ChannelEventData : ActionEventData, ComponentManagerEventData {
+interface ChannelEventData : ActionEventData, ComponentManagerEventData, UpdateCommandPopup.EventData {
     var format: String?
     var permission: String?
     var crossWorld: Boolean?
@@ -16,9 +16,19 @@ interface ChannelEventData : ActionEventData, ComponentManagerEventData {
     var capslockFilterPercentage: Int?
     var capslockFilterMinLength: Int?
 
+    var commandId: String?
+
     object ActionType {
         const val Save = "save"
         const val Close = "close"
+
+        const val NewCommand = "newChannelCommand"
+        const val EditCommand = "editChannelCommand"
+        const val DeleteCommand = "deleteChannelCommand"
+
+        const val NewShoutCommand = "newChannelShoutCommand"
+        const val EditShoutCommand = "editChannelShoutCommand"
+        const val DeleteShoutCommand = "deleteChannelShoutCommand"
 
         const val NewComponent = ComponentManagerEventData.ActionType.NewComponent
         const val EditComponent = ComponentManagerEventData.ActionType.EditComponent
@@ -28,6 +38,7 @@ interface ChannelEventData : ActionEventData, ComponentManagerEventData {
     companion object {
         const val Action = ActionEventData.Action
 
+        const val CommandId = "CommandId"
         const val ComponentId = ComponentManagerEventData.ComponentId
 
         const val FieldFormat = "@Format"
@@ -68,6 +79,10 @@ interface ChannelEventData : ActionEventData, ComponentManagerEventData {
                     KeyedCodec(FieldCapslockFilterMinLength, Codec.INTEGER),
                     { e, v -> e.capslockFilterMinLength = v },
                     { e -> e.capslockFilterMinLength }).add()
+                .append(
+                    KeyedCodec(CommandId, Codec.STRING),
+                    { e, v -> e.commandId = v },
+                    { e -> e.commandId }).add()
         }
     }
 }

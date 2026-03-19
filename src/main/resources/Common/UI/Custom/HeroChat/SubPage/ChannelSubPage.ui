@@ -63,6 +63,14 @@ Group {
     }
   }
 
+  $S.@CommandListSetting #Commands {
+    @Text = "Commands";
+  }
+
+  $S.@CommandListSetting #ShoutCommands {
+    @Text = "Shout Commands";
+  }
+
   $S.@TextSetting #Permission {
     @Text = "Permission";
     @Placeholder = "Channel permission";

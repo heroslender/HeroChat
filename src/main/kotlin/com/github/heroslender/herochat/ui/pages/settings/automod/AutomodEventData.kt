@@ -1,7 +1,6 @@
 package com.github.heroslender.herochat.ui.pages.settings.automod
 
 import com.github.heroslender.herochat.ui.event.ActionEventData
-import com.github.heroslender.herochat.ui.popup.RulePatternPopup
 import com.github.heroslender.herochat.ui.popup.RulePopup
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
@@ -17,7 +16,6 @@ interface AutomodEventData : ActionEventData, RulePatternPopup.EventData, RulePo
     var ruleIsRegex: Boolean?
     var ruleReplacement: String?
     var ruleBlockMessage: String?
-    override var rulePopupPattern: String?
 
     object ActionType {
         const val Save = "save"
@@ -71,10 +69,6 @@ interface AutomodEventData : ActionEventData, RulePatternPopup.EventData, RulePo
                     KeyedCodec(FieldRuleBlockMessage, Codec.STRING),
                     { e, v -> e.ruleBlockMessage = v },
                     { e -> e.ruleBlockMessage }).add()
-                .append(
-                    KeyedCodec(FieldRulePopupPattern, Codec.STRING),
-                    { e, v -> e.rulePopupPattern = v },
-                    { e -> e.rulePopupPattern }).add()
         }
     }
 }

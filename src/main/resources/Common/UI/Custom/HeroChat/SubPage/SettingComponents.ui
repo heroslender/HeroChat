@@ -108,3 +108,34 @@ $Sounds = "../../Sounds.ui";
     Value: 60;
   }
 };
+
+@CommandListSetting = Group {
+  @Text = "Commands";
+  Anchor: (Bottom: 8);
+  Background: (TexturePath: "../Assets/OptionBackgroundPatch.png", Border: 16);
+  LayoutMode: Top;
+
+  Group {
+    LayoutMode: Left;
+
+    Label #Name {
+      Text: @Text;
+      Style: (TextColor: #96a9be, FontSize: 18);
+      Anchor: (Top: 8, Left: 16);
+    }
+
+    $C.@TertiaryTextButton #NewCommandBtn {
+      @Text = "+";
+      Padding: (Horizontal: 0);
+      Anchor: (Width: 26, Height: 26, Top: 8, Left: 12);
+      TooltipText: "Add a new command";
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+  }
+
+  Group #List {
+    LayoutMode: LeftCenterWrap;
+    Anchor: (Bottom: 12);
+  }
+};
