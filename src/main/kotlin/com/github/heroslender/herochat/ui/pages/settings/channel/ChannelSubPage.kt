@@ -91,7 +91,6 @@ class ChannelSubPage(
         when (data.action) {
             ChannelEventData.ActionType.NewCommand,
             ChannelEventData.ActionType.EditCommand -> onUpdateCommand(data.commandId, ref, store)
-
             ChannelEventData.ActionType.DeleteCommand -> onDeleteCommand(data.commandId ?: return)
 
             ChannelEventData.ActionType.NewShoutCommand,

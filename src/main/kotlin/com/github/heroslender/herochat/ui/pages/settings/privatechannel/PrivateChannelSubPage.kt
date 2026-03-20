@@ -9,6 +9,7 @@ import com.github.heroslender.herochat.ui.SubPage
 import com.github.heroslender.herochat.ui.pages.settings.ChatSettingsPage
 import com.github.heroslender.herochat.ui.pages.settings.UiState
 import com.github.heroslender.herochat.ui.pages.settings.channel.ChannelSubPage
+import com.github.heroslender.herochat.ui.pages.settings.channel.UpdateCommandPopup
 import com.github.heroslender.herochat.ui.popup.ComponentPopup
 import com.github.heroslender.herochat.ui.popup.ConfirmationPopup
 import com.github.heroslender.herochat.utils.onActivating
@@ -21,7 +22,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.NotificationUtil
-import kotlin.collections.iterator
 
 class PrivateChannelSubPage(
     parent: ChatSettingsPage,
@@ -42,6 +42,8 @@ class PrivateChannelSubPage(
     ) {
         appendFormattedSenderPreview(cmd)
         appendFormattedReceiverPreview(cmd)
+
+        populateCommands(cmd, evt)
 
         populateComponents(cmd, evt)
 
@@ -77,6 +79,10 @@ class PrivateChannelSubPage(
             "#NewComponentBtn",
             PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.NewComponent
         )
+        evt.onActivating(
+            "#Commands #NewCommandBtn",
+            PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.NewCommand
+        )
         evt.onActivating("#Save", PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.Save)
         evt.onActivating("#CloseButton", PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.Close)
         evt.onActivating("#Cancel", PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.Close)
@@ -88,120 +94,158 @@ class PrivateChannelSubPage(
         data: UiState
     ) {
         when (data.action) {
+            PrivateChannelEventData.ActionType.NewCommand,
+            PrivateChannelEventData.ActionType.EditCommand -> onUpdateCommand(data.commandId, ref, store)
+            PrivateChannelEventData.ActionType.DeleteCommand -> onDeleteCommand(data.commandId ?: return)
+
             PrivateChannelEventData.ActionType.NewComponent,
-            PrivateChannelEventData.ActionType.EditComponent -> {
-                val id = data.componentId
-                val component = if (id != null) {
-                    updatedData.components?.get(id) ?: channel.components[id]
-                } else null
+            PrivateChannelEventData.ActionType.EditComponent -> onUpdateComponent(data.componentId, ref, store)
+            PrivateChannelEventData.ActionType.DeleteComponent -> onDeleteComponent(data.componentId ?: return)
 
-                ComponentPopup(parent, id, component) { data ->
-                    when (data.action) {
-                        ComponentPopup.ActionCancelPopup -> closePopup()
-                        ComponentPopup.ActionConfirmPopup -> {
-                            onSaveChatComponent(data)
-                            closePopup()
-                        }
+            PrivateChannelEventData.ActionType.Save -> onSave()
+            PrivateChannelEventData.ActionType.Close -> onClose(ref, store)
+
+            else -> {
+                if (data.permission != null) {
+                    updatedData.permission = data.permission
+                } else if (data.format != null) {
+                    updatedData.senderFormat = data.format
+                    this.senderFormat = data.format!!
+
+                    updateSenderPreview()
+                } else if (data.capslockFilterEnabled != null) {
+                    updatedData.capslockFilterEnabled = data.capslockFilterEnabled!!
+
+                    runUiCmdUpdate { cmd ->
+                        cmd["#CapslockSettings.Visible"] = data.capslockFilterEnabled!!
                     }
-                }.openPopup(ref, store)
-                return
-            }
-
-            PrivateChannelEventData.ActionType.DeleteComponent -> {
-                val id = data.componentId
-                if (id != null) {
-                    var components = updatedData.components
-                    if (components == null) {
-                        components = HashMap(channel.components)
-                        updatedData.components = components
-                    }
-
-                    components.remove(id)
-
-                    runUiCmdEvtUpdate { cmd, evt ->
-                        updateSenderPreview()
-                        updateReceiverPreview()
-                        populateComponents(cmd, evt)
-                    }
+                } else if (data.capslockFilterPercentage != null) {
+                    updatedData.capslockFilterPercentage = data.capslockFilterPercentage!!
+                } else if (data.capslockFilterMinLength != null) {
+                    updatedData.capslockFilterMinLength = data.capslockFilterMinLength!!
                 }
-                return
-            }
-
-            PrivateChannelEventData.ActionType.Save -> {
-                if (!updatedData.hasChanges()) {
-                    NotificationUtil.sendNotification(
-                        playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
-                    )
-                    return
-                }
-
-                val config = HeroChat.instance.privateChannelConfig ?: return
-                if (updatedData.senderFormat != null) {
-                    config.senderFormat = updatedData.senderFormat!!
-                }
-                if (updatedData.receiverFormat != null) {
-                    config.receiverFormat = updatedData.receiverFormat!!
-                }
-                if (updatedData.permission != null) {
-                    config.permission = updatedData.permission!!
-                }
-                if (updatedData.capslockFilterEnabled != null) {
-                    config.capslockFilter.enabled = updatedData.capslockFilterEnabled!!
-                }
-                if (updatedData.capslockFilterPercentage != null) {
-                    config.capslockFilter.percentage = updatedData.capslockFilterPercentage!!
-                }
-                if (updatedData.capslockFilterMinLength != null) {
-                    config.capslockFilter.minLength = updatedData.capslockFilterMinLength!!
-                }
-                if (updatedData.components != null) {
-                    config.components = updatedData.components!!
-                }
-
-                HeroChat.instance.saveChannelConfig(channel.id)
-                updatedData.clear()
-                NotificationUtil.sendNotification(
-                    playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
-                )
-                return
-            }
-
-            PrivateChannelEventData.ActionType.Close -> {
-                if (updatedData.hasChanges()) {
-                    ConfirmationPopup(
-                        parent,
-                        title = "Unsaved Changes",
-                        message = "Are you sure you want to leave without saving the changes made?",
-                        onConfirm = {
-                            parent.closePage()
-                        }
-                    ).openPopup(ref, store)
-                    return
-                }
-
-                parent.closePage()
-                return
             }
         }
+    }
 
-        if (data.permission != null) {
-            updatedData.permission = data.permission
-        } else if (data.format != null) {
-            updatedData.senderFormat = data.format
-            this.senderFormat = data.format!!
+    fun onUpdateCommand(command: String?, ref: Ref<EntityStore?>, store: Store<EntityStore?>) {
+        UpdateCommandPopup(parent, command) { cmd, _ ->
+            val cmds = updatedData.commands ?: channel.commands.toMutableList()
+            val i = cmds.indexOf(command)
+            if (i != -1) {
+                cmds[i] = cmd!!
+            } else {
+                cmds.add(cmd!!)
+            }
+            updatedData.commands = cmds
 
+            runUiCmdEvtUpdate { cmd, evt ->
+                populateCommands(cmd, evt)
+            }
+            closePopup()
+        }.openPopup(ref, store)
+    }
+
+    fun onDeleteCommand(cmd: String) {
+        val cmds = updatedData.commands ?: channel.commands.toMutableList()
+        if (cmds.remove(cmd)) {
+            updatedData.commands = cmds
+
+            runUiCmdEvtUpdate { cmd, evt ->
+                populateCommands(cmd, evt)
+            }
+        }
+    }
+
+    fun onUpdateComponent(id: String?, ref: Ref<EntityStore?>, store: Store<EntityStore?>) {
+        val component = if (id != null) {
+            updatedData.components?.get(id) ?: channel.components[id]
+        } else null
+
+        ComponentPopup(parent, id, component) { data ->
+            when (data.action) {
+                ComponentPopup.ActionCancelPopup -> closePopup()
+                ComponentPopup.ActionConfirmPopup -> {
+                    onSaveChatComponent(data)
+                    closePopup()
+                }
+            }
+        }.openPopup(ref, store)
+    }
+
+    fun onDeleteComponent(id: String) {
+        var components = updatedData.components
+        if (components == null) {
+            components = HashMap(channel.components)
+            updatedData.components = components
+        }
+
+        components.remove(id)
+
+        runUiCmdEvtUpdate { cmd, evt ->
             updateSenderPreview()
-        } else if (data.capslockFilterEnabled != null) {
-            updatedData.capslockFilterEnabled = data.capslockFilterEnabled!!
-
-            runUiCmdUpdate { cmd ->
-                cmd["#CapslockSettings.Visible"] = data.capslockFilterEnabled!!
-            }
-        } else if (data.capslockFilterPercentage != null) {
-            updatedData.capslockFilterPercentage = data.capslockFilterPercentage!!
-        } else if (data.capslockFilterMinLength != null) {
-            updatedData.capslockFilterMinLength = data.capslockFilterMinLength!!
+            updateReceiverPreview()
+            populateComponents(cmd, evt)
         }
+    }
+
+    fun onSave() {
+        if (!updatedData.hasChanges()) {
+            NotificationUtil.sendNotification(
+                playerRef.packetHandler, Message.raw("Nothing to update"), NotificationStyle.Warning
+            )
+            return
+        }
+
+        val config = HeroChat.instance.privateChannelConfig
+
+        if (updatedData.commands != null) {
+            config.commands = updatedData.commands!!.toTypedArray()
+        }
+        if (updatedData.senderFormat != null) {
+            config.senderFormat = updatedData.senderFormat!!
+        }
+        if (updatedData.receiverFormat != null) {
+            config.receiverFormat = updatedData.receiverFormat!!
+        }
+        if (updatedData.permission != null) {
+            config.permission = updatedData.permission!!
+        }
+        if (updatedData.capslockFilterEnabled != null) {
+            config.capslockFilter.enabled = updatedData.capslockFilterEnabled!!
+        }
+        if (updatedData.capslockFilterPercentage != null) {
+            config.capslockFilter.percentage = updatedData.capslockFilterPercentage!!
+        }
+        if (updatedData.capslockFilterMinLength != null) {
+            config.capslockFilter.minLength = updatedData.capslockFilterMinLength!!
+        }
+        if (updatedData.components != null) {
+            config.components = updatedData.components!!
+        }
+
+        HeroChat.instance.saveChannelConfig(channel.id)
+        updatedData.clear()
+        NotificationUtil.sendNotification(
+            playerRef.packetHandler, Message.raw("Config saved!"), NotificationStyle.Success
+        )
+    }
+
+    fun onClose(ref: Ref<EntityStore?>, store: Store<EntityStore?>) {
+        if (updatedData.hasChanges()) {
+            ConfirmationPopup(
+                parent,
+                title = "Unsaved Changes",
+                message = "Are you sure you want to leave without saving the changes made?",
+                onConfirm = {
+                    parent.closePage()
+                }
+            ).openPopup(ref, store)
+            return
+        }
+
+        parent.closePage()
+        return
     }
 
     fun onSaveChatComponent(data: UiState) {
@@ -240,6 +284,27 @@ class PrivateChannelSubPage(
             updateSenderPreview()
             updateReceiverPreview()
             populateComponents(cmd, evt)
+        }
+    }
+
+    fun populateCommands(cmd: UICommandBuilder, evt: UIEventBuilder) {
+        cmd.clear("#Commands #List")
+
+        val cmds = updatedData.commands ?: channel.commands.toMutableList()
+        for ((i, command) in cmds.withIndex()) {
+            cmd.append("#Commands #List", "HeroChat/SubPage/CommandListItem.ui")
+
+            cmd["#Commands #List[$i] #Txt.Text"] = command
+            evt.onActivating(
+                "#Commands #List[$i] #EditBtn",
+                PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.EditCommand,
+                PrivateChannelEventData.CommandId to command
+            )
+            evt.onActivating(
+                "#Commands #List[$i] #DeleteBtn",
+                PrivateChannelEventData.Action to PrivateChannelEventData.ActionType.DeleteCommand,
+                PrivateChannelEventData.CommandId to command
+            )
         }
     }
 
@@ -321,10 +386,19 @@ class PrivateChannelSubPage(
         var capslockFilterPercentage: Int? = null,
         var capslockFilterMinLength: Int? = null,
 
+        var commands: MutableList<String>? = null,
+
         var components: MutableMap<String, ComponentConfig>? = null,
     ) {
         fun hasChanges(): Boolean =
-            senderFormat != null || receiverFormat != null || permission != null || capslockFilterEnabled != null || capslockFilterPercentage != null || capslockFilterMinLength != null || components != null
+            senderFormat != null
+                    || receiverFormat != null
+                    || permission != null
+                    || capslockFilterEnabled != null
+                    || capslockFilterPercentage != null
+                    || capslockFilterMinLength != null
+                    || commands != null
+                    || components != null
 
         fun clear() {
             senderFormat = null
@@ -333,6 +407,7 @@ class PrivateChannelSubPage(
             capslockFilterEnabled = null
             capslockFilterPercentage = null
             capslockFilterMinLength = null
+            commands = null
             components = null
         }
     }

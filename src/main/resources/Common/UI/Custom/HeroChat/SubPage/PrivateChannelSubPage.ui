@@ -93,6 +93,10 @@ Group {
     }
   }
 
+  $S.@CommandListSetting #Commands {
+    @Text = "Commands";
+  }
+
   $S.@TextSetting #Permission {
     @Text = "Permission";
     @Placeholder = "Channel permission";

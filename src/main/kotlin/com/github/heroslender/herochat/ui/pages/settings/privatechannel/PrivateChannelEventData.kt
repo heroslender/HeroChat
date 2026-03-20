@@ -14,6 +14,10 @@ interface PrivateChannelEventData : ChannelEventData {
         const val Save = "save"
         const val Close = "close"
 
+        const val NewCommand = "newChannelCommand"
+        const val EditCommand = "editChannelCommand"
+        const val DeleteCommand = "deleteChannelCommand"
+
         const val NewComponent = ComponentManagerEventData.ActionType.NewComponent
         const val EditComponent = ComponentManagerEventData.ActionType.EditComponent
         const val DeleteComponent = ComponentManagerEventData.ActionType.DeleteComponent
@@ -22,6 +26,7 @@ interface PrivateChannelEventData : ChannelEventData {
     companion object {
         const val Action = ActionEventData.Action
 
+        const val CommandId = "CommandId"
         const val ComponentId = ComponentManagerEventData.ComponentId
 
         const val FieldReceiverFormat = "@ReceiverFormat"
